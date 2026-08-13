@@ -41,7 +41,7 @@ src/server.ts   ← entry point only (app.listen lives here)
 - Named exports everywhere — default export only for app.ts and server.ts
 
 ## Available npm scripts
-npm run dev          ← tsx watch src/server.ts (hot reload)
+npm run dev          ← tsx watch --env-file=.env src/server.ts (hot reload, loads .env explicitly)
 npm test             ← vitest run (all tests)
 npm run db:generate  ← prisma migrate dev (create + apply migration in dev)
 npm run db:migrate   ← prisma migrate deploy (apply existing migrations — production only)
