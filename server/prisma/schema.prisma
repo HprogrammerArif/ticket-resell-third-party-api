@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  giftCardRedemptions GiftCardRedemption[]
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model GiftCard {
+  id             String         @id @default(cuid())
+  code           String         @unique
+  balance        Decimal        @db.Decimal(10, 2)
+  initialBalance Decimal        @db.Decimal(10, 2)
+  status         GiftCardStatus @default(ACTIVE)
+  issuedTo       String?
+  expiresAt      DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  redemptions GiftCardRedemption[]
+}
+
+model GiftCardRedemption {
+  id         String   @id @default(cuid())
+  giftCardId String
+  userId     String?
+  amount     Decimal  @db.Decimal(10, 2)
+  notes      String?
+  redeemedAt DateTime @default(now())
+
+  giftCard GiftCard @relation(fields: [giftCardId], references: [id])
+  user     User?    @relation(fields: [userId], references: [id])
+}
+
+model CachedCategory {
+  id         Int      @id
+  name       String
+  path       String   @unique
+  parentPath String?
+  data       Json
+  cachedAt   DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model CachedEvent {
+  id          Int      @id
+  name        String
+  date        DateTime
+  venueId     Int?
+  performerId Int?
+  data        Json
+  cachedAt    DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model CachedPerformer {
+  id        Int      @id
+  name      String
+  data      Json
+  cachedAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CachedVenue {
+  id        Int      @id
+  name      String
+  city      String?
+  state     String?
+  data      Json
+  cachedAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum GiftCardStatus {
+  ACTIVE
+  REDEEMED
+  EXPIRED
+  CANCELLED
+}
