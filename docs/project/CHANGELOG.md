@@ -12,6 +12,17 @@ Format:
 
 ---
 
+## 2026-08-13 — Phase 0 post-review fixes
+
+- Fixed `ApiError` prototype chain (`Object.setPrototypeOf`) — `instanceof` was silently broken in CommonJS TypeScript
+- Fixed `server/CLAUDE.md` dev script (missing `--env-file=.env`)
+- Added `server/.env.example` with all required keys and Windows note
+- Made `vitest.config.mts` `setupFiles` path absolute via `fileURLToPath`
+- Added schema comments: AdminUser is intentionally separate from User (super-admin credentials); GiftCardRedemption has no updatedAt by design (immutable financial record)
+- Commit: `f7b4e25`
+
+---
+
 ## 2026-08-13 — Phase 0 completed
 
 - Express server scaffolded and running on port 8000 (`server/`)

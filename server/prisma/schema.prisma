@@ -7,6 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Regular customers. role=ADMIN grants admin-panel access to a customer account.
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -20,6 +21,8 @@ model User {
   giftCardRedemptions GiftCardRedemption[]
 }
 
+// Separate credential table for super-admin (Steven / back-office staff).
+// Intentionally not merged with User — admins never appear in customer flows.
 model AdminUser {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -43,6 +46,7 @@ model GiftCard {
   redemptions GiftCardRedemption[]
 }
 
+// No updatedAt — redemptions are intentionally immutable financial records.
 model GiftCardRedemption {
   id         String   @id @default(cuid())
   giftCardId String
