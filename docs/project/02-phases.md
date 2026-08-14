@@ -16,7 +16,7 @@
 | Phase | Name | Status | Blocker |
 |-------|------|--------|---------|
 | 0 | Repo & Environment Setup | `[DONE]` | — |
-| 1 | Express Backend — TicketNetwork Integration | `[NOT STARTED]` | — |
+| 1 | Express Backend — TicketNetwork Integration | `[DONE]` | — |
 | 2 | Next.js Frontend — Figma Implementation | `[NOT STARTED]` | — |
 | 3 | User Account System | `[NOT STARTED]` | — |
 | 4 | Gift Card System | `[NOT STARTED]` | — |
@@ -62,7 +62,7 @@
 
 ## Phase 1 — Express Backend: TicketNetwork Integration
 
-**Status:** `[NOT STARTED]`
+**Status:** `[DONE]`
 **Goal:** The backend can authenticate with TicketNetwork, cache/refresh tokens correctly, and expose typed wrapper functions for every CatalogAPI endpoint.
 
 ### Business tasks
