@@ -1,25 +1,32 @@
-import { describe, it, expect } from 'vitest';
-import express from 'express';
+import { describe, it, expect, beforeEach } from 'vitest';
+import express, { type Application } from 'express';
 import request from 'supertest';
 import rateLimit from 'express-rate-limit';
 
-// Tight limit so the test doesn't need 55+ requests
-const testLimiter = rateLimit({
-  windowMs: 60_000,
-  limit: 1,
-  standardHeaders: 'draft-7',
-  legacyHeaders: false,
-  handler: (_req, res) => {
-    res.status(429).json({
-      error: { code: 'RATE_LIMITED', message: 'Too many requests, please try again later', status: 429 },
-    });
-  },
-});
-
-const app = express();
-app.get('/test', testLimiter, (_req, res) => res.json({ ok: true }));
+function makeApp(): Application {
+  const limiter = rateLimit({
+    windowMs: 60_000,
+    limit: 1,
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    handler: (_req, res) => {
+      res.status(429).json({
+        error: { code: 'RATE_LIMITED', message: 'Too many requests, please try again later', status: 429 },
+      });
+    },
+  });
+  const app = express();
+  app.get('/test', limiter, (_req, res) => res.json({ ok: true }));
+  return app;
+}
 
 describe('rate limiter', () => {
+  let app: Application;
+
+  beforeEach(() => {
+    app = makeApp();
+  });
+
   it('allows first request through', async () => {
     const res = await request(app).get('/test');
     expect(res.status).toBe(200);

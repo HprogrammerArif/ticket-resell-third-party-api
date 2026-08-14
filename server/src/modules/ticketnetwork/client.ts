@@ -7,6 +7,14 @@ interface TnRequestOptions {
   params?: Record<string, string | number>;
 }
 
+async function parseJson<T>(response: Response): Promise<T> {
+  try {
+    return (await response.json()) as T;
+  } catch {
+    throw new ApiError(502, 'TN_API_ERROR', 'Malformed response from TicketNetwork');
+  }
+}
+
 function buildUrl(path: string, extra?: Record<string, string | number>): string {
   const params = new URLSearchParams({ websiteConfigId: String(env.TN_WCID) });
   if (extra) {
@@ -32,7 +40,7 @@ export async function tnRequest<T>(path: string, options: TnRequestOptions = {})
         headers: { Authorization: `Bearer ${fresh}`, Accept: 'application/json' },
       });
       if (!retry.ok) throw new ApiError(502, 'TN_API_ERROR', 'TN API error after token refresh');
-      return retry.json() as Promise<T>;
+      return parseJson<T>(retry);
     }
     throw new ApiError(502, 'TN_API_ERROR', 'TicketNetwork authentication failed');
   }
@@ -41,5 +49,5 @@ export async function tnRequest<T>(path: string, options: TnRequestOptions = {})
     throw new ApiError(502, 'TN_API_ERROR', `TicketNetwork API returned ${response.status}`);
   }
 
-  return response.json() as Promise<T>;
+  return parseJson<T>(response);
 }

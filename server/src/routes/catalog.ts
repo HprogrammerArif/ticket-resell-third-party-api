@@ -120,7 +120,7 @@ router.get('/cities', async (req: Request, res: Response, next: NextFunction) =>
 
 router.get('/search/suggest', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const q = req.query.q as string | undefined;
+    const q = (req.query.q as string | undefined)?.trim();
     if (!q) throw new ApiError(422, 'VALIDATION_ERROR', 'q query parameter is required');
     res.json(await catalog.globalSuggest(q));
   } catch (err) { next(err); }

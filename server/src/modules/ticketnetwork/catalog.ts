@@ -11,7 +11,7 @@ import type {
 
 function opts(p: Record<string, unknown>): { params?: Record<string, string | number> } {
   const filtered = Object.fromEntries(
-    Object.entries(p).filter(([, v]) => v !== undefined),
+    Object.entries(p).filter(([, v]) => typeof v === 'string' || typeof v === 'number'),
   ) as Record<string, string | number>;
   return Object.keys(filtered).length > 0 ? { params: filtered } : {};
 }

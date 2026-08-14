@@ -63,14 +63,19 @@ export async function getToken(): Promise<string> {
 export async function revokeToken(): Promise<void> {
   if (!state) return;
   if (state.refreshTimer) clearTimeout(state.refreshTimer);
-  await fetch(env.TN_REVOKE_URL, {
-    method: 'POST',
-    headers: {
-      Authorization: `Basic ${basicAuth()}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: `token=${state.accessToken}`,
-  });
+  try {
+    const res = await fetch(env.TN_REVOKE_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: `Basic ${basicAuth()}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `token=${state.accessToken}`,
+    });
+    if (!res.ok) logger.warn({ status: res.status }, 'TN token revocation returned non-OK status');
+  } catch (err: unknown) {
+    logger.warn(err, 'TN token revocation request failed');
+  }
   state = null;
   logger.info('TN token revoked');
 }
