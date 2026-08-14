@@ -7,4 +7,22 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+
+  :root {
+    /* Brand */
+    --color-brand: #ea2a43;
+    --color-brand-muted: rgba(234, 42, 67, 0.5);
+    --color-brand-subtle: rgba(234, 42, 67, 0.1);
+
+    /* Surfaces */
+    --color-surface: #0f0f0f;
+    --color-surface-raised: #171717;
+    --color-surface-border: #262626;
+
+    /* Text */
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #a1a1a1;
+    --color-text-muted: #737373;
+    --color-text-light: #d4d4d4;
+  }
 }
