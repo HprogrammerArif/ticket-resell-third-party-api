@@ -1,0 +1,48 @@
+{
+  "RootLayout": {
+    "home_link": "Accueil",
+    "sign_in_link": "Se connecter",
+    "sign_up_link": "S'inscrire"
+  },
+
+  "Index": {
+    "meta_title": "MyApp — Kit de démarrage Next.js",
+    "meta_description": "Un kit de démarrage Next.js flexible et prêt pour la production.",
+    "hero_title": "Votre prochain projet",
+    "hero_title_highlight": "commence ici.",
+    "hero_description": "Un kit de démarrage Next.js 16 prêt pour la production. Conçu pour les pages d'atterrissage, les backends personnalisés ou les applications full-stack.",
+    "hero_cta_primary": "Commencer",
+    "hero_cta_secondary": "Se connecter",
+    "features_title": "Trois modes, un seul kit",
+    "features_subtitle": "Choisissez l'architecture adaptée à votre projet. Le reste reste identique.",
+    "feature_1_title": "Page d'atterrissage",
+    "feature_1_description": "Frontend pur. Aucune base de données requise. Construisez des sites marketing rapides avec i18n, SEO et Tailwind intégrés.",
+    "feature_2_title": "Backend personnalisé",
+    "feature_2_description": "Connectez-vous à votre propre API externe via le ApiClient intégré. Votre application Next.js reste légère.",
+    "feature_3_title": "Full Stack",
+    "feature_3_description": "Backend intégré avec Drizzle ORM, PostgreSQL et les Route Handlers Next.js. Tout ce dont vous avez besoin pour une application en production."
+  },
+  "SignIn": {
+    "meta_title": "Se connecter",
+    "meta_description": "Connectez-vous facilement à votre compte."
+  },
+  "SignUp": {
+    "meta_title": "S'inscrire",
+    "meta_description": "Créez facilement votre compte."
+  },
+  "Dashboard": {
+    "hello_message": "Bonjour {email}!",
+    "alternative_message": "Bienvenue sur votre tableau de bord."
+  },
+  "DashboardLayout": {
+    "meta_title": "Tableau de bord",
+    "meta_description": "Gérez votre compte et vos paramètres.",
+    "dashboard_link": "Tableau de bord",
+    "user_profile_link": "Gérer votre compte",
+    "sign_out": "Se déconnecter"
+  },
+  "LocaleSwitcher": {
+    "change_language": "Changer de langue"
+  }
+}
+

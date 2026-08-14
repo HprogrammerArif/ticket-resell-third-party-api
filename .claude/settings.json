@@ -1,0 +1,16 @@
+{
+  "enabledPlugins": {
+    "figma@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true
+  },
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(npx prisma *)",
+      "Bash(git *)",
+      "Read(**)",
+      "Write(client/**)",
+      "Write(server/**)"
+    ]
+  }
+}

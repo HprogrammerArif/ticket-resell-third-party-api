@@ -1,0 +1,48 @@
+{
+  "RootLayout": {
+    "home_link": "Home",
+    "sign_in_link": "Sign in",
+    "sign_up_link": "Sign up"
+  },
+
+  "Index": {
+    "meta_title": "MyApp — Production-Ready Next.js Starter",
+    "meta_description": "A flexible, production-ready Next.js starter kit for landing pages, custom backends, and full-stack applications.",
+    "hero_title": "Your next project",
+    "hero_title_highlight": "starts here.",
+    "hero_description": "A production-ready Next.js 16 starter kit. Built for landing pages, custom backends, or full-stack apps — with TypeScript, Tailwind v4, i18n, auth, and more ready to go.",
+    "hero_cta_primary": "Get started",
+    "hero_cta_secondary": "Sign in",
+    "features_title": "Three modes, one starter",
+    "features_subtitle": "Choose the architecture that fits your project. Everything else stays the same.",
+    "feature_1_title": "Landing Page",
+    "feature_1_description": "Pure frontend. No database required. Build fast, static, or dynamic marketing sites with full i18n, SEO, and Tailwind styling out of the box.",
+    "feature_2_title": "Custom Backend",
+    "feature_2_description": "Connect to your own external API using the built-in ApiClient. Your Next.js app stays lean — just UI and data fetching from your separate backend.",
+    "feature_3_title": "Full Stack",
+    "feature_3_description": "Built-in backend with Drizzle ORM, PostgreSQL, and Next.js Route Handlers. Everything you need for a production app, right inside this project."
+  },
+  "SignIn": {
+    "meta_title": "Sign in",
+    "meta_description": "Seamlessly sign in to your account with our user-friendly login process."
+  },
+  "SignUp": {
+    "meta_title": "Sign up",
+    "meta_description": "Effortlessly create an account through our intuitive sign-up process."
+  },
+  "Dashboard": {
+    "hello_message": "Hello {email}!",
+    "alternative_message": "Welcome to your dashboard."
+  },
+  "DashboardLayout": {
+    "meta_title": "Dashboard",
+    "meta_description": "Manage your account and settings.",
+    "dashboard_link": "Dashboard",
+    "user_profile_link": "Manage your account",
+    "sign_out": "Sign out"
+  },
+  "LocaleSwitcher": {
+    "change_language": "Change language"
+  }
+}
+
