@@ -95,7 +95,7 @@ export default async function ArtistsPage(props: ArtistsPageProps) {
           type="submit"
           className="rounded-full bg-[var(--color-brand-muted)] px-6 py-2 text-[14px] font-medium text-white hover:bg-[var(--color-brand)]"
         >
-          {t('filter_keyword').replace('...', '')}
+          {t('filter_submit')}
         </button>
       </form>
 

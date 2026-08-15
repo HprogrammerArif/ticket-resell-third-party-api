@@ -116,7 +116,7 @@ export default async function ArtistDetailPage(props: ArtistDetailPageProps) {
           </h1>
           {performer.upcomingEventCount !== undefined && (
             <p className="mt-1 text-[14px] text-[var(--color-text-secondary)]">
-              {performer.upcomingEventCount} {t('upcoming_events')}
+              {t('upcoming_events', { count: performer.upcomingEventCount })}
             </p>
           )}
         </div>
