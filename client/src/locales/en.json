@@ -186,7 +186,9 @@
     "meta_title": "{name} — TicketLove.net",
     "meta_description": "Browse events in {name}.",
     "no_events": "No events found in this category.",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "error_message": "Something went wrong.",
+    "try_again": "Try again"
   },
   "VenuesPage": {
     "meta_title": "Venues — TicketLove.net",
@@ -196,12 +198,17 @@
     "filter_state": "State / Province",
     "apply_filters": "Apply Filters",
     "no_venues": "No venues found.",
-    "loading": "Loading venues..."
+    "loading": "Loading venues...",
+    "error_message": "Something went wrong.",
+    "try_again": "Try again"
   },
   "VenueDetailPage": {
     "meta_title": "{name} — TicketLove.net",
+    "meta_title_fallback": "Venue — TicketLove.net",
     "upcoming_events": "Upcoming Events at this Venue",
-    "no_events": "No upcoming events found at this venue."
+    "no_events": "No upcoming events found at this venue.",
+    "error_message": "Something went wrong.",
+    "try_again": "Try again"
   },
   "SearchPage": {
     "meta_title": "Search — TicketLove.net",
@@ -210,7 +217,9 @@
     "see_all_events": "See all events →",
     "events_heading": "Events",
     "artists_heading": "Artists",
-    "venues_heading": "Venues"
+    "venues_heading": "Venues",
+    "error_message": "Something went wrong.",
+    "try_again": "Try again"
   }
 }
 

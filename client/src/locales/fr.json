@@ -186,7 +186,9 @@
     "meta_title": "{name} — TicketLove.net",
     "meta_description": "Parcourir les événements dans {name}.",
     "no_events": "Aucun événement trouvé dans cette catégorie.",
-    "loading": "Chargement..."
+    "loading": "Chargement...",
+    "error_message": "Une erreur s'est produite.",
+    "try_again": "Réessayer"
   },
   "VenuesPage": {
     "meta_title": "Salles — TicketLove.net",
@@ -196,12 +198,17 @@
     "filter_state": "État / Province",
     "apply_filters": "Appliquer les filtres",
     "no_venues": "Aucune salle trouvée.",
-    "loading": "Chargement des salles..."
+    "loading": "Chargement des salles...",
+    "error_message": "Une erreur s'est produite.",
+    "try_again": "Réessayer"
   },
   "VenueDetailPage": {
     "meta_title": "{name} — TicketLove.net",
+    "meta_title_fallback": "Salle — TicketLove.net",
     "upcoming_events": "Événements à venir dans cette salle",
-    "no_events": "Aucun événement à venir trouvé dans cette salle."
+    "no_events": "Aucun événement à venir trouvé dans cette salle.",
+    "error_message": "Une erreur s'est produite.",
+    "try_again": "Réessayer"
   },
   "SearchPage": {
     "meta_title": "Recherche — TicketLove.net",
@@ -210,7 +217,9 @@
     "see_all_events": "Voir tous les événements →",
     "events_heading": "Événements",
     "artists_heading": "Artistes",
-    "venues_heading": "Salles"
+    "venues_heading": "Salles",
+    "error_message": "Une erreur s'est produite.",
+    "try_again": "Réessayer"
   }
 }
 
