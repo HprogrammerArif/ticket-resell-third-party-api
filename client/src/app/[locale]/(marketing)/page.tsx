@@ -4,9 +4,12 @@ import Image from 'next/image';
 import { getTranslations, getFormatter, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/libs/I18nNavigation';
 import { getEvents, getCategories, getPerformers, getCities } from '@/libs/CatalogApi';
-import { EventCard, EventCardSkeleton } from '@/components/catalog/EventCard';
-import { ArtistCard, ArtistCardSkeleton } from '@/components/catalog/ArtistCard';
-import { CategoryCard, CategoryCardSkeleton } from '@/components/catalog/CategoryCard';
+import { EventCard } from '@/components/catalog/EventCard';
+import { EventCardSkeleton } from '@/components/catalog/EventCardSkeleton';
+import { ArtistCard } from '@/components/catalog/ArtistCard';
+import { ArtistCardSkeleton } from '@/components/catalog/ArtistCardSkeleton';
+import { CategoryCard } from '@/components/catalog/CategoryCard';
+import { CategoryCardSkeleton } from '@/components/catalog/CategoryCardSkeleton';
 import { SearchBar } from '@/components/catalog/SearchBar';
 import { SectionHeading } from '@/components/catalog/SectionHeading';
 
@@ -98,7 +101,7 @@ export async function CategoriesSection(props: { locale: string }) {
       <SectionHeading title={t('browse_by_category')} />
       <div className="flex gap-4 overflow-x-auto pb-4">
         {categories.map((cat) => (
-          <CategoryCard key={cat.path} category={cat} />
+          <CategoryCard key={cat.path} category={cat} locale={props.locale} />
         ))}
       </div>
     </section>
@@ -262,7 +265,7 @@ function GiftCardSection(props: { locale: string; t: Awaited<ReturnType<typeof g
           {/* Static gift card visual */}
           <div className="flex items-center justify-center">
             <div className="w-64 rounded-2xl border border-[var(--color-brand-muted)] bg-[var(--color-surface-raised)] p-6 text-center">
-              <p className="mb-2 text-[14px] text-[var(--color-text-muted)]">Gift Card</p>
+              <p className="mb-2 text-[14px] text-[var(--color-text-muted)]">{t('gift_card_label')}</p>
               <p className="text-[48px] font-semibold text-[var(--color-brand)]">$100</p>
               <p className="mt-2 text-[13px] tracking-widest text-[var(--color-text-muted)]">
                 8472

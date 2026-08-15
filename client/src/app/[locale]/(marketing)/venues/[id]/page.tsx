@@ -4,7 +4,8 @@ import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { getVenueById, getEvents } from '@/libs/CatalogApi';
 import { ApiError } from '@/libs/ApiClient';
-import { EventCard, EventCardSkeleton } from '@/components/catalog/EventCard';
+import { EventCard } from '@/components/catalog/EventCard';
+import { EventCardSkeleton } from '@/components/catalog/EventCardSkeleton';
 import { SectionHeading } from '@/components/catalog/SectionHeading';
 
 type VenueDetailPageProps = {
@@ -45,9 +46,12 @@ export default async function VenueDetailPage(props: VenueDetailPageProps) {
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: 'VenueDetailPage' });
 
+  const numericId = Number(id);
+  if (!Number.isFinite(numericId)) { notFound(); }
+
   let venue;
   try {
-    venue = await getVenueById(Number(id));
+    venue = await getVenueById(numericId);
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) notFound();
     throw err;

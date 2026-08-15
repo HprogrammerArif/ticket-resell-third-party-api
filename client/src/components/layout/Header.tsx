@@ -57,7 +57,7 @@ export async function Header(props: { locale: string }) {
         {/* Mobile hamburger placeholder — no JS needed until Phase 3 */}
         <button
           type="button"
-          aria-label="Open menu"
+          aria-label={t('open_menu')}
           className="flex flex-col gap-1.5 md:hidden"
         >
           <span className="block h-0.5 w-6 bg-white" />

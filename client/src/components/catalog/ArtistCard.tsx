@@ -1,8 +1,10 @@
 import Image from 'next/image';
+import { getTranslations } from 'next-intl/server';
 import { Link } from '@/libs/I18nNavigation';
 import type { TnPerformer } from '@/types/Catalog';
 
-export function ArtistCard(props: { performer: TnPerformer; locale: string }) {
+export async function ArtistCard(props: { performer: TnPerformer; locale: string }) {
+  const t = await getTranslations({ locale: props.locale, namespace: 'ArtistCard' });
   const { performer } = props;
 
   const initials = performer.text.name
@@ -46,7 +48,7 @@ export function ArtistCard(props: { performer: TnPerformer; locale: string }) {
           className="text-[13px] text-[var(--color-text-muted)]"
           style={{ fontFamily: 'var(--font-jakarta)' }}
         >
-          {performer.upcomingEventCount} upcoming events
+          {t('upcoming_events', { count: performer.upcomingEventCount ?? 0 })}
         </p>
       )}
     </Link>

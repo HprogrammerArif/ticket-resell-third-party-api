@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { getPerformers } from '@/libs/CatalogApi';
-import { ArtistCard, ArtistCardSkeleton } from '@/components/catalog/ArtistCard';
+import { ArtistCard } from '@/components/catalog/ArtistCard';
+import { ArtistCardSkeleton } from '@/components/catalog/ArtistCardSkeleton';
 import { SectionHeading } from '@/components/catalog/SectionHeading';
 import { Pagination } from '@/components/catalog/Pagination';
 

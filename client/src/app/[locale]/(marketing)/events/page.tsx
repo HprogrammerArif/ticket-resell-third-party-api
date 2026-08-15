@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { searchEvents } from '@/libs/CatalogApi';
-import { EventCard, EventCardSkeleton } from '@/components/catalog/EventCard';
+import { EventCard } from '@/components/catalog/EventCard';
+import { EventCardSkeleton } from '@/components/catalog/EventCardSkeleton';
 import { SectionHeading } from '@/components/catalog/SectionHeading';
 import { Pagination } from '@/components/catalog/Pagination';
 

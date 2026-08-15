@@ -50,7 +50,8 @@
     "concerts": "Concerts",
     "theatre": "Théâtre",
     "gift_cards": "Cartes Cadeaux",
-    "get_started": "Commencer →"
+    "get_started": "Commencer →",
+    "open_menu": "Ouvrir le menu"
   },
   "Footer": {
     "company_heading": "COMPAGNIE",
@@ -97,6 +98,7 @@
     "city_electric": "Votre ville est électrique en ce moment",
     "see_all_events": "Voir tous les événements",
     "see_all_artists": "Voir tous les artistes",
+    "gift_card_label": "Carte cadeau",
     "gift_card_heading": "Le cadeau parfait",
     "gift_card_subheading": "Offrez le cadeau de la musique live 🎁",
     "gift_card_description": "Cartes cadeaux électroniques de 25$ à 500$",
@@ -140,7 +142,7 @@
     "tab_venue": "Lieu",
     "tab_faq": "FAQ",
     "get_tickets": "Obtenir des billets",
-    "get_tickets_coming_soon": "Acheter des billets — bientôt disponible",
+    "get_tickets_coming_soon": "Obtenir des billets — bientôt disponible",
     "people_viewing": "personnes consultent en ce moment",
     "ad_zone": "Zone publicitaire",
     "similar_events": "Événements similaires",
@@ -211,6 +213,12 @@
     "no_events": "Aucun événement à venir trouvé dans cette salle.",
     "error_message": "Une erreur s'est produite.",
     "try_again": "Réessayer"
+  },
+  "ArtistCard": {
+    "upcoming_events": "{count, plural, one {# événement à venir} other {# événements à venir}}"
+  },
+  "CategoryCard": {
+    "event_count": "{count, plural, one {# événement} other {# événements}}"
   },
   "SearchPage": {
     "meta_title": "Recherche — TicketLove.net",

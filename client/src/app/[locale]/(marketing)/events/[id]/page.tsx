@@ -50,9 +50,12 @@ export default async function EventDetailPage(props: EventDetailPageProps) {
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: 'EventDetailPage' });
 
+  const numericId = Number(id);
+  if (!Number.isFinite(numericId)) { notFound(); }
+
   let event;
   try {
-    event = await getEventById(Number(id));
+    event = await getEventById(numericId);
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) notFound();
     throw err;

@@ -5,8 +5,10 @@ import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { getPerformerById, getPerformers, searchEvents } from '@/libs/CatalogApi';
 import { ApiError } from '@/libs/ApiClient';
-import { ArtistCard, ArtistCardSkeleton } from '@/components/catalog/ArtistCard';
-import { EventCard, EventCardSkeleton } from '@/components/catalog/EventCard';
+import { ArtistCard } from '@/components/catalog/ArtistCard';
+import { ArtistCardSkeleton } from '@/components/catalog/ArtistCardSkeleton';
+import { EventCard } from '@/components/catalog/EventCard';
+import { EventCardSkeleton } from '@/components/catalog/EventCardSkeleton';
 import { SectionHeading } from '@/components/catalog/SectionHeading';
 
 type ArtistDetailPageProps = {
@@ -72,9 +74,12 @@ export default async function ArtistDetailPage(props: ArtistDetailPageProps) {
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: 'ArtistDetailPage' });
 
+  const numericId = Number(id);
+  if (!Number.isFinite(numericId)) { notFound(); }
+
   let performer;
   try {
-    performer = await getPerformerById(Number(id));
+    performer = await getPerformerById(numericId);
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) notFound();
     throw err;

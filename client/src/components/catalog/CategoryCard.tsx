@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server';
 import { Link } from '@/libs/I18nNavigation';
 import type { TnCategory } from '@/types/Catalog';
 
@@ -10,7 +11,8 @@ function categoryIcon(name: string): string {
   return '🎟️';
 }
 
-export function CategoryCard(props: { category: TnCategory; eventCount?: number }) {
+export async function CategoryCard(props: { category: TnCategory; eventCount?: number; locale: string }) {
+  const t = await getTranslations({ locale: props.locale, namespace: 'CategoryCard' });
   const { category } = props;
   const icon = categoryIcon(category.text.name);
 
@@ -32,7 +34,7 @@ export function CategoryCard(props: { category: TnCategory; eventCount?: number 
           className="text-[13px] text-[var(--color-text-muted)]"
           style={{ fontFamily: 'var(--font-jakarta)' }}
         >
-          {props.eventCount} events
+          {t('event_count', { count: props.eventCount ?? 0 })}
         </p>
       )}
     </Link>
