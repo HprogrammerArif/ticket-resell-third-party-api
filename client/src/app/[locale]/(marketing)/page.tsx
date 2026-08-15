@@ -1,209 +1,349 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
+import Image from 'next/image';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/libs/I18nNavigation';
+import { getEvents, getCategories, getPerformers, getCities } from '@/libs/CatalogApi';
+import { EventCard, EventCardSkeleton } from '@/components/catalog/EventCard';
+import { ArtistCard, ArtistCardSkeleton } from '@/components/catalog/ArtistCard';
+import { CategoryCard, CategoryCardSkeleton } from '@/components/catalog/CategoryCard';
+import { SearchBar } from '@/components/catalog/SearchBar';
+import { SectionHeading } from '@/components/catalog/SectionHeading';
 
-type IndexPageProps = {
-  params: Promise<{ locale: string }>;
-};
+type HomePageProps = { params: Promise<{ locale: string }> };
 
-export async function generateMetadata(props: IndexPageProps): Promise<Metadata> {
+export async function generateMetadata(props: HomePageProps): Promise<Metadata> {
   const { locale } = await props.params;
-  const t = await getTranslations({ locale, namespace: 'Index' });
-
-  return {
-    title: t('meta_title'),
-    description: t('meta_description'),
-  };
+  const t = await getTranslations({ locale, namespace: 'HomePage' });
+  return { title: t('meta_title'), description: t('meta_description') };
 }
 
-export default async function IndexPage(props: IndexPageProps) {
-  const { locale } = await props.params;
-  setRequestLocale(locale);
-  const t = await getTranslations({ locale, namespace: 'Index' });
+async function HeroSection(props: { locale: string }) {
+  const t = await getTranslations({ locale: props.locale, namespace: 'HomePage' });
+  const { results: events } = await getEvents({ pageSize: 5 });
+  const featured = events[0];
 
-  const features = [
-    {
-      icon: '🖥️',
-      title: t('feature_1_title'),
-      description: t('feature_1_description'),
-      badge: 'Mode 1',
-      accent: 'bg-violet-50 border-violet-100',
-      badgeColor: 'bg-violet-100 text-violet-700',
-      iconBg: 'bg-violet-100',
-    },
-    {
-      icon: '🔌',
-      title: t('feature_2_title'),
-      description: t('feature_2_description'),
-      badge: 'Mode 2',
-      accent: 'bg-sky-50 border-sky-100',
-      badgeColor: 'bg-sky-100 text-sky-700',
-      iconBg: 'bg-sky-100',
-    },
-    {
-      icon: '⚡',
-      title: t('feature_3_title'),
-      description: t('feature_3_description'),
-      badge: 'Mode 3',
-      accent: 'bg-emerald-50 border-emerald-100',
-      badgeColor: 'bg-emerald-100 text-emerald-700',
-      iconBg: 'bg-emerald-100',
-    },
+  return (
+    <section className="relative min-h-[600px] bg-gradient-to-br from-[#0f0f0f] to-[#1a0a0d] px-[107px] py-20 max-md:px-4">
+      {/* Background concert overlay shimmer */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0f0f0f] via-transparent to-transparent" />
+
+      <div className="relative mx-auto max-w-[1440px]">
+        {featured && (
+          <div className="max-w-2xl">
+            <h1
+              className="mb-4 text-[60px] font-semibold leading-[75px] tracking-[-1.5px] text-white max-md:text-[36px] max-md:leading-tight"
+              style={{ fontFamily: 'var(--font-poppins)' }}
+            >
+              {featured.text.name}
+            </h1>
+            <div
+              className="mb-2 flex gap-4 text-[14px] text-white/60"
+              style={{ fontFamily: 'var(--font-jakarta)' }}
+            >
+              {featured.date.date && <span>{featured.date.date}</span>}
+              {featured.venue && (
+                <span>
+                  {featured.venue.text.name}
+                  {featured.venue.city ? `, ${featured.venue.city}` : ''}
+                </span>
+              )}
+            </div>
+            <Link
+              href={`/events/${featured.id}`}
+              className="mt-6 inline-block rounded-full bg-[var(--color-brand-muted)] px-8 py-3 text-[18px] font-medium text-white hover:bg-[var(--color-brand)]"
+              style={{ fontFamily: 'var(--font-poppins)' }}
+            >
+              {t('hero_get_tickets')}
+            </Link>
+          </div>
+        )}
+
+        {/* SearchBar overlay */}
+        <div className="mt-12 max-w-3xl">
+          <SearchBar />
+        </div>
+      </div>
+
+      {/* Sponsor strip */}
+      <div className="absolute bottom-0 left-0 right-0 bg-[var(--color-brand-subtle)] px-[107px] py-4 max-md:px-4">
+        <div className="mx-auto flex max-w-[1440px] items-center gap-8 overflow-x-auto">
+          {(['google', 'spotify', 'canva', 'zoom', 'slack'] as const).map((brand) => (
+            <Image
+              key={brand}
+              src={`/sponsors/${brand}.png`}
+              alt={brand}
+              width={80}
+              height={24}
+              className="opacity-70 grayscale invert"
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+async function CategoriesSection(props: { locale: string }) {
+  const t = await getTranslations({ locale: props.locale, namespace: 'HomePage' });
+  const { results: categories } = await getCategories({ pageSize: 12 });
+
+  return (
+    <section className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
+      <SectionHeading title={t('browse_by_category')} />
+      <div className="flex gap-4 overflow-x-auto pb-4">
+        {categories.map((cat) => (
+          <CategoryCard key={cat.path} category={cat} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function CategoriesSkeleton() {
+  return (
+    <section className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
+      <div className="mb-6 h-8 w-64 animate-pulse rounded bg-[#262626]" />
+      <div className="flex gap-4 overflow-x-auto pb-4">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <CategoryCardSkeleton key={i} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+async function WeekendEventsSection(props: { locale: string }) {
+  const t = await getTranslations({ locale: props.locale, namespace: 'HomePage' });
+  const today = new Date().toISOString().split('T')[0]!;
+  const sunday = new Date();
+  sunday.setDate(sunday.getDate() + (7 - sunday.getDay()));
+  const dateToStr = sunday.toISOString().split('T')[0]!;
+  const { results: events } = await getEvents({ dateFrom: today, dateTo: dateToStr, pageSize: 6 });
+
+  return (
+    <section className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
+      <SectionHeading
+        title={t('happening_this_weekend')}
+        seeAllHref="/events"
+        seeAllLabel={t('see_all_events')}
+      />
+      <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-sm:grid-cols-1">
+        {events.map((ev) => (
+          <EventCard key={ev.id} event={ev} locale={props.locale} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function WeekendEventsSkeleton() {
+  return (
+    <section className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
+      <div className="mb-6 h-8 w-72 animate-pulse rounded bg-[#262626]" />
+      <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-sm:grid-cols-1">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <EventCardSkeleton key={i} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+async function ArtistsSection(props: { locale: string }) {
+  const t = await getTranslations({ locale: props.locale, namespace: 'HomePage' });
+  const { results: performers } = await getPerformers({ pageSize: 8 });
+
+  return (
+    <section className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
+      <SectionHeading
+        title={t('popular_artists')}
+        seeAllHref="/artists"
+        seeAllLabel={t('see_all_artists')}
+      />
+      <div className="flex gap-4 overflow-x-auto pb-4">
+        {performers.map((p) => (
+          <div key={p.id} className="min-w-[160px]">
+            <ArtistCard performer={p} locale={props.locale} />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ArtistsSkeleton() {
+  return (
+    <section className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
+      <div className="mb-6 h-8 w-56 animate-pulse rounded bg-[#262626]" />
+      <div className="flex gap-4 overflow-x-auto pb-4">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div key={i} className="min-w-[160px]">
+            <ArtistCardSkeleton />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+async function CityEventsSection(props: { locale: string }) {
+  const t = await getTranslations({ locale: props.locale, namespace: 'HomePage' });
+  const { results: cities } = await getCities({ pageSize: 5 });
+  const defaultCity = cities[0]?.text.name ?? '';
+  const { results: events } = await getEvents({ city: defaultCity, pageSize: 6 });
+
+  return (
+    <section className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
+      <SectionHeading
+        title={t('city_electric')}
+        seeAllHref={`/events?city=${encodeURIComponent(defaultCity)}`}
+        seeAllLabel={t('see_all_events')}
+      />
+      {defaultCity && (
+        <p className="mb-4 text-[14px] text-[var(--color-text-muted)]">
+          {defaultCity}
+        </p>
+      )}
+      <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-sm:grid-cols-1">
+        {events.map((ev) => (
+          <EventCard key={ev.id} event={ev} locale={props.locale} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function GiftCardSection(props: { locale: string; t: Awaited<ReturnType<typeof getTranslations>> }) {
+  const { t } = props;
+  return (
+    <section className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1a0a0d] to-[#0f0f0f] p-12 max-md:p-6">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(234,42,67,0.15),transparent_60%)]" />
+        <div className="relative grid grid-cols-2 gap-8 max-md:grid-cols-1">
+          <div>
+            <p className="mb-2 text-[14px] font-medium text-[var(--color-brand)]">
+              {t('gift_card_heading')}
+            </p>
+            <h2
+              className="mb-4 text-[40px] font-semibold leading-tight text-white max-md:text-[28px]"
+              style={{ fontFamily: 'var(--font-poppins)' }}
+            >
+              {t('gift_card_subheading')}
+            </h2>
+            <p className="mb-6 text-[var(--color-text-secondary)]">
+              {t('gift_card_description')}
+            </p>
+            <Link
+              href="/"
+              className="inline-block rounded-full bg-[var(--color-brand)] px-8 py-3 font-medium text-white hover:bg-[#c41e33]"
+            >
+              {t('gift_card_cta')}
+            </Link>
+          </div>
+          {/* Static gift card visual */}
+          <div className="flex items-center justify-center">
+            <div className="w-64 rounded-2xl border border-[var(--color-brand-muted)] bg-[var(--color-surface-raised)] p-6 text-center">
+              <p className="mb-2 text-[14px] text-[var(--color-text-muted)]">Gift Card</p>
+              <p className="text-[48px] font-semibold text-[var(--color-brand)]">$100</p>
+              <p className="mt-2 text-[13px] tracking-widest text-[var(--color-text-muted)]">
+                8472
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function HowItWorksSection(props: { locale: string; t: Awaited<ReturnType<typeof getTranslations>> }) {
+  const { t } = props;
+  const steps = [
+    { title: t('step_1_title'), description: t('step_1_description'), icon: '🔍' },
+    { title: t('step_2_title'), description: t('step_2_description'), icon: '🎫' },
+    { title: t('step_3_title'), description: t('step_3_description'), icon: '🎉' },
   ] as const;
 
   return (
-    <>
-      {/* ── Hero ── */}
-      <section className="relative overflow-hidden bg-white">
-        {/* Subtle background grid */}
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage:
-              'linear-gradient(#111 1px, transparent 1px), linear-gradient(to right, #111 1px, transparent 1px)',
-            backgroundSize: '48px 48px',
-          }}
-        />
-
-        {/* Gradient glow */}
-        <div className="pointer-events-none absolute inset-x-0 -top-40 -z-10 flex justify-center">
-          <div className="h-96 w-[600px] rounded-full bg-gradient-to-r from-violet-200 via-sky-200 to-emerald-200 opacity-30 blur-3xl" />
-        </div>
-
-        <div className="relative mx-auto max-w-7xl px-4 pt-24 pb-20 text-center sm:px-6 sm:pt-32 sm:pb-28 lg:px-8">
-          {/* Badge */}
-          <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-1.5 text-sm font-medium text-gray-600 shadow-sm">
-            <span className="size-2 rounded-full bg-emerald-400" />
-            Next.js 16 · TypeScript · Tailwind v4
-          </span>
-
-          {/* Headline */}
-          <h1 className="mx-auto max-w-3xl text-5xl font-bold tracking-tight text-gray-900 sm:text-6xl lg:text-7xl">
-            {t('hero_title')}{' '}
-            <span className="bg-gradient-to-r from-violet-600 to-sky-500 bg-clip-text text-transparent">
-              {t('hero_title_highlight')}
-            </span>
-          </h1>
-
-          {/* Sub-description */}
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-500">
-            {t('hero_description')}
-          </p>
-
-          {/* CTAs */}
-          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Link
-              href="/sign-up/"
-              className="rounded-xl bg-gray-900 px-7 py-3.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-gray-700 hover:shadow-md"
+    <section className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
+      <SectionHeading title={t('how_it_works_heading')} />
+      <div className="grid grid-cols-3 gap-8 max-md:grid-cols-1">
+        {steps.map((step) => (
+          <div key={step.title} className="rounded-2xl border border-[var(--color-surface-border)] bg-[var(--color-surface-raised)] p-8 text-center">
+            <div className="mb-4 text-5xl">{step.icon}</div>
+            <h3
+              className="mb-3 text-[20px] font-semibold text-[var(--color-text-primary)]"
+              style={{ fontFamily: 'var(--font-poppins)' }}
             >
-              {t('hero_cta_primary')} →
-            </Link>
-            <Link
-              href="/sign-in/"
-              className="rounded-xl border border-gray-200 bg-white px-7 py-3.5 text-sm font-semibold text-gray-700 shadow-sm transition-all hover:border-gray-300 hover:bg-gray-50"
+              {step.title}
+            </h3>
+            <p className="text-[14px] text-[var(--color-text-secondary)]">{step.description}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function StatsSection(props: { locale: string; t: Awaited<ReturnType<typeof getTranslations>> }) {
+  const { t } = props;
+  const stats = [
+    { value: t('stat_1_value'), label: t('stat_1_label') },
+    { value: t('stat_2_value'), label: t('stat_2_label') },
+    { value: t('stat_3_value'), label: t('stat_3_label') },
+    { value: t('stat_4_value'), label: t('stat_4_label') },
+  ] as const;
+
+  return (
+    <section className="bg-[var(--color-surface-raised)] px-[107px] py-16 max-md:px-4">
+      <div className="mx-auto grid max-w-[1440px] grid-cols-4 gap-8 max-md:grid-cols-2">
+        {stats.map((stat) => (
+          <div key={stat.label} className="text-center">
+            <p
+              className="text-[48px] font-semibold text-[var(--color-brand)]"
+              style={{ fontFamily: 'var(--font-poppins)' }}
             >
-              {t('hero_cta_secondary')}
-            </Link>
-          </div>
-
-          {/* Tech pills */}
-          <div className="mt-12 flex flex-wrap items-center justify-center gap-2">
-            {[
-              'Drizzle ORM',
-              'next-intl',
-              'Zod',
-              'Vitest',
-              'Playwright',
-              'Sentry',
-              'Storybook',
-              'Lefthook',
-            ].map((tech) => (
-              <span
-                key={tech}
-                className="rounded-full border border-gray-100 bg-gray-50 px-3 py-1 text-xs font-medium text-gray-500"
-              >
-                {tech}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Features / Modes ── */}
-      <section className="bg-gray-50 py-20 sm:py-28">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {/* Section header */}
-          <div className="mb-14 text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              {t('features_title')}
-            </h2>
-            <p className="mx-auto mt-4 max-w-xl text-base text-gray-500">
-              {t('features_subtitle')}
+              {stat.value}
             </p>
+            <p className="mt-1 text-[14px] text-[var(--color-text-secondary)]">{stat.label}</p>
           </div>
+        ))}
+      </div>
+    </section>
+  );
+}
 
-          {/* Feature cards */}
-          <div className="grid gap-6 sm:grid-cols-3">
-            {features.map((feature) => (
-              <div
-                key={feature.badge}
-                className={`rounded-2xl border p-8 transition-shadow hover:shadow-md ${feature.accent}`}
-              >
-                {/* Mode badge */}
-                <span
-                  className={`mb-4 inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${feature.badgeColor}`}
-                >
-                  {feature.badge}
-                </span>
+export default async function HomePage(props: HomePageProps) {
+  const { locale } = await props.params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: 'HomePage' });
 
-                {/* Icon */}
-                <div
-                  className={`mb-4 flex size-12 items-center justify-center rounded-xl text-2xl ${feature.iconBg}`}
-                >
-                  {feature.icon}
-                </div>
+  return (
+    <>
+      <Suspense fallback={<div className="h-[600px] animate-pulse bg-[#1a0a0d]" />}>
+        <HeroSection locale={locale} />
+      </Suspense>
 
-                <h3 className="mb-2 text-lg font-bold text-gray-900">
-                  {feature.title}
-                </h3>
-                <p className="text-sm leading-6 text-gray-500">
-                  {feature.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <Suspense fallback={<CategoriesSkeleton />}>
+        <CategoriesSection locale={locale} />
+      </Suspense>
 
-      {/* ── Bottom CTA strip ── */}
-      <section className="border-t border-gray-100 bg-white py-16">
-        <div className="mx-auto max-w-2xl px-4 text-center sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-gray-900 sm:text-3xl">
-            Ready to build?
-          </h2>
-          <p className="mt-3 text-base text-gray-500">
-            Open{' '}
-            <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-sm text-gray-700">
-              AppConfig.ts
-            </code>{' '}
-            to rename the app, then delete what you don't need.
-          </p>
-          <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Link
-              href="/sign-up/"
-              className="rounded-xl bg-gray-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-gray-700"
-            >
-              Create an account
-            </Link>
-            <Link
-              href="/sign-in/"
-              className="text-sm font-medium text-gray-500 hover:text-gray-900"
-            >
-              Already have one? Sign in →
-            </Link>
-          </div>
-        </div>
-      </section>
+      <Suspense fallback={<WeekendEventsSkeleton />}>
+        <WeekendEventsSection locale={locale} />
+      </Suspense>
+
+      <Suspense fallback={<ArtistsSkeleton />}>
+        <ArtistsSection locale={locale} />
+      </Suspense>
+
+      <Suspense fallback={<WeekendEventsSkeleton />}>
+        <CityEventsSection locale={locale} />
+      </Suspense>
+
+      <GiftCardSection locale={locale} t={t} />
+      <HowItWorksSection locale={locale} t={t} />
+      <StatsSection locale={locale} t={t} />
     </>
   );
 }
