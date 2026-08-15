@@ -163,10 +163,13 @@
     "filter_keyword": "Rechercher des artistes...",
     "filter_category": "Catégorie",
     "no_artists": "Aucun artiste trouvé.",
-    "loading": "Chargement des artistes..."
+    "loading": "Chargement des artistes...",
+    "error_message": "Une erreur s'est produite lors du chargement des artistes.",
+    "try_again": "Réessayer"
   },
   "ArtistDetailPage": {
     "meta_title": "{name} — TicketLove.net",
+    "meta_title_fallback": "Artiste — TicketLove.net",
     "tab_tour_dates": "Dates de tournée",
     "tab_about": "À propos",
     "tab_media": "Médias",
@@ -174,7 +177,9 @@
     "similar_artists": "Artistes similaires",
     "bio_placeholder": "Informations biographiques bientôt disponibles.",
     "media_placeholder": "Médias bientôt disponibles.",
-    "no_events": "Aucun événement à venir trouvé."
+    "no_events": "Aucun événement à venir trouvé.",
+    "error_message": "Une erreur s'est produite lors du chargement de cet artiste.",
+    "try_again": "Réessayer"
   },
   "CategoriesPage": {
     "meta_title": "{name} — TicketLove.net",

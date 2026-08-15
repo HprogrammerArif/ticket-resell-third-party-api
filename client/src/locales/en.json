@@ -163,10 +163,13 @@
     "filter_keyword": "Search artists...",
     "filter_category": "Category",
     "no_artists": "No artists found.",
-    "loading": "Loading artists..."
+    "loading": "Loading artists...",
+    "error_message": "Something went wrong loading artists.",
+    "try_again": "Try again"
   },
   "ArtistDetailPage": {
     "meta_title": "{name} — TicketLove.net",
+    "meta_title_fallback": "Artist — TicketLove.net",
     "tab_tour_dates": "Tour Dates",
     "tab_about": "About",
     "tab_media": "Media",
@@ -174,7 +177,9 @@
     "similar_artists": "Similar Artists",
     "bio_placeholder": "Bio information coming soon.",
     "media_placeholder": "Media coming soon.",
-    "no_events": "No upcoming events found."
+    "no_events": "No upcoming events found.",
+    "error_message": "Something went wrong loading this artist.",
+    "try_again": "Try again"
   },
   "CategoriesPage": {
     "meta_title": "{name} — TicketLove.net",
