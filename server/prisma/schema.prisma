@@ -9,16 +9,26 @@ datasource db {
 
 // Regular customers. role=ADMIN grants admin-panel access to a customer account.
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  firstName    String
-  lastName     String
-  role         Role     @default(USER)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                  String    @id @default(cuid())
+  email               String    @unique
+  passwordHash        String
+  displayName         String?
+  firstName           String?
+  lastName            String?
+  gender              Gender?
+  dateOfBirth         DateTime?
+  marketingConsent    Boolean   @default(false)
+  role                Role      @default(USER)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   giftCardRedemptions GiftCardRedemption[]
+}
+
+enum Gender {
+  FEMALE
+  MALE
+  NON_BINARY
 }
 
 // Separate credential table for super-admin (Steven / back-office staff).
