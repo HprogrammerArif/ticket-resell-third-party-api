@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import Image from 'next/image';
-import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { getTranslations, getFormatter, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/libs/I18nNavigation';
 import { getEvents, getCategories, getPerformers, getCities } from '@/libs/CatalogApi';
 import { EventCard, EventCardSkeleton } from '@/components/catalog/EventCard';
@@ -18,8 +18,9 @@ export async function generateMetadata(props: HomePageProps): Promise<Metadata> 
   return { title: t('meta_title'), description: t('meta_description') };
 }
 
-async function HeroSection(props: { locale: string }) {
+export async function HeroSection(props: { locale: string }) {
   const t = await getTranslations({ locale: props.locale, namespace: 'HomePage' });
+  const format = await getFormatter({ locale: props.locale });
   const { results: events } = await getEvents({ pageSize: 5 });
   const featured = events[0];
 
@@ -41,7 +42,11 @@ async function HeroSection(props: { locale: string }) {
               className="mb-2 flex gap-4 text-[14px] text-white/60"
               style={{ fontFamily: 'var(--font-jakarta)' }}
             >
-              {featured.date.date && <span>{featured.date.date}</span>}
+              {featured.date.datetime && (
+                <span>
+                  {format.dateTime(new Date(featured.date.datetime), { dateStyle: 'medium' })}
+                </span>
+              )}
               {featured.venue && (
                 <span>
                   {featured.venue.text.name}
@@ -84,7 +89,7 @@ async function HeroSection(props: { locale: string }) {
   );
 }
 
-async function CategoriesSection(props: { locale: string }) {
+export async function CategoriesSection(props: { locale: string }) {
   const t = await getTranslations({ locale: props.locale, namespace: 'HomePage' });
   const { results: categories } = await getCategories({ pageSize: 12 });
 
@@ -113,7 +118,7 @@ function CategoriesSkeleton() {
   );
 }
 
-async function WeekendEventsSection(props: { locale: string }) {
+export async function WeekendEventsSection(props: { locale: string }) {
   const t = await getTranslations({ locale: props.locale, namespace: 'HomePage' });
   const today = new Date().toISOString().split('T')[0]!;
   const sunday = new Date();
@@ -150,7 +155,7 @@ function WeekendEventsSkeleton() {
   );
 }
 
-async function ArtistsSection(props: { locale: string }) {
+export async function ArtistsSection(props: { locale: string }) {
   const t = await getTranslations({ locale: props.locale, namespace: 'HomePage' });
   const { results: performers } = await getPerformers({ pageSize: 8 });
 
@@ -187,10 +192,11 @@ function ArtistsSkeleton() {
   );
 }
 
-async function CityEventsSection(props: { locale: string }) {
+export async function CityEventsSection(props: { locale: string }) {
   const t = await getTranslations({ locale: props.locale, namespace: 'HomePage' });
   const { results: cities } = await getCities({ pageSize: 5 });
   const defaultCity = cities[0]?.text.name ?? '';
+  if (!defaultCity) return null;
   const { results: events } = await getEvents({ city: defaultCity, pageSize: 6 });
 
   return (
@@ -208,6 +214,19 @@ async function CityEventsSection(props: { locale: string }) {
       <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-sm:grid-cols-1">
         {events.map((ev) => (
           <EventCard key={ev.id} event={ev} locale={props.locale} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function CityEventsSkeleton() {
+  return (
+    <section className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
+      <div className="mb-6 h-8 w-80 animate-pulse rounded bg-[#262626]" />
+      <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-sm:grid-cols-1">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <EventCardSkeleton key={i} />
         ))}
       </div>
     </section>
@@ -234,8 +253,9 @@ function GiftCardSection(props: { locale: string; t: Awaited<ReturnType<typeof g
             <p className="mb-6 text-[var(--color-text-secondary)]">
               {t('gift_card_description')}
             </p>
+            {/* TODO: update href when /gift-cards route exists */}
             <Link
-              href="/"
+              href="/gift-cards"
               className="inline-block rounded-full bg-[var(--color-brand)] px-8 py-3 font-medium text-white hover:bg-[#c41e33]"
             >
               {t('gift_card_cta')}
@@ -337,7 +357,7 @@ export default async function HomePage(props: HomePageProps) {
         <ArtistsSection locale={locale} />
       </Suspense>
 
-      <Suspense fallback={<WeekendEventsSkeleton />}>
+      <Suspense fallback={<CityEventsSkeleton />}>
         <CityEventsSection locale={locale} />
       </Suspense>
 
