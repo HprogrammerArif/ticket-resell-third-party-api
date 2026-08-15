@@ -70,17 +70,21 @@ export default async function VenueDetailPage(props: VenueDetailPageProps) {
 
       <SectionHeading title={t('upcoming_events')} />
 
-      <Suspense
-        fallback={
-          <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-sm:grid-cols-1">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <EventCardSkeleton key={i} />
-            ))}
-          </div>
-        }
-      >
-        <VenueEvents city={venue.city ?? ''} locale={locale} />
-      </Suspense>
+      {venue.city ? (
+        <Suspense
+          fallback={
+            <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-sm:grid-cols-1">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <EventCardSkeleton key={i} />
+              ))}
+            </div>
+          }
+        >
+          <VenueEvents city={venue.city} locale={locale} />
+        </Suspense>
+      ) : (
+        <p className="text-[var(--color-text-muted)]">{t('no_events')}</p>
+      )}
     </div>
   );
 }

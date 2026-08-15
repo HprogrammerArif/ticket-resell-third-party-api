@@ -25,7 +25,8 @@ export async function generateMetadata(props: CategoriesPageProps): Promise<Meta
       description: t('meta_description', { name: category.text.name }),
     };
   } catch {
-    return { title: 'Category — TicketLove.net' };
+    const t = await getTranslations({ locale, namespace: 'CategoriesPage' });
+    return { title: t('meta_title_fallback') };
   }
 }
 
@@ -70,6 +71,8 @@ export default async function CategoryBrowsePage(props: CategoriesPageProps) {
   const categoryPath = path.join('/');
   const page = typeof sp.page === 'string' ? Math.max(1, parseInt(sp.page, 10) || 1) : 1;
 
+  const t = await getTranslations({ locale, namespace: 'CategoriesPage' });
+
   let category;
   try {
     category = await getCategoryByPath(categoryPath);
@@ -78,21 +81,12 @@ export default async function CategoryBrowsePage(props: CategoriesPageProps) {
     throw err;
   }
 
-  const breadcrumbParts = path.map((segment, i) => ({
-    label: segment.charAt(0).toUpperCase() + segment.slice(1),
-    href: `/categories/${path.slice(0, i + 1).join('/')}`,
-  }));
-
   return (
     <div className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
       <nav className="mb-6 flex items-center gap-2 text-[14px] text-[var(--color-text-muted)]">
-        <Link href="/" className="hover:text-white">Home</Link>
-        {breadcrumbParts.map((crumb) => (
-          <span key={crumb.href} className="flex items-center gap-2">
-            <span>/</span>
-            <Link href={crumb.href} className="hover:text-white">{crumb.label}</Link>
-          </span>
-        ))}
+        <Link href="/" className="hover:text-white">{t('breadcrumb_home')}</Link>
+        <span>/</span>
+        <span className="text-[var(--color-text-primary)]">{category.text.name}</span>
       </nav>
 
       <SectionHeading title={category.text.name} />

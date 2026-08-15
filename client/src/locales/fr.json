@@ -184,10 +184,12 @@
   },
   "CategoriesPage": {
     "meta_title": "{name} — TicketLove.net",
+    "meta_title_fallback": "Catégorie — TicketLove.net",
     "meta_description": "Parcourir les événements dans {name}.",
+    "breadcrumb_home": "Accueil",
     "no_events": "Aucun événement trouvé dans cette catégorie.",
     "loading": "Chargement...",
-    "error_message": "Une erreur s'est produite.",
+    "error_message": "Une erreur s'est produite lors du chargement de cette catégorie.",
     "try_again": "Réessayer"
   },
   "VenuesPage": {
