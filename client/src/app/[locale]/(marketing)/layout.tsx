@@ -1,60 +1,19 @@
-import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { LocaleSwitcher } from '@/components/LocaleSwitcher';
-import { Link } from '@/libs/I18nNavigation';
-import { BaseTemplate } from '@/templates/BaseTemplate';
+import { setRequestLocale } from 'next-intl/server';
+import { Header } from '@/components/layout/Header';
+import { Footer } from '@/components/layout/Footer';
 
-export default async function Layout(props: {
+export default async function MarketingLayout(props: {
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await props.params;
   setRequestLocale(locale);
-  const t = await getTranslations({
-    locale,
-    namespace: 'RootLayout',
-  });
 
   return (
-    <BaseTemplate
-      leftNav={
-        <>
-          <li>
-            <Link
-              href="/"
-              className="transition-colors hover:text-gray-900"
-            >
-              {t('home_link')}
-            </Link>
-          </li>
-        </>
-      }
-      rightNav={
-        <>
-          <li>
-            <Link
-              href="/sign-in/"
-              className="transition-colors hover:text-gray-900"
-            >
-              {t('sign_in_link')}
-            </Link>
-          </li>
-
-          <li>
-            <Link
-              href="/sign-up/"
-              className="rounded-lg bg-gray-900 px-4 py-2 text-white transition-colors hover:bg-gray-700"
-            >
-              {t('sign_up_link')}
-            </Link>
-          </li>
-
-          <li>
-            <LocaleSwitcher />
-          </li>
-        </>
-      }
-    >
-      {props.children}
-    </BaseTemplate>
+    <>
+      <Header locale={locale} />
+      <main>{props.children}</main>
+      <Footer locale={locale} />
+    </>
   );
 }
