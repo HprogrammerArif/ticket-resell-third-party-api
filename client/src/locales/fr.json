@@ -128,10 +128,13 @@
     "filter_date_to": "Au",
     "apply_filters": "Appliquer les filtres",
     "no_events": "Aucun événement trouvé. Essayez d'élargir votre recherche.",
-    "loading": "Chargement des événements..."
+    "loading": "Chargement des événements...",
+    "error_message": "Une erreur s'est produite lors du chargement des événements.",
+    "try_again": "Réessayer"
   },
   "EventDetailPage": {
     "meta_title": "{name} — TicketLove.net",
+    "meta_title_fallback": "Événement — TicketLove.net",
     "tab_details": "Détails",
     "tab_lineup": "Programmation",
     "tab_venue": "Lieu",
@@ -143,12 +146,15 @@
     "similar_events": "Événements similaires",
     "selling_fast": "Se vend rapidement",
     "view_tickets_cta": "Voir les billets disponibles",
+    "from_price": "À partir de {price}$",
     "faq_delivery_q": "Comment vais-je recevoir mes billets ?",
     "faq_delivery_a": "Les billets sont livrés électroniquement à votre e-mail en quelques minutes.",
     "faq_refund_q": "Quelle est votre politique de remboursement ?",
     "faq_refund_a": "Toutes les ventes sont définitives. Nous n'offrons pas de remboursements sauf annulation.",
     "faq_accessible_q": "Des options d'accessibilité sont-elles disponibles ?",
-    "faq_accessible_a": "Oui. Veuillez nous contacter pour une assistance aux sièges accessibles."
+    "faq_accessible_a": "Oui. Veuillez nous contacter pour une assistance aux sièges accessibles.",
+    "error_message": "Impossible de charger cet événement.",
+    "try_again": "Réessayer"
   },
   "ArtistsPage": {
     "meta_title": "Artistes et interprètes — TicketLove.net",

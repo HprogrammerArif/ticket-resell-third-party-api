@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { getEventById, getEvents } from '@/libs/CatalogApi';
 import { ApiError } from '@/libs/ApiClient';
-import { EventCard, EventCardSkeleton } from '@/components/catalog/EventCard';
+import { EventCard } from '@/components/catalog/EventCard';
 import { SectionHeading } from '@/components/catalog/SectionHeading';
 
 type EventDetailPageProps = {
@@ -18,7 +18,8 @@ export async function generateMetadata(props: EventDetailPageProps): Promise<Met
     const t = await getTranslations({ locale, namespace: 'EventDetailPage' });
     return { title: t('meta_title', { name: event.text.name }) };
   } catch {
-    return { title: 'Event — TicketLove.net' };
+    const t = await getTranslations({ locale, namespace: 'EventDetailPage' });
+    return { title: t('meta_title_fallback') };
   }
 }
 
@@ -133,7 +134,7 @@ export default async function EventDetailPage(props: EventDetailPageProps) {
           <div className="sticky top-24 rounded-2xl border border-[var(--color-surface-border)] bg-[var(--color-surface-raised)] p-6">
             {event.minPrice !== undefined && (
               <p className="mb-2 text-[24px] font-semibold text-[var(--color-text-primary)]">
-                From ${event.minPrice.toFixed(0)}
+                {t('from_price', { price: event.minPrice.toFixed(0) })}
               </p>
             )}
             <p className="mb-6 text-[13px] text-[var(--color-text-muted)]">

@@ -128,10 +128,13 @@
     "filter_date_to": "To",
     "apply_filters": "Apply Filters",
     "no_events": "No events found. Try broadening your search.",
-    "loading": "Loading events..."
+    "loading": "Loading events...",
+    "error_message": "Something went wrong loading events.",
+    "try_again": "Try again"
   },
   "EventDetailPage": {
     "meta_title": "{name} — TicketLove.net",
+    "meta_title_fallback": "Event — TicketLove.net",
     "tab_details": "Details",
     "tab_lineup": "Lineup",
     "tab_venue": "Venue",
@@ -143,12 +146,15 @@
     "similar_events": "Similar Events",
     "selling_fast": "Selling Fast",
     "view_tickets_cta": "View Available Tickets",
+    "from_price": "From ${price}",
     "faq_delivery_q": "How will I receive my tickets?",
     "faq_delivery_a": "Tickets are delivered electronically to your email within minutes of purchase.",
     "faq_refund_q": "What is your refund policy?",
     "faq_refund_a": "All sales are final. We do not offer refunds unless an event is cancelled.",
     "faq_accessible_q": "Are accessible seating options available?",
-    "faq_accessible_a": "Yes. Please contact us for accessible seating assistance."
+    "faq_accessible_a": "Yes. Please contact us for accessible seating assistance.",
+    "error_message": "Could not load this event.",
+    "try_again": "Try again"
   },
   "ArtistsPage": {
     "meta_title": "Artists & Performers — TicketLove.net",

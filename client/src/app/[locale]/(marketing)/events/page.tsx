@@ -90,7 +90,7 @@ export default async function EventsPage(props: EventsPageProps) {
   const categoryPath = typeof sp.categoryPath === 'string' ? sp.categoryPath : undefined;
   const dateFrom = typeof sp.dateFrom === 'string' ? sp.dateFrom : undefined;
   const dateTo = typeof sp.dateTo === 'string' ? sp.dateTo : undefined;
-  const page = typeof sp.page === 'string' ? Math.max(1, Number(sp.page)) : 1;
+  const page = typeof sp.page === 'string' ? Math.max(1, parseInt(sp.page, 10) || 1) : 1;
 
   return (
     <div className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
