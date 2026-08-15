@@ -1,8 +1,4 @@
 {
-  "enabledPlugins": {
-    "figma@claude-plugins-official": true,
-    "code-review@claude-plugins-official": true
-  },
   "permissions": {
     "allow": [
       "Bash(npm run *)",
@@ -12,5 +8,9 @@
       "Write(client/**)",
       "Write(server/**)"
     ]
+  },
+  "enabledPlugins": {
+    "figma@claude-plugins-official": true,
+    "code-review@claude-plugins-official": false
   }
 }
