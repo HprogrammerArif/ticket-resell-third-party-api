@@ -69,6 +69,16 @@
     "subscribe_placeholder": "Entrez votre email",
     "subscribe_button": "S'abonner →",
     "copyright": "©2026 TicketLove.net. Tous droits réservés"
+  },
+  "EventCard": {
+    "buy_now": "Acheter",
+    "from_price": "À partir de {price}$"
+  },
+  "Common": {
+    "see_all": "Voir tout →",
+    "loading": "Chargement...",
+    "get_tickets": "Obtenir des billets",
+    "search": "Rechercher"
   }
 }
 
