@@ -206,11 +206,9 @@ export async function CityEventsSection(props: { locale: string }) {
         seeAllHref={`/events?city=${encodeURIComponent(defaultCity)}`}
         seeAllLabel={t('see_all_events')}
       />
-      {defaultCity && (
-        <p className="mb-4 text-[14px] text-[var(--color-text-muted)]">
-          {defaultCity}
-        </p>
-      )}
+      <p className="mb-4 text-[14px] text-[var(--color-text-muted)]">
+        {defaultCity}
+      </p>
       <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-sm:grid-cols-1">
         {events.map((ev) => (
           <EventCard key={ev.id} event={ev} locale={props.locale} />
