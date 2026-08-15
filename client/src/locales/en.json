@@ -78,7 +78,14 @@
     "see_all": "See All →",
     "loading": "Loading...",
     "get_tickets": "Get Tickets",
-    "search": "Search"
+    "search": "Search",
+    "keyword_placeholder": "Try \"Taylor Swift near me next month\" or \"Lakers game under $200\"",
+    "city_placeholder": "City or ZIP",
+    "available_count": "{count} available",
+    "sold_out": "Sold out",
+    "currency_symbol": "$",
+    "prev_page": "← Prev",
+    "next_page": "Next →"
   }
 }
 

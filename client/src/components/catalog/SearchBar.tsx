@@ -35,17 +35,14 @@ export function SearchBar(props: {
           type="text"
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
-          placeholder={
-            props.placeholder ??
-            'Try "Taylor Swift near me next month" or "Lakers game under $200"'
-          }
+          placeholder={props.placeholder ?? t('keyword_placeholder')}
           className="flex-1 rounded-full border border-[var(--color-surface-border)] bg-[var(--color-surface)] px-5 py-3 text-[14px] text-white placeholder:text-[var(--color-text-muted)] outline-none"
         />
         <input
           type="text"
           value={city}
           onChange={(e) => setCity(e.target.value)}
-          placeholder="City or ZIP"
+          placeholder={t('city_placeholder')}
           className="w-full rounded-full border border-[var(--color-surface-border)] bg-[var(--color-surface)] px-5 py-3 text-[14px] text-white placeholder:text-[var(--color-text-muted)] outline-none sm:w-48"
         />
         <input

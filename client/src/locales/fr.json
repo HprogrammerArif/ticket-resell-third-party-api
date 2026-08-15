@@ -78,7 +78,14 @@
     "see_all": "Voir tout →",
     "loading": "Chargement...",
     "get_tickets": "Obtenir des billets",
-    "search": "Rechercher"
+    "search": "Rechercher",
+    "keyword_placeholder": "Essayez \"Taylor Swift près de moi\" ou \"match des Lakers\"",
+    "city_placeholder": "Ville ou code postal",
+    "available_count": "{count} disponible",
+    "sold_out": "Épuisé",
+    "currency_symbol": "$",
+    "prev_page": "← Préc",
+    "next_page": "Suiv →"
   }
 }
 

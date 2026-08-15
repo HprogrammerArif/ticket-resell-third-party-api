@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 export function TicketRow(props: {
   tier: string;
@@ -8,6 +9,7 @@ export function TicketRow(props: {
   price: number;
   available: number;
 }) {
+  const t = useTranslations('Common');
   const [qty, setQty] = useState(1);
 
   return (
@@ -18,7 +20,7 @@ export function TicketRow(props: {
           <p className="text-[13px] text-[var(--color-text-muted)]">{props.description}</p>
         )}
         <p className="mt-1 text-[13px] text-[var(--color-text-secondary)]">
-          {props.available > 0 ? `${props.available} available` : 'Sold out'}
+          {props.available > 0 ? t('available_count', { count: props.available }) : t('sold_out')}
         </p>
       </div>
 
@@ -44,7 +46,7 @@ export function TicketRow(props: {
         </div>
 
         <span className="min-w-[80px] text-right font-semibold text-[var(--color-text-primary)]">
-          ${(props.price * qty).toFixed(0)}
+          {t('currency_symbol')}{(props.price * qty).toFixed(0)}
         </span>
       </div>
     </div>
