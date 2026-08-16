@@ -71,6 +71,12 @@
     "error_email_in_use": "An account with this email already exists.",
     "error_generic": "Something went wrong. Please try again."
   },
+  "ForgotPasswordPage": {
+    "meta_title": "Password Reset — TicketLove.net",
+    "heading": "Password Reset",
+    "body": "Password reset is coming soon. Please contact support for assistance.",
+    "back_to_login": "Back to Log In"
+  },
   "Dashboard": {
     "hello_message": "Hello {email}!",
     "alternative_message": "Welcome to your dashboard."

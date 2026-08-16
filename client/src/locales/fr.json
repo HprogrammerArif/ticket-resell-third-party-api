@@ -71,6 +71,12 @@
     "error_email_in_use": "Un compte avec cet e-mail existe déjà.",
     "error_generic": "Une erreur est survenue. Veuillez réessayer."
   },
+  "ForgotPasswordPage": {
+    "meta_title": "Réinitialisation du mot de passe — TicketLove.net",
+    "heading": "Réinitialisation du mot de passe",
+    "body": "La réinitialisation du mot de passe arrive bientôt. Veuillez contacter l'assistance pour obtenir de l'aide.",
+    "back_to_login": "Retour à la connexion"
+  },
   "Dashboard": {
     "hello_message": "Bonjour {email} !",
     "alternative_message": "Bienvenue sur votre tableau de bord."
