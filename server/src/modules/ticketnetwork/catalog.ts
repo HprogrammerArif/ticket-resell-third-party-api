@@ -19,10 +19,20 @@ import type {
   EventBulkParams,
 } from './types';
 
+// TicketNetwork's actual query params are `page`/`perPage`, not our internal
+// `pageNumber`/`pageSize` names — sending the wrong names means TN silently
+// ignores them and falls back to its own defaults (page 1, 50 per page) every
+// time. `includeTotalCount` is opt-in on TN's side (omitted otherwise), so it's
+// requested whenever pagination is in play, since our UI's page counts depend on it.
 function opts(p: Record<string, unknown>): { params?: Record<string, string | number> } {
-  const filtered = Object.fromEntries(
-    Object.entries(p).filter(([, v]) => typeof v === 'string' || typeof v === 'number'),
-  ) as Record<string, string | number>;
+  const filtered: Record<string, string | number> = {};
+  for (const [key, value] of Object.entries(p)) {
+    if (typeof value !== 'string' && typeof value !== 'number') continue;
+    if (key === 'pageNumber') { filtered.page = value; continue; }
+    if (key === 'pageSize') { filtered.perPage = value; continue; }
+    filtered[key] = value;
+  }
+  if ('page' in filtered || 'perPage' in filtered) filtered.includeTotalCount = 'true';
   return Object.keys(filtered).length > 0 ? { params: filtered } : {};
 }
 
@@ -54,7 +64,11 @@ export function getEventById(id: number): Promise<TnEvent> {
 }
 
 export function searchEvents(params: EventParams = {}): Promise<TnPagedResult<TnEvent>> {
-  return tnRequest<TnPagedResult<TnEvent>>('/events/search', opts(params));
+  // TN's /events/search requires the search term as `q` (required on their side) —
+  // our EventParams calls it `keyword`, which TN doesn't recognize, so every call
+  // was silently missing its required param and got rejected with 400.
+  const { keyword, ...rest } = params;
+  return tnRequest<TnPagedResult<TnEvent>>('/events/search', opts({ ...rest, q: keyword }));
 }
 
 export function suggestEvents(params: EventSuggestParams): Promise<TnSuggestGroup<TnEventSuggest>> {

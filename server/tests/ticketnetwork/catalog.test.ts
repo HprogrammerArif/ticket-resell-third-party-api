@@ -28,10 +28,12 @@ describe('TN catalog functions', () => {
     expect(tnRequest).toHaveBeenCalledWith('/categories', {});
   });
 
-  it('getCategories({ pageSize: 10 }) forwards params', async () => {
+  it('getCategories({ pageSize: 10 }) forwards params as TN\'s page/perPage names', async () => {
     vi.mocked(tnRequest).mockResolvedValueOnce({ page: 1, count: 0, totalCount: 0, results: [] });
     await getCategories({ pageSize: 10, pageNumber: 2 });
-    expect(tnRequest).toHaveBeenCalledWith('/categories', { params: { pageSize: 10, pageNumber: 2 } });
+    expect(tnRequest).toHaveBeenCalledWith('/categories', {
+      params: { perPage: 10, page: 2, includeTotalCount: 'true' },
+    });
   });
 
   it('getCategoryByPath("sports/hockey") appends path directly to URL segment', async () => {
@@ -52,10 +54,10 @@ describe('TN catalog functions', () => {
     expect(tnRequest).toHaveBeenCalledWith('/events', { params: { city: 'Toronto' } });
   });
 
-  it('searchEvents calls tnRequest("/events/search")', async () => {
+  it('searchEvents calls tnRequest("/events/search") with keyword forwarded as TN\'s required "q" param', async () => {
     vi.mocked(tnRequest).mockResolvedValueOnce({ page: 1, count: 0, totalCount: 0, results: [] });
     await searchEvents({ keyword: 'hockey' });
-    expect(tnRequest).toHaveBeenCalledWith('/events/search', { params: { keyword: 'hockey' } });
+    expect(tnRequest).toHaveBeenCalledWith('/events/search', { params: { q: 'hockey' } });
   });
 
   it('getPerformerById(99) calls tnRequest("/performers/99", {})', async () => {

@@ -150,7 +150,10 @@ export type TnPerformer = {
 export type TnVenue = {
   id: number;
   text: { name: string; formerNames?: string[] };
-  address?: { postalCode?: string; text?: string };
+  address?: {
+    postalCode?: string;
+    text?: { address1?: string; city?: string; stateProvince?: string; country?: string };
+  };
   capacity?: number;
   city?: TnEventCity;
   stateProvince?: TnEventStateProvince;

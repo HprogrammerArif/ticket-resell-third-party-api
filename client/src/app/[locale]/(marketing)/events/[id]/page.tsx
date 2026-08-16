@@ -126,7 +126,7 @@ function VenueTab(props: { event: TnEvent; venue?: TnVenue | null }) {
   const venue = props.venue;
   const venueName = venue?.text.name ?? ev.venue?.text.name;
   const formerNames = venue?.text.formerNames ?? [];
-  const address = venue?.address?.text;
+  const address = venue?.address?.text?.address1;
   const postalCode = venue?.address?.postalCode;
   const capacity = venue?.capacity;
   const geo = venue?.geoLocation ?? ev.geoLocation;

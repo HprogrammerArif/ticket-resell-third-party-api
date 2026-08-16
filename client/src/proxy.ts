@@ -44,7 +44,11 @@ export default function proxy(request: NextRequest, _event: NextFetchEvent) {
 
 export const config = {
   // Match all pathnames except for
-  // - … if they start with `/_next`, `/_vercel` or `monitoring`
-  // - … the ones containing a dot (e.g. `favicon.ico`)
-  matcher: '/((?!_next|_vercel|monitoring|api|.*\\..*).*)',
+  // - … if they start with `/_next`, `/_vercel`, `monitoring`, or `/api`
+  // - … ones ending in a real file extension (e.g. `favicon.ico`, `logo.png`).
+  //   Anchored at the end with `\.\w+$` (a dot followed by word characters), not
+  //   "contains a dot anywhere" — TicketNetwork category paths look like
+  //   `/categories/.1128.1130.` (trailing dot, no extension chars after it) and
+  //   must still hit i18n routing.
+  matcher: '/((?!_next|_vercel|monitoring|api|.*\\.\\w+$).*)',
 };
