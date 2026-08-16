@@ -296,6 +296,50 @@
     "save_button": "Enregistrer les modifications",
     "save_success": "Profil mis à jour avec succès.",
     "save_error": "Échec de la mise à jour du profil. Veuillez réessayer."
+  },
+  "DashboardOrders": {
+    "heading": "Mes commandes",
+    "col_order_id": "N° commande",
+    "col_event": "Événement",
+    "col_date": "Date",
+    "col_total": "Total",
+    "col_status": "Statut",
+    "no_orders": "Aucune commande pour l'instant"
+  },
+  "DashboardTickets": {
+    "heading": "Mes billets",
+    "tab_upcoming": "À venir",
+    "tab_past": "Passés",
+    "no_tickets": "Aucun billet pour l'instant"
+  },
+  "DashboardNotifications": {
+    "heading": "Notifications",
+    "mark_all_read": "Tout marquer comme lu",
+    "no_notifications": "Aucune notification pour l'instant"
+  },
+  "DashboardSettings": {
+    "heading": "Paramètres",
+    "security_section": "Sécurité",
+    "change_password_link": "Modifier le mot de passe",
+    "notifications_section": "Notifications",
+    "email_notifications": "Notifications par e-mail",
+    "price_alerts": "Alertes de prix",
+    "danger_section": "Zone de danger",
+    "delete_account": "Supprimer le compte",
+    "delete_confirm_title": "Supprimer votre compte ?",
+    "delete_confirm_body": "Cette action est irréversible. Toutes vos données seront définitivement supprimées.",
+    "delete_confirm_button": "Oui, supprimer mon compte",
+    "delete_cancel": "Annuler",
+    "delete_error": "Échec de la suppression du compte. Veuillez réessayer.",
+    "change_password_heading": "Modifier le mot de passe",
+    "current_password_label": "Mot de passe actuel",
+    "new_password_label": "Nouveau mot de passe",
+    "confirm_password_label": "Confirmer le nouveau mot de passe",
+    "password_hint": "8 caractères minimum",
+    "save_password": "Mettre à jour le mot de passe",
+    "password_mismatch": "Les mots de passe ne correspondent pas.",
+    "password_success": "Mot de passe mis à jour avec succès.",
+    "password_error": "Échec de la mise à jour du mot de passe. Veuillez réessayer."
   }
 }
 

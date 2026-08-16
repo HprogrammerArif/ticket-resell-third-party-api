@@ -296,6 +296,50 @@
     "save_button": "Save changes",
     "save_success": "Profile updated successfully.",
     "save_error": "Failed to update profile. Please try again."
+  },
+  "DashboardOrders": {
+    "heading": "My Orders",
+    "col_order_id": "Order ID",
+    "col_event": "Event",
+    "col_date": "Date",
+    "col_total": "Total",
+    "col_status": "Status",
+    "no_orders": "No orders yet"
+  },
+  "DashboardTickets": {
+    "heading": "My Tickets",
+    "tab_upcoming": "Upcoming",
+    "tab_past": "Past",
+    "no_tickets": "No tickets yet"
+  },
+  "DashboardNotifications": {
+    "heading": "Notifications",
+    "mark_all_read": "Mark all read",
+    "no_notifications": "No notifications yet"
+  },
+  "DashboardSettings": {
+    "heading": "Settings",
+    "security_section": "Security",
+    "change_password_link": "Change password",
+    "notifications_section": "Notifications",
+    "email_notifications": "Email notifications",
+    "price_alerts": "Price alerts",
+    "danger_section": "Danger zone",
+    "delete_account": "Delete account",
+    "delete_confirm_title": "Delete your account?",
+    "delete_confirm_body": "This action cannot be undone. All your data will be permanently removed.",
+    "delete_confirm_button": "Yes, delete my account",
+    "delete_cancel": "Cancel",
+    "delete_error": "Failed to delete account. Please try again.",
+    "change_password_heading": "Change password",
+    "current_password_label": "Current password",
+    "new_password_label": "New password",
+    "confirm_password_label": "Confirm new password",
+    "password_hint": "8+ characters",
+    "save_password": "Update password",
+    "password_mismatch": "Passwords do not match.",
+    "password_success": "Password updated successfully.",
+    "password_error": "Failed to update password. Please try again."
   }
 }
 
