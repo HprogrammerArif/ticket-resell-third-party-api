@@ -72,13 +72,41 @@ export default async function EventDetailPage(props: EventDetailPageProps) {
       })
     : event.date.date;
 
-  const categoryPath = event.performers?.[0]?.categoryPath;
+  // Build location string from nested objects
+  const locationParts: string[] = [];
+  if (event.venue?.text.name) locationParts.push(event.venue.text.name);
+  if (event.city?.text.name) locationParts.push(event.city.text.name);
+  if (event.stateProvince?.text.abbr) locationParts.push(event.stateProvince.text.abbr);
+  else if (event.stateProvince?.text.name) locationParts.push(event.stateProvince.text.name);
+  if (event.country?.text.name) locationParts.push(event.country.text.name);
+  const location = locationParts.join(', ');
+
+  const categoryPath = event.defaultCategory?.path;
+  const categoryName = event.defaultCategory?.text.name;
+  const parentCategory = event.defaultCategory?.ancestors?.[0]?.text.name;
+  const lowPrice = event.pricingInfo?.lowPrice?.value;
+  const highPrice = event.pricingInfo?.highPrice?.value;
+  const ticketCount = event._metadata?.ticketCount ?? 0;
+  const hasTickets = event._metadata?.hasTickets ?? false;
 
   return (
     <div className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
       <div className="flex gap-12 max-lg:flex-col">
         {/* Left column */}
         <div className="flex-1">
+          {/* Category breadcrumb */}
+          {(parentCategory || categoryName) && (
+            <div className="mb-4 flex items-center gap-2 text-[13px] text-[var(--color-text-muted)]">
+              {parentCategory && (
+                <>
+                  <span>{parentCategory}</span>
+                  <span className="text-[var(--color-text-muted)]">›</span>
+                </>
+              )}
+              {categoryName && <span className="text-[var(--color-brand)]">{categoryName}</span>}
+            </div>
+          )}
+
           <h1
             className="mb-4 text-[40px] font-semibold text-[var(--color-text-primary)] max-md:text-[28px]"
             style={{ fontFamily: 'var(--font-poppins)' }}
@@ -86,32 +114,68 @@ export default async function EventDetailPage(props: EventDetailPageProps) {
             {event.text.name}
           </h1>
 
+          {/* Date & time */}
           {dateStr && (
-            <p
-              className="mb-2 text-[14px] text-white/60"
-              style={{ fontFamily: 'var(--font-jakarta)' }}
-            >
-              {dateStr}
-            </p>
+            <div className="mb-2 flex items-center gap-2 text-[14px] text-[var(--color-text-secondary)]" style={{ fontFamily: 'var(--font-jakarta)' }}>
+              <svg className="size-4 text-[var(--color-brand)]" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M4 0a1 1 0 0 0-1 1v1H2a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2h-1V1a1 1 0 1 0-2 0v1H5V1a1 1 0 0 0-1-1zm7 8a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
+              </svg>
+              <span>{dateStr}</span>
+            </div>
           )}
 
-          {event.venue && (
-            <p
-              className="mb-6 text-[14px] text-white/60"
-              style={{ fontFamily: 'var(--font-jakarta)' }}
-            >
-              {event.venue.text.name}
-              {event.venue.city ? `, ${event.venue.city}` : ''}
-              {event.venue.stateProvince ? `, ${event.venue.stateProvince}` : ''}
-            </p>
+          {/* Schedule status */}
+          {event.scheduleStatus && event.scheduleStatus !== 'On Schedule' && (
+            <div className="mb-2 inline-block rounded-full bg-yellow-500/20 px-3 py-1 text-[13px] font-medium text-yellow-400">
+              ⚠️ {event.scheduleStatus}
+            </div>
           )}
 
-          {/* Ticket details */}
-          <div className="rounded-2xl border border-[var(--color-surface-border)] bg-[var(--color-surface-raised)] p-6">
-            <p className="mb-4 text-[16px] font-semibold text-white">{t('tab_details')}</p>
-            <p className="text-[14px] text-[var(--color-text-secondary)]">
-              {t('view_tickets_cta')}
-            </p>
+          {/* Location */}
+          {location && (
+            <div className="mb-2 flex items-center gap-2 text-[14px] text-[var(--color-text-secondary)]" style={{ fontFamily: 'var(--font-jakarta)' }}>
+              <svg className="size-4 text-[var(--color-text-muted)]" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 0a5.53 5.53 0 0 0-5.5 5.5C2.5 10.65 8 16 8 16s5.5-5.35 5.5-10.5A5.53 5.53 0 0 0 8 0zm0 7.5a2 2 0 1 1 0-4 2 2 0 0 1 0 4z" />
+              </svg>
+              <span>{location}</span>
+            </div>
+          )}
+
+          {/* Performers list */}
+          {event.performers && event.performers.length > 0 && (
+            <div className="mb-6">
+              <p className="mb-2 text-[13px] font-medium text-[var(--color-text-muted)]">Performers</p>
+              <div className="flex flex-wrap gap-2">
+                {event.performers.map((p) => (
+                  <span
+                    key={p.id}
+                    className="rounded-full bg-white/5 px-4 py-1.5 text-[13px] text-[var(--color-text-secondary)]"
+                  >
+                    {p.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Event info cards */}
+          <div className="mb-6 grid grid-cols-2 gap-4 max-sm:grid-cols-1">
+            <div className="rounded-xl border border-[var(--color-surface-border)] bg-[var(--color-surface-raised)] p-4">
+              <p className="text-[12px] text-[var(--color-text-muted)]">Category</p>
+              <p className="text-[14px] font-medium text-white">{categoryName ?? 'General'}</p>
+            </div>
+            <div className="rounded-xl border border-[var(--color-surface-border)] bg-[var(--color-surface-raised)] p-4">
+              <p className="text-[12px] text-[var(--color-text-muted)]">Available Tickets</p>
+              <p className="text-[14px] font-medium text-white">
+                {hasTickets ? `${ticketCount.toLocaleString()} tickets` : 'Check availability'}
+              </p>
+            </div>
+            {event.isMultiDayEvent && (
+              <div className="rounded-xl border border-[var(--color-surface-border)] bg-[var(--color-surface-raised)] p-4">
+                <p className="text-[12px] text-[var(--color-text-muted)]">Type</p>
+                <p className="text-[14px] font-medium text-white">Multi-day Event</p>
+              </div>
+            )}
           </div>
 
           {/* FAQ */}
@@ -135,13 +199,28 @@ export default async function EventDetailPage(props: EventDetailPageProps) {
         {/* Right sidebar */}
         <div className="w-80 shrink-0 max-lg:w-full">
           <div className="sticky top-24 rounded-2xl border border-[var(--color-surface-border)] bg-[var(--color-surface-raised)] p-6">
-            {event.minPrice !== undefined && (
-              <p className="mb-2 text-[24px] font-semibold text-[var(--color-text-primary)]">
-                {t('from_price', { price: event.minPrice.toFixed(0) })}
+            {/* Pricing */}
+            {lowPrice !== undefined ? (
+              <div className="mb-4">
+                <p className="text-[24px] font-semibold text-[var(--color-text-primary)]">
+                  {t('from_price', { price: lowPrice.toFixed(0) })}
+                </p>
+                {highPrice !== undefined && highPrice !== lowPrice && (
+                  <p className="text-[13px] text-[var(--color-text-muted)]">
+                    up to ${highPrice.toFixed(0)}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <p className="mb-4 text-[18px] font-semibold text-[var(--color-text-primary)]">
+                {hasTickets ? 'Tickets Available' : 'Coming Soon'}
               </p>
             )}
+
             <p className="mb-6 text-[13px] text-[var(--color-text-muted)]">
-              42 {t('people_viewing')}
+              {hasTickets && ticketCount > 0
+                ? `${ticketCount.toLocaleString()} tickets available`
+                : t('people_viewing', { count: 42 }).replace('42 ', '')}
             </p>
 
             <button
@@ -153,18 +232,37 @@ export default async function EventDetailPage(props: EventDetailPageProps) {
               {t('get_tickets')}
             </button>
 
-            {/* Ad Zone placeholders */}
-            <div className="mt-6 space-y-4">
-              {[1, 2].map((i) => (
-                <div
-                  key={i}
-                  className="flex h-24 items-center justify-center rounded-xl border border-[var(--color-surface-border)] bg-[var(--color-surface)]"
-                >
-                  <span className="text-[13px] text-[var(--color-text-muted)]">
-                    {t('ad_zone')}
-                  </span>
+            {/* Event quick facts */}
+            <div className="mt-6 space-y-3 border-t border-[var(--color-surface-border)] pt-6">
+              {event.venue?.text.name && (
+                <div className="flex items-start gap-3">
+                  <span className="text-[var(--color-text-muted)]">🏟️</span>
+                  <div>
+                    <p className="text-[13px] font-medium text-white">{event.venue.text.name}</p>
+                    {event.city?.text.name && (
+                      <p className="text-[12px] text-[var(--color-text-muted)]">
+                        {event.city.text.name}
+                        {event.stateProvince?.text.abbr ? `, ${event.stateProvince.text.abbr}` : ''}
+                      </p>
+                    )}
+                  </div>
                 </div>
-              ))}
+              )}
+              {event.date.text && (
+                <div className="flex items-start gap-3">
+                  <span className="text-[var(--color-text-muted)]">📅</span>
+                  <div>
+                    <p className="text-[13px] font-medium text-white">{event.date.text.date}</p>
+                    <p className="text-[12px] text-[var(--color-text-muted)]">{event.date.text.time}</p>
+                  </div>
+                </div>
+              )}
+              {event.country?.text.name && (
+                <div className="flex items-start gap-3">
+                  <span className="text-[var(--color-text-muted)]">🌍</span>
+                  <p className="text-[13px] font-medium text-white">{event.country.text.name}</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

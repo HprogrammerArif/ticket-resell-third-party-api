@@ -6,20 +6,39 @@ import type {
   TnPerformer,
   TnVenue,
   TnCity,
+  TnCategoryHierarchy,
+  TnCountry,
+  TnStateProvince,
+  TnPostalCode,
   TnSuggestResult,
+  TnSuggestGroup,
+  TnEventSuggest,
+  TnPerformerSuggest,
+  TnVenueSuggest,
+  TnCitySuggest,
   EventParams,
   PerformerParams,
   VenueParams,
   CityParams,
+  CategoryHierarchyParams,
+  CountryParams,
+  StateProvinceParams,
+  PostalCodeParams,
+  SuggestParams,
+  EventSuggestParams,
+  EventBulkParams,
+  GlobalSuggestParams,
 } from '@/types/Catalog';
 
-function toParams(obj: Record<string, string | number | undefined>): Record<string, string> {
+function toParams(obj: Record<string, string | number | boolean | undefined>): Record<string, string> {
   const out: Record<string, string> = {};
   for (const [k, v] of Object.entries(obj)) {
     if (v !== undefined) out[k] = String(v);
   }
   return out;
 }
+
+// ─── Categories ───────────────────────────────────────────────────────────────
 
 export async function getCategories(
   params?: { pageNumber?: number; pageSize?: number },
@@ -37,6 +56,26 @@ export async function getCategoryByPath(
     params: toParams({ pageNumber: params?.pageNumber, pageSize: params?.pageSize }),
   });
 }
+
+// ─── Category Hierarchies ─────────────────────────────────────────────────────
+
+export async function getCategoryHierarchies(
+  params?: CategoryHierarchyParams,
+): Promise<TnPagedResult<TnCategoryHierarchy>> {
+  return ApiClient.get('/api/catalog/categoryhierarchies', {
+    params: toParams({
+      filter: params?.filter,
+      pageNumber: params?.pageNumber,
+      pageSize: params?.pageSize,
+    }),
+  });
+}
+
+export async function getCategoryHierarchyById(id: number): Promise<TnCategoryHierarchy> {
+  return ApiClient.get(`/api/catalog/categoryhierarchies/${id}`, { params: {} });
+}
+
+// ─── Events ───────────────────────────────────────────────────────────────────
 
 export async function getEvents(params?: EventParams): Promise<TnPagedResult<TnEvent>> {
   return ApiClient.get('/api/catalog/events', {
@@ -70,6 +109,33 @@ export async function getEventById(id: number): Promise<TnEvent> {
   return ApiClient.get(`/api/catalog/events/${id}`, { params: {} });
 }
 
+export async function suggestEvents(params: EventSuggestParams): Promise<TnSuggestGroup<TnEventSuggest>> {
+  return ApiClient.get('/api/catalog/events/suggest', {
+    params: toParams({
+      q: params.q,
+      numberOfSuggestions: params.numberOfSuggestions,
+      includeVenueInfo: params.includeVenueInfo,
+      filter: params.filter,
+    }),
+  });
+}
+
+export async function bulkEvents(params?: EventBulkParams): Promise<TnPagedResult<TnEvent>> {
+  return ApiClient.get('/api/catalog/events/bulk', {
+    params: toParams({
+      filter: params?.filter,
+      categoryFilter: params?.categoryFilter,
+      performerFilter: params?.performerFilter,
+      geoFilter: params?.geoFilter,
+      fields: params?.fields,
+      pageNumber: params?.pageNumber,
+      pageSize: params?.pageSize,
+    }),
+  });
+}
+
+// ─── Performers ───────────────────────────────────────────────────────────────
+
 export async function getPerformers(
   params?: PerformerParams,
 ): Promise<TnPagedResult<TnPerformer>> {
@@ -87,6 +153,18 @@ export async function getPerformerById(id: number): Promise<TnPerformer> {
   return ApiClient.get(`/api/catalog/performers/${id}`, { params: {} });
 }
 
+export async function suggestPerformers(params: SuggestParams): Promise<TnSuggestGroup<TnPerformerSuggest>> {
+  return ApiClient.get('/api/catalog/performers/suggest', {
+    params: toParams({
+      q: params.q,
+      numberOfSuggestions: params.numberOfSuggestions,
+      filter: params.filter,
+    }),
+  });
+}
+
+// ─── Venues ───────────────────────────────────────────────────────────────────
+
 export async function getVenues(params?: VenueParams): Promise<TnPagedResult<TnVenue>> {
   return ApiClient.get('/api/catalog/venues', {
     params: toParams({
@@ -102,6 +180,18 @@ export async function getVenueById(id: number): Promise<TnVenue> {
   return ApiClient.get(`/api/catalog/venues/${id}`, { params: {} });
 }
 
+export async function suggestVenues(params: SuggestParams): Promise<TnSuggestGroup<TnVenueSuggest>> {
+  return ApiClient.get('/api/catalog/venues/suggest', {
+    params: toParams({
+      q: params.q,
+      numberOfSuggestions: params.numberOfSuggestions,
+      filter: params.filter,
+    }),
+  });
+}
+
+// ─── Cities ───────────────────────────────────────────────────────────────────
+
 export async function getCities(params?: CityParams): Promise<TnPagedResult<TnCity>> {
   return ApiClient.get('/api/catalog/cities', {
     params: toParams({
@@ -113,6 +203,80 @@ export async function getCities(params?: CityParams): Promise<TnPagedResult<TnCi
   });
 }
 
-export async function globalSuggest(q: string): Promise<TnSuggestResult> {
-  return ApiClient.get('/api/catalog/search/suggest', { params: { q } });
+export async function getCityById(id: number): Promise<TnCity> {
+  return ApiClient.get(`/api/catalog/cities/${id}`, { params: {} });
+}
+
+export async function suggestCities(params: SuggestParams): Promise<TnSuggestGroup<TnCitySuggest>> {
+  return ApiClient.get('/api/catalog/cities/suggest', {
+    params: toParams({
+      q: params.q,
+      numberOfSuggestions: params.numberOfSuggestions,
+      filter: params.filter,
+    }),
+  });
+}
+
+// ─── Countries ────────────────────────────────────────────────────────────────
+
+export async function getCountries(params?: CountryParams): Promise<TnPagedResult<TnCountry>> {
+  return ApiClient.get('/api/catalog/countries', {
+    params: toParams({
+      filter: params?.filter,
+      pageNumber: params?.pageNumber,
+      pageSize: params?.pageSize,
+    }),
+  });
+}
+
+export async function getCountryByCode(code: string): Promise<TnCountry> {
+  return ApiClient.get(`/api/catalog/countries/${code}`, { params: {} });
+}
+
+// ─── State Provinces ──────────────────────────────────────────────────────────
+
+export async function getStateProvinces(params?: StateProvinceParams): Promise<TnPagedResult<TnStateProvince>> {
+  return ApiClient.get('/api/catalog/stateprovinces', {
+    params: toParams({
+      filter: params?.filter,
+      pageNumber: params?.pageNumber,
+      pageSize: params?.pageSize,
+    }),
+  });
+}
+
+export async function getStateProvinceById(id: number): Promise<TnStateProvince> {
+  return ApiClient.get(`/api/catalog/stateprovinces/${id}`, { params: {} });
+}
+
+// ─── Postal Codes ─────────────────────────────────────────────────────────────
+
+export async function getPostalCodes(params?: PostalCodeParams): Promise<TnPagedResult<TnPostalCode>> {
+  return ApiClient.get('/api/catalog/postalcodes', {
+    params: toParams({
+      filter: params?.filter,
+      geoFilter: params?.geoFilter,
+      pageNumber: params?.pageNumber,
+      pageSize: params?.pageSize,
+    }),
+  });
+}
+
+export async function getPostalCodeById(id: number): Promise<TnPostalCode> {
+  return ApiClient.get(`/api/catalog/postalcodes/${id}`, { params: {} });
+}
+
+// ─── Global Suggest ───────────────────────────────────────────────────────────
+
+export async function globalSuggest(q: string, params?: GlobalSuggestParams): Promise<TnSuggestResult> {
+  return ApiClient.get('/api/catalog/search/suggest', {
+    params: toParams({
+      q,
+      eventsRequested: params?.eventsRequested,
+      performersRequested: params?.performersRequested,
+      venuesRequested: params?.venuesRequested,
+      citiesRequested: params?.citiesRequested,
+      filter: params?.filter,
+    }),
+  });
 }

@@ -53,7 +53,8 @@ export async function HeroSection(props: { locale: string }) {
               {featured.venue && (
                 <span>
                   {featured.venue.text.name}
-                  {featured.venue.city ? `, ${featured.venue.city}` : ''}
+                  {featured.city?.text.name ? `, ${featured.city.text.name}` : ''}
+                  {featured.stateProvince?.text.abbr ? `, ${featured.stateProvince.text.abbr}` : ''}
                 </span>
               )}
             </div>

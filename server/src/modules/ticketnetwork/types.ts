@@ -188,3 +188,87 @@ export interface TnSuggestResult {
   venues: TnSuggestGroup<TnVenueSuggest>;
   cities: TnSuggestGroup<TnCitySuggest>;
 }
+
+// --- Category Hierarchies ---
+export interface TnCategoryHierarchy {
+  id: number;
+  name: string;
+  description?: string;
+  usages?: string[];
+  topCategoryNodeId?: string;
+}
+export interface CategoryHierarchyParams extends PaginationParams {
+  filter?: string;
+}
+
+// --- Countries ---
+export interface TnCountryText {
+  name: string;
+}
+export interface TnCountry {
+  alphaCode: string;
+  text: TnCountryText;
+}
+export interface CountryParams extends PaginationParams {
+  filter?: string;
+}
+
+// --- State Provinces ---
+export interface TnStateProvinceText {
+  name: string;
+  abbr?: string;
+}
+export interface TnStateProvince {
+  id: number;
+  text: TnStateProvinceText;
+  country?: { alphaCode: string; text: TnCountryText };
+}
+export interface StateProvinceParams extends PaginationParams {
+  filter?: string;
+}
+
+// --- Postal Codes ---
+export interface TnPostalCode {
+  id: number;
+  code: string;
+  city?: string;
+  stateProvince?: string;
+  country?: string;
+  latitude?: number;
+  longitude?: number;
+}
+export interface PostalCodeParams extends PaginationParams {
+  filter?: string;
+  geoFilter?: string;
+}
+
+// --- Individual Suggest Params ---
+export interface SuggestParams {
+  q: string;
+  numberOfSuggestions?: number;
+  filter?: string;
+}
+
+export interface EventSuggestParams extends SuggestParams {
+  includeVenueInfo?: boolean;
+}
+
+// --- Global Suggest Params ---
+export interface GlobalSuggestParams {
+  q: string;
+  eventsRequested?: number;
+  performersRequested?: number;
+  venuesRequested?: number;
+  citiesRequested?: number;
+  filter?: string;
+}
+
+// --- Event Bulk Params ---
+export interface EventBulkParams extends PaginationParams {
+  filter?: string;
+  categoryFilter?: string;
+  performerFilter?: string;
+  geoFilter?: string;
+  fields?: string;
+}
+
