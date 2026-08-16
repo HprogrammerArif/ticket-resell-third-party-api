@@ -198,7 +198,7 @@ function ArtistsSkeleton() {
 
 export async function CityEventsSection(props: { locale: string }) {
   const t = await getTranslations({ locale: props.locale, namespace: 'HomePage' });
-  const { results: cities } = await getCities({ pageSize: 5 });
+  const { results: cities } = await getCities({ pageSize: 5, hasEvents: true });
   const defaultCity = cities[0]?.text.name ?? '';
   if (!defaultCity) return null;
   const { results: events } = await getEvents({ city: defaultCity, pageSize: 6 });

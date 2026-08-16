@@ -303,6 +303,7 @@ export type VenueParams = {
 export type CityParams = {
   stateProvince?: string;
   country?: string;
+  hasEvents?: boolean;
   pageNumber?: number;
   pageSize?: number;
 };

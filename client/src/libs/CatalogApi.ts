@@ -201,6 +201,7 @@ export async function getCities(params?: CityParams): Promise<TnPagedResult<TnCi
     params: toParams({
       stateProvince: params?.stateProvince,
       country: params?.country,
+      hasEvents: params?.hasEvents,
       pageNumber: params?.pageNumber,
       pageSize: params?.pageSize,
     }),

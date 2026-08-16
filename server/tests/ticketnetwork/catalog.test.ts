@@ -51,15 +51,20 @@ describe('TN catalog functions', () => {
   it('getEvents({ city: "Toronto" }) forwards as TN\'s OData filter, not a flat "city" param', async () => {
     vi.mocked(tnRequest).mockResolvedValueOnce({ page: 1, count: 0, totalCount: 0, results: [] });
     await getEvents({ city: 'Toronto' });
-    expect(tnRequest).toHaveBeenCalledWith('/events', {
-      params: { filter: "city/text/name eq 'Toronto'" },
-    });
+    // filter always leads with a takedownAt cutoff (excludes de-listed events) —
+    // match that dynamically, assert the city clause is appended exactly.
+    const [, opts] = vi.mocked(tnRequest).mock.calls[0]!;
+    expect(opts?.params?.filter).toMatch(
+      /^takedownAt ge \S+ and city\/text\/name eq 'Toronto'$/,
+    );
   });
 
   it('searchEvents calls tnRequest("/events/search") with keyword forwarded as TN\'s required "q" param', async () => {
     vi.mocked(tnRequest).mockResolvedValueOnce({ page: 1, count: 0, totalCount: 0, results: [] });
     await searchEvents({ keyword: 'hockey' });
-    expect(tnRequest).toHaveBeenCalledWith('/events/search', { params: { q: 'hockey' } });
+    const [, opts] = vi.mocked(tnRequest).mock.calls[0]!;
+    expect(opts?.params?.q).toBe('hockey');
+    expect(opts?.params?.filter).toMatch(/^takedownAt ge \S+$/);
   });
 
   it('getPerformerById(99) calls tnRequest("/performers/99", {})', async () => {

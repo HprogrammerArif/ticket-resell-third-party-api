@@ -152,10 +152,19 @@ export interface TnCity {
   salesRank?: number;
   stateProvince?: string;
   country?: string;
+  _metadata?: {
+    ticketCount: number;
+    hasEvents: boolean;
+    eventCount: number;
+  };
 }
 export interface CityParams extends PaginationParams {
   stateProvince?: string;
   country?: string;
+  // Only cities TN reports as actually having events — otherwise "pick a
+  // default city" style features can land on a city with zero events, same
+  // failure mode as unfiltered category browsing.
+  hasEvents?: boolean;
 }
 
 // --- Suggestions ---

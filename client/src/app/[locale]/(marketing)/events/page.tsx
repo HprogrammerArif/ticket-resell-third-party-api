@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { searchEvents } from '@/libs/CachedCatalogApi';
+import { getEvents, searchEvents } from '@/libs/CachedCatalogApi';
 import { EventCard } from '@/components/catalog/EventCard';
 import { EventCardSkeleton } from '@/components/catalog/EventCardSkeleton';
 import { SectionHeading } from '@/components/catalog/SectionHeading';
@@ -29,15 +29,26 @@ async function EventsGrid(props: {
 }) {
   const t = await getTranslations({ locale: props.locale, namespace: 'EventsPage' });
   const pageSize = 12;
-  const result = await searchEvents({
-    keyword: props.keyword,
-    city: props.city,
-    categoryPath: props.categoryPath,
-    dateFrom: props.dateFrom,
-    dateTo: props.dateTo,
-    pageNumber: props.page,
-    pageSize,
-  });
+  // TN's /events/search requires a keyword — browsing with no search term (e.g.
+  // "See All Events") must hit the plain /events list endpoint instead.
+  const result = props.keyword
+    ? await searchEvents({
+        keyword: props.keyword,
+        city: props.city,
+        categoryPath: props.categoryPath,
+        dateFrom: props.dateFrom,
+        dateTo: props.dateTo,
+        pageNumber: props.page,
+        pageSize,
+      })
+    : await getEvents({
+        city: props.city,
+        categoryPath: props.categoryPath,
+        dateFrom: props.dateFrom,
+        dateTo: props.dateTo,
+        pageNumber: props.page,
+        pageSize,
+      });
 
   if (result.results.length === 0) {
     return (

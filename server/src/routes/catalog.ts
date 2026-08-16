@@ -300,6 +300,7 @@ router.get('/cities', async (req: Request, res: Response, next: NextFunction) =>
     const params: CityParams = {
       stateProvince: req.query.stateProvince as string | undefined,
       country: req.query.country as string | undefined,
+      hasEvents: req.query.hasEvents === 'true',
       pageNumber: req.query.pageNumber ? Number(req.query.pageNumber) : undefined,
       pageSize: req.query.pageSize ? Number(req.query.pageSize) : undefined,
     };

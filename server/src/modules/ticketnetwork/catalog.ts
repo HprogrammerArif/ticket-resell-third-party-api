@@ -59,6 +59,10 @@ function odataDate(value: string): string {
 
 function eventQuery(params: EventParams): Record<string, string | number | undefined> {
   const filter = odataAnd([
+    // `takedownAt` is TN's own "de-listed from websites, no longer for sale" cutoff —
+    // without this, listings can surface events whose ticket sales already closed
+    // (e.g. a same-day event whose start time has already passed).
+    `takedownAt ge ${new Date().toISOString()}`,
     params.city ? `city/text/name eq ${odataQuote(params.city)}` : undefined,
     params.venueId !== undefined ? `venue/id eq ${params.venueId}` : undefined,
     params.dateFrom ? `date/date ge ${odataDate(params.dateFrom)}` : undefined,
@@ -94,6 +98,7 @@ function cityQuery(params: CityParams): Record<string, string | number | undefin
   const filter = odataAnd([
     params.stateProvince ? `stateProvince/text/name eq ${odataQuote(params.stateProvince)}` : undefined,
     params.country ? `country/text/name eq ${odataQuote(params.country)}` : undefined,
+    params.hasEvents ? '_metadata/hasEvents eq true' : undefined,
   ]);
   return { filter, pageNumber: params.pageNumber, pageSize: params.pageSize };
 }
