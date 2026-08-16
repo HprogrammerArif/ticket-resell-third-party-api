@@ -23,8 +23,21 @@
     "feature_3_description": "Backend intégré avec Drizzle ORM, PostgreSQL et les Route Handlers Next.js. Tout ce dont vous avez besoin pour une application en production."
   },
   "SignIn": {
-    "meta_title": "Se connecter",
-    "meta_description": "Connectez-vous facilement à votre compte."
+    "meta_title": "Se connecter — TicketLove.net",
+    "meta_description": "Connectez-vous à votre compte TicketLove.",
+    "heading": "Se connecter",
+    "email_label": "E-mail",
+    "email_placeholder": "Adresse e-mail",
+    "password_label": "Mot de passe",
+    "password_placeholder": "Mot de passe",
+    "show_password": "Afficher le mot de passe",
+    "hide_password": "Masquer le mot de passe",
+    "forgot_password": "Mot de passe oublié ?",
+    "submit": "Se connecter",
+    "no_account": "Pas encore de compte ?",
+    "sign_up_link": "Inscription",
+    "error_invalid_credentials": "E-mail ou mot de passe invalide.",
+    "error_generic": "Une erreur est survenue. Veuillez réessayer."
   },
   "SignUp": {
     "meta_title": "S'inscrire",
