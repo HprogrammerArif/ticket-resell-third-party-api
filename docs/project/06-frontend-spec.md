@@ -252,6 +252,8 @@ Ticket selection state (which tickets the user chose) is stored in **URL search 
 
 The checkout page reads these params as RSC props and renders the ticket summary. The "Proceed to Checkout" button builds the TicketNetwork redirect URL (Phase 7) by appending UTM params to the TN-provided base URL.
 
+> **2026-08-16 update:** This custom `/checkout` review page is deprioritized. TicketNetwork's Seatics MapWidget3 (integrated on the event detail page, see `docs/superpowers/specs/2026-08-16-mapwidget3-integration-design.md`) owns ticket selection, its own pre-checkout screen, and the redirect to TN's hosted checkout directly. The `(checkout)/checkout/page.tsx` route described above stays undocumented-as-built unless a branded pre-widget step is wanted later.
+
 ---
 
 ## i18n Rules

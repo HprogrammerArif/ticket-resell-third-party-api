@@ -12,6 +12,16 @@ Format:
 
 ---
 
+## 2026-08-16 — MapWidget3 integrated on event detail page
+
+- Replaced the custom price-range-only "Tickets" tab with TicketNetwork's Seatics MapWidget3 embed (`MapWidgetEmbed` component), which shows real ticket-group listings, an interactive seat map, and owns the pre-checkout → TN-hosted-checkout hand-off
+- Sidebar simplified to static event facts only (price/CTA removed — the widget now owns that)
+- New env var `NEXT_PUBLIC_MAPWIDGET_WEBSITE_CONFIG_ID` (placeholder value `690` from TN's public guide — not yet confirmed as our real Maps config ID)
+- Updated `06-frontend-spec.md` and Phase 5 in `02-phases.md`: the custom `/checkout` review page is deprioritized since the widget now owns that flow
+- Follow-up: confirm the real `websiteConfigId` with TicketNetwork before treating this as fully verified
+
+---
+
 ## 2026-08-16 — Docs reconciled with actual repo state; MapWidget3 finding logged
 
 - `02-phases.md` was stale: Phases 2 and 3 were marked `[NOT STARTED]` despite being fully implemented and committed. Corrected: Phase 2 → `[NEEDS REVIEW]`, Phase 3 → `[DONE]`, engineering checklists checked off to match git history.

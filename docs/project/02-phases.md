@@ -217,6 +217,8 @@
 **Status:** `[NOT STARTED]`
 **Goal:** Users can review their selected tickets and reach a polished handoff page before being redirected to TicketNetwork's checkout. UTM/GTM scaffolding is in place.
 
+> **2026-08-16 update:** MapWidget3 (see Phase 2 note above) now provides ticket selection and its own pre-checkout screen directly — see `docs/superpowers/specs/2026-08-16-mapwidget3-integration-design.md`. The custom `/checkout` review page and its engineering tasks below are deprioritized. Remaining scope: confirm/wire real UTM parameter names with TN once the NDA is signed (same blocker as Phase 7).
+
 ### Business tasks
 - [ ] Confirm with Steven what should appear on the pre-checkout review page (ticket summary, pricing, fees disclosure)
 - [ ] Confirm disclaimer text for TicketNetwork redirect (users need to know they're leaving the site)
@@ -224,12 +226,12 @@
 - [ ] `[OPEN]` Get GTM tag specs from TicketNetwork (after NDA)
 
 ### Engineering tasks
-- [ ] Frontend: cart/order review page (`/checkout`) matching Figma checkout screens
-- [ ] Frontend: ticket selection state (URL params or session — prefer URL params for shareability)
+- [ ] Frontend: cart/order review page (`/checkout`) matching Figma checkout screens — superseded by MapWidget3
+- [ ] Frontend: ticket selection state (URL params or session — prefer URL params for shareability) — superseded by MapWidget3
 - [ ] Frontend: "Proceed to Checkout" button — currently renders as disabled/placeholder; wires to real URL in Phase 7
 - [ ] Backend: UTM parameter builder (builds the redirect URL with correct params once specs are known)
 - [ ] Frontend: GTM dataLayer push on "Proceed to Checkout" click
-- [ ] Frontend: Figma checkout process screens implemented (Checkout process 1, 2, 3 from Figma)
+- [ ] Frontend: Figma checkout process screens implemented (Checkout process 1, 2, 3 from Figma) — superseded by MapWidget3
 
 ### Done criteria
 - [ ] Pre-checkout page renders correctly with ticket details
@@ -333,7 +335,7 @@ This table tracks all feature requests that come in after the initial build plan
 
 | Date | Requested By | Feature Description | Status | Target Phase |
 |------|-------------|---------------------|--------|-------------|
-| 2026-08-16 | TicketNetwork support | Integrate Seatics MapWidget3 for real ticket-group listings + interactive seat map on event detail pages (CatalogAPI alone only returns a price-range summary) — see `docs/MapWidget3+Integration+Guide.pdf` | `[LOGGED]` | Phase 2 (event detail), overlaps Phase 5/7 |
+| 2026-08-16 | TicketNetwork support | Integrate Seatics MapWidget3 for real ticket-group listings + interactive seat map on event detail pages (CatalogAPI alone only returns a price-range summary) — see `docs/MapWidget3+Integration+Guide.pdf` | `[PLANNED]` | Phase 2 (event detail), overlaps Phase 5/7 |
 
 ### How to add a feature request
 
