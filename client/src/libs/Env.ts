@@ -8,6 +8,7 @@ export const Env = createEnv({
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.string().optional(),
+    NEXT_PUBLIC_MAPWIDGET_WEBSITE_CONFIG_ID: z.string(),
   },
   shared: {
     NODE_ENV: z.enum(['test', 'development', 'production']).optional(),
@@ -16,6 +17,7 @@ export const Env = createEnv({
     BACKEND_API_URL: process.env.BACKEND_API_URL,
     JWT_SECRET: process.env.JWT_SECRET,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    NEXT_PUBLIC_MAPWIDGET_WEBSITE_CONFIG_ID: process.env.NEXT_PUBLIC_MAPWIDGET_WEBSITE_CONFIG_ID,
     NODE_ENV: process.env.NODE_ENV,
   },
 });

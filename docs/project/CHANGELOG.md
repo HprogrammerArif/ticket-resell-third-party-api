@@ -12,6 +12,28 @@ Format:
 
 ---
 
+## 2026-08-16 — MapWidget3 integrated on event detail page
+
+- Replaced the custom price-range-only "Tickets" tab with TicketNetwork's Seatics MapWidget3 embed (`MapWidgetEmbed` component), which shows real ticket-group listings, an interactive seat map, and owns the pre-checkout → TN-hosted-checkout hand-off
+- Sidebar simplified to static event facts only (price/CTA removed — the widget now owns that)
+- New env var `NEXT_PUBLIC_MAPWIDGET_WEBSITE_CONFIG_ID` (placeholder value `690` from TN's public guide — not yet confirmed as our real Maps config ID)
+- Updated `06-frontend-spec.md` and Phase 5 in `02-phases.md`: the custom `/checkout` review page is deprioritized since the widget now owns that flow
+- Widget is embedded via an `<iframe srcDoc="...">` containing its own static HTML document with a blocking `<script>` tag, rather than `next/script` — TN's widget script relies on `document.write`, which browsers reject for scripts injected asynchronously by `next/script`, so the widget needs a real synchronously-parsed document context (see `docs/superpowers/specs/2026-08-16-mapwidget3-integration-design.md`)
+- Follow-up: confirm the real `websiteConfigId` with TicketNetwork before treating this as fully verified
+- Follow-up: verify whether TN's MapWidget3 checkout hand-off navigates the whole page (`window.top.location`) or just the iframe (`window.location`) on ticket-selection completion — untested; if it's the latter, checkout would render awkwardly inside the 900px embedded frame
+- Follow-up: TN's widget script loads some sub-resources over plain `http://` even when the parent page is served over `https://` — the dev-only smoke test (HTTP end-to-end) couldn't exercise this, so HTTPS mixed-content behavior is unverified
+- This integration should not be promoted to a user-facing/production environment until: the real `websiteConfigId` is confirmed with TicketNetwork, AND the checkout hand-off behavior is verified on an HTTPS environment
+
+---
+
+## 2026-08-16 — Docs reconciled with actual repo state; MapWidget3 finding logged
+
+- `02-phases.md` was stale: Phases 2 and 3 were marked `[NOT STARTED]` despite being fully implemented and committed. Corrected: Phase 2 → `[NEEDS REVIEW]`, Phase 3 → `[DONE]`, engineering checklists checked off to match git history.
+- Logged a TicketNetwork support finding: CatalogAPI only returns a price-range summary, not real ticket groups or a seat map. The Seatics MapWidget3 (`docs/MapWidget3+Integration+Guide.pdf`) is required for that — affects the Phase 2 event detail page and overlaps Phase 5/7 (pre-checkout, checkout redirect) scope. Added to Feature Requests Log as `[LOGGED]`; needs brainstorming + design-doc update before any implementation, per the documentation-first rule.
+- No code changed in this pass — documentation only.
+
+---
+
 ## 2026-08-13 — Phase 0 post-review fixes
 
 - Fixed `ApiError` prototype chain (`Object.setPrototypeOf`) — `instanceof` was silently broken in CommonJS TypeScript

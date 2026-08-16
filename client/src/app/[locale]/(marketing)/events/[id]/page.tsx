@@ -7,6 +7,7 @@ import { ApiError } from '@/libs/ApiClient';
 import { EventCard } from '@/components/catalog/EventCard';
 import { SectionHeading } from '@/components/catalog/SectionHeading';
 import { EventDetailTabs } from '@/components/catalog/EventDetailTabs';
+import { MapWidgetEmbed } from '@/components/catalog/MapWidgetEmbed';
 import { Link } from '@/libs/I18nNavigation';
 import type { TnEvent, TnVenue } from '@/types/Catalog';
 
@@ -47,115 +48,6 @@ async function SimilarEvents(props: { categoryPath?: string; locale: string; cur
         ))}
       </div>
     </section>
-  );
-}
-
-// ─── Tab: Tickets ─────────────────────────────────────────────────────────────
-
-function TicketsTab(props: { event: TnEvent }) {
-  const { event } = props;
-  const meta = event._metadata;
-  const pricing = event.pricingInfo;
-  const low = pricing?.lowPrice?.value;
-  const avg = pricing?.averagePrice?.value;
-  const high = pricing?.highPrice?.value;
-  const totalTickets = meta?.ticketCount ?? 0;
-  const eTickets = meta?.eTickets?.ticketCount ?? 0;
-  const parkingTickets = meta?.parkingTickets?.ticketCount ?? 0;
-  const hasTnPrime = meta?.hasTnPrimeTickets ?? false;
-  const hasTickets = meta?.hasTickets ?? false;
-
-  return (
-    <div className="space-y-6">
-      {/* Price range card */}
-      <div className="rounded-2xl border border-[var(--color-surface-border)] bg-[var(--color-surface-raised)] p-6">
-        <p className="mb-4 text-[13px] font-medium uppercase tracking-widest text-[var(--color-text-muted)]">
-          Ticket Price Range
-        </p>
-
-        {low !== undefined ? (
-          <div className="space-y-4">
-            {/* Price labels */}
-            <div className="flex items-end justify-between">
-              <div>
-                <p className="text-[11px] text-[var(--color-text-muted)]">From</p>
-                <p className="text-[32px] font-bold text-white">${low.toFixed(0)}</p>
-              </div>
-              {avg !== undefined && (
-                <div className="text-center">
-                  <p className="text-[11px] text-[var(--color-text-muted)]">Avg</p>
-                  <p className="text-[20px] font-semibold text-[var(--color-text-secondary)]">${avg.toFixed(0)}</p>
-                </div>
-              )}
-              {high !== undefined && (
-                <div className="text-right">
-                  <p className="text-[11px] text-[var(--color-text-muted)]">Up to</p>
-                  <p className="text-[20px] font-semibold text-[var(--color-text-secondary)]">${high.toFixed(0)}</p>
-                </div>
-              )}
-            </div>
-
-            {/* Price bar visual */}
-            {high !== undefined && high > 0 && (
-              <div className="relative h-2 rounded-full bg-white/10">
-                <div
-                  className="absolute left-0 top-0 h-2 rounded-full bg-gradient-to-r from-[var(--color-brand)] to-[#ff6b6b]"
-                  style={{ width: `${Math.min(100, (low / high) * 100)}%` }}
-                />
-                {avg !== undefined && (
-                  <div
-                    className="absolute top-1/2 h-4 w-1 -translate-y-1/2 rounded-full bg-white"
-                    style={{ left: `${Math.min(100, (avg / high) * 100)}%` }}
-                  />
-                )}
-              </div>
-            )}
-          </div>
-        ) : (
-          <p className="text-[18px] font-semibold text-white">
-            {hasTickets ? 'Tickets Available — Price TBD' : 'Coming Soon'}
-          </p>
-        )}
-      </div>
-
-      {/* Ticket breakdown */}
-      <div className="grid grid-cols-2 gap-4 max-sm:grid-cols-1">
-        <div className="rounded-xl border border-[var(--color-surface-border)] bg-[var(--color-surface-raised)] p-4">
-          <p className="mb-1 text-[11px] text-[var(--color-text-muted)]">Total Tickets</p>
-          <p className="text-[20px] font-semibold text-white">
-            {totalTickets > 0 ? totalTickets.toLocaleString() : '—'}
-          </p>
-        </div>
-        <div className="rounded-xl border border-[var(--color-surface-border)] bg-[var(--color-surface-raised)] p-4">
-          <p className="mb-1 text-[11px] text-[var(--color-text-muted)]">eTickets</p>
-          <p className="text-[20px] font-semibold text-white">
-            {eTickets > 0 ? eTickets.toLocaleString() : '—'}
-          </p>
-        </div>
-        {parkingTickets > 0 && (
-          <div className="rounded-xl border border-[var(--color-surface-border)] bg-[var(--color-surface-raised)] p-4">
-            <p className="mb-1 text-[11px] text-[var(--color-text-muted)]">Parking Tickets</p>
-            <p className="text-[20px] font-semibold text-white">{parkingTickets.toLocaleString()}</p>
-          </div>
-        )}
-        {hasTnPrime && (
-          <div className="rounded-xl border border-[#f59e0b]/30 bg-[#f59e0b]/10 p-4">
-            <p className="mb-1 text-[11px] text-[#f59e0b]">TN Prime</p>
-            <p className="text-[14px] font-medium text-[#f59e0b]">⭐ Prime tickets available</p>
-          </div>
-        )}
-      </div>
-
-      {/* CTA */}
-      <button
-        type="button"
-        disabled
-        aria-label="Get Tickets — coming soon"
-        className="w-full cursor-not-allowed rounded-full bg-[var(--color-brand)] py-4 text-[16px] font-semibold text-white opacity-60 transition-opacity"
-      >
-        Get Tickets — Coming Soon
-      </button>
-    </div>
   );
 }
 
@@ -417,8 +309,6 @@ export default async function EventDetailPage(props: EventDetailPageProps) {
   const categoryName = event.defaultCategory?.text.name;
   const ancestors = event.defaultCategory?.ancestors ?? [];
   const meta = event._metadata;
-  const lowPrice = event.pricingInfo?.lowPrice?.value;
-  const highPrice = event.pricingInfo?.highPrice?.value;
   const hasTickets = meta?.hasTickets ?? false;
   const ticketCount = meta?.ticketCount ?? 0;
 
@@ -577,7 +467,7 @@ export default async function EventDetailPage(props: EventDetailPageProps) {
               { id: 'faq', label: t('tab_faq'), icon: '❓' },
             ]}
           >
-            <TicketsTab event={event} />
+            <MapWidgetEmbed eventId={event.id} />
             <LineupTab event={event} />
             <VenueTab event={event} venue={fullVenue} />
             <FaqTab faqs={faqs} />
@@ -588,42 +478,8 @@ export default async function EventDetailPage(props: EventDetailPageProps) {
         <div className="w-80 shrink-0 max-lg:w-full">
           <div className="sticky top-24 rounded-2xl border border-[var(--color-surface-border)] bg-[var(--color-surface-raised)] p-6">
 
-            {/* Price */}
-            {lowPrice !== undefined ? (
-              <div className="mb-2">
-                <p className="text-[28px] font-bold text-white">
-                  From ${lowPrice.toFixed(0)}
-                </p>
-                {highPrice !== undefined && highPrice !== lowPrice && (
-                  <p className="text-[13px] text-[var(--color-text-muted)]">
-                    up to ${highPrice.toFixed(0)}
-                  </p>
-                )}
-              </div>
-            ) : (
-              <p className="mb-2 text-[18px] font-semibold text-white">
-                {hasTickets ? 'Tickets Available' : 'Coming Soon'}
-              </p>
-            )}
-
-            {/* Ticket count */}
-            {ticketCount > 0 && (
-              <p className="mb-5 text-[13px] text-[var(--color-text-muted)]">
-                {ticketCount.toLocaleString()} tickets available
-              </p>
-            )}
-
-            <button
-              type="button"
-              disabled
-              aria-label={t('get_tickets_coming_soon')}
-              className="mb-5 w-full cursor-not-allowed rounded-full bg-[var(--color-brand)] py-3.5 text-[16px] font-semibold text-white opacity-60"
-            >
-              {t('get_tickets')}
-            </button>
-
             {/* Quick facts */}
-            <div className="space-y-3 border-t border-[var(--color-surface-border)] pt-5">
+            <div className="space-y-3">
               {venueName && (
                 <div className="flex items-start gap-3">
                   <span className="mt-0.5 text-lg">🏟️</span>
