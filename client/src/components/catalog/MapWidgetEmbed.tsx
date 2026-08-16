@@ -1,6 +1,5 @@
 'use client';
 
-import Script from 'next/script';
 import { Env } from '@/libs/Env';
 
 type MapWidgetEmbedProps = {
@@ -14,11 +13,20 @@ const MAPWIDGET_HOST = Env.NODE_ENV === 'production'
 export function MapWidgetEmbed(props: MapWidgetEmbedProps) {
   const src = `${MAPWIDGET_HOST}/js?eventId=${props.eventId}&websiteConfigId=${Env.NEXT_PUBLIC_MAPWIDGET_WEBSITE_CONFIG_ID}&useDarkTheme=true`;
 
+  const srcDoc = `<!DOCTYPE html>
+<html>
+<head><style>html,body{margin:0;padding:0;background:#0f0f0f;}</style></head>
+<body>
+<div id="tn-mapwidget-container"></div>
+<script src="${src}"><\/script>
+</body>
+</html>`;
+
   return (
-    <div className="mx-auto min-h-[900px] w-full max-w-[1500px]">
-      {/* TicketNetwork's Seatics MapWidget3 self-renders into this container once its script loads. */}
-      <div id="tn-mapwidget-container" />
-      <Script src={src} strategy="afterInteractive" />
-    </div>
+    <iframe
+      title="Ticket selection"
+      srcDoc={srcDoc}
+      className="mx-auto block h-[900px] w-full max-w-[1500px] border-0"
+    />
   );
 }
