@@ -12,6 +12,14 @@ Format:
 
 ---
 
+## 2026-08-16 — Docs reconciled with actual repo state; MapWidget3 finding logged
+
+- `02-phases.md` was stale: Phases 2 and 3 were marked `[NOT STARTED]` despite being fully implemented and committed. Corrected: Phase 2 → `[NEEDS REVIEW]`, Phase 3 → `[DONE]`, engineering checklists checked off to match git history.
+- Logged a TicketNetwork support finding: CatalogAPI only returns a price-range summary, not real ticket groups or a seat map. The Seatics MapWidget3 (`docs/MapWidget3+Integration+Guide.pdf`) is required for that — affects the Phase 2 event detail page and overlaps Phase 5/7 (pre-checkout, checkout redirect) scope. Added to Feature Requests Log as `[LOGGED]`; needs brainstorming + design-doc update before any implementation, per the documentation-first rule.
+- No code changed in this pass — documentation only.
+
+---
+
 ## 2026-08-13 — Phase 0 post-review fixes
 
 - Fixed `ApiError` prototype chain (`Object.setPrototypeOf`) — `instanceof` was silently broken in CommonJS TypeScript

@@ -1,6 +1,6 @@
 # 02 — Phases & Build Plan
 
-**Last Updated:** 2026-08-13
+**Last Updated:** 2026-08-16
 
 ---
 
@@ -17,9 +17,9 @@
 |-------|------|--------|---------|
 | 0 | Repo & Environment Setup | `[DONE]` | — |
 | 1 | Express Backend — TicketNetwork Integration | `[DONE]` | — |
-| 2 | Next.js Frontend — Figma Implementation | `[NOT STARTED]` | — |
-| 3 | User Account System | `[NOT STARTED]` | — |
-| 4 | Gift Card System | `[NOT STARTED]` | — |
+| 2 | Next.js Frontend — Figma Implementation | `[NEEDS REVIEW]` | Ticket listings use CatalogAPI price-range summary only — MapWidget3 (seat map + real ticket groups) not yet integrated, see note below |
+| 3 | User Account System | `[DONE]` | — |
+| 4 | Gift Card System | `[NOT STARTED]` | Open business questions below |
 | 5 | Pre-Checkout UI | `[NOT STARTED]` | — |
 | 6 | Admin Dashboard Shell (Steven) | `[NOT STARTED]` | — |
 | 7 | Wire Checkout Redirect | `[NOT STARTED]` | `[BLOCKED: NDA not signed]` |
@@ -109,10 +109,12 @@
 
 ## Phase 2 — Next.js Frontend: Figma Implementation
 
-**Status:** `[NOT STARTED]`
+**Status:** `[NEEDS REVIEW]`
 **Goal:** Every page in the Figma design is implemented as a real Next.js page pulling live data from the backend. The site looks and behaves exactly as designed.
 
 **Figma source of truth:** https://www.figma.com/design/O1FzG0lsNLxynQw8oqqIhZ/Ticket-Love?node-id=0-1&m=dev
+
+> **2026-08-16 finding:** TicketNetwork support confirmed (see `docs/MapWidget3+Integration+Guide.pdf`) that CatalogAPI alone only returns a price-range *summary* (`pricingInfo.lowPrice/avgPrice/highPrice`) — it does not return the individual ticket groups or seat map needed for a real "select your seats" experience. That requires embedding TicketNetwork's **Seatics MapWidget3** (`mapwidget3-sandbox.seatics.com`), which handles the interactive seat map, itemized ticket listing, pre-checkout interstitial, and initial checkout hand-off (with UTM/promo config built in) as a drop-in widget. This directly affects the current event detail page (`events/[id]/page.tsx`, `TicketsTab`) and overlaps significantly with Phase 5 (Pre-Checkout UI) and Phase 7 (Checkout Redirect) scope. **Needs brainstorming + a design-doc update before implementation** — see Phase 2 note in Feature Requests Log.
 
 ### Business tasks
 - [ ] Review the Figma design with Steven and confirm no changes are needed before implementation begins
@@ -120,34 +122,35 @@
 - [ ] Decide on the i18n languages needed (currently English + French in template — confirm with Steven)
 
 ### Engineering tasks
-- [ ] Replace boilerplate homepage with real Ticket Love homepage (hero, categories, events this weekend, popular artists, browse by city, gift card promo, how it works, footer)
-- [ ] Implement category browsing page (`/categories/[path]`)
-- [ ] Implement events listing page (`/events`) with filters (date, city, category)
-- [ ] Implement event detail page (`/events/[id]`) with ticket listings
-- [ ] Implement artist/performer listing page (`/artists`)
-- [ ] Implement artist detail page (`/artists/[id]`)
-- [ ] Implement venue listing page (`/venues`)
-- [ ] Implement venue detail page (`/venues/[id]`)
-- [ ] Implement search results page (`/search`)
-- [ ] Update navigation to match Figma
-- [ ] Update footer to match Figma
-- [ ] All pages must be responsive (mobile, tablet, desktop)
-- [ ] All user-visible strings in `src/locales/en.json`
-- [ ] All pages use RSC + Suspense + skeleton fallbacks
-- [ ] Use Figma MCP to pull component specs during implementation (see `04-ai-tooling.md`)
+- [x] Replace boilerplate homepage with real Ticket Love homepage (hero, categories, events this weekend, popular artists, browse by city, gift card promo, how it works, footer)
+- [x] Implement category browsing page (`/categories/[path]`)
+- [x] Implement events listing page (`/events`) with filters (date, city, category)
+- [x] Implement event detail page (`/events/[id]`) with ticket listings — *price-range summary only, see MapWidget3 finding above*
+- [x] Implement artist/performer listing page (`/artists`)
+- [x] Implement artist detail page (`/artists/[id]`)
+- [x] Implement venue listing page (`/venues`)
+- [x] Implement venue detail page (`/venues/[id]`)
+- [x] Implement search results page (`/search`)
+- [x] Update navigation to match Figma
+- [x] Update footer to match Figma
+- [x] All pages must be responsive (mobile, tablet, desktop)
+- [x] All user-visible strings in `src/locales/en.json`
+- [x] All pages use RSC + Suspense + skeleton fallbacks
+- [x] Use Figma MCP to pull component specs during implementation (see `04-ai-tooling.md`)
 
 ### Done criteria
-- [ ] All Figma screens are implemented — visual parity confirmed by side-by-side comparison
-- [ ] All pages load real TicketNetwork Sandbox data
-- [ ] No hard-coded user-visible strings
-- [ ] Responsive at all breakpoints
-- [ ] `npm run lint` and `npm run check:types` pass
+- [x] All Figma screens are implemented — visual parity confirmed by side-by-side comparison
+- [x] All pages load real TicketNetwork Sandbox data
+- [x] No hard-coded user-visible strings
+- [x] Responsive at all breakpoints
+- [x] `npm run lint` and `npm run check:types` pass
+- [ ] Real ticket groups/seat map on event detail page (blocked on MapWidget3 brainstorm — new since original scope)
 
 ---
 
 ## Phase 3 — User Account System
 
-**Status:** `[NOT STARTED]`
+**Status:** `[DONE]`
 **Goal:** End users can create an account, sign in, view their profile, and change their password. Auth is session-based.
 
 ### Business tasks
@@ -155,25 +158,26 @@
 - [ ] Confirm with Steven whether social login (Google, etc.) is needed for MVP
 
 ### Engineering tasks
-- [ ] Backend: user registration endpoint (`POST /api/auth/register`)
-- [ ] Backend: login endpoint (`POST /api/auth/login`) — returns session cookie
-- [ ] Backend: logout endpoint (`POST /api/auth/logout`)
-- [ ] Backend: get current user (`GET /api/auth/me`)
-- [ ] Backend: password change endpoint (`PUT /api/auth/password`)
-- [ ] Backend: password reset flow (email link) — if email provider is confirmed
-- [ ] Frontend: sign-up page (already scaffolded — wire to real backend)
-- [ ] Frontend: sign-in page (already scaffolded — wire to real backend)
-- [ ] Frontend: user dashboard pages (match Figma user dashboard screens)
-- [ ] Frontend: change password page (Figma screen exists)
-- [ ] Frontend: forgot password page (Figma screen exists)
-- [ ] Route protection: middleware already in `client/src/proxy.ts`, confirm it works with real auth
+- [x] Backend: user registration endpoint (`POST /api/auth/register`)
+- [x] Backend: login endpoint (`POST /api/auth/login`) — returns session cookie
+- [x] Backend: logout endpoint (`POST /api/auth/logout`)
+- [x] Backend: get current user (`GET /api/auth/me`)
+- [x] Backend: password change endpoint (`PUT /api/auth/password`)
+- [ ] Backend: password reset flow (email link) — deferred, no email provider decided yet
+- [x] Frontend: sign-up page (already scaffolded — wire to real backend)
+- [x] Frontend: sign-in page (already scaffolded — wire to real backend)
+- [x] Frontend: user dashboard pages (match Figma user dashboard screens)
+- [x] Frontend: change password page (Figma screen exists)
+- [x] Frontend: forgot password page (Figma screen exists) — stub only, real reset flow deferred with backend above
+- [x] Route protection: middleware already in `client/src/proxy.ts`, confirm it works with real auth
 
 ### Done criteria
-- [ ] User can register, sign in, view dashboard, change password
-- [ ] Protected routes redirect to sign-in when unauthenticated
-- [ ] Sessions expire and re-authentication is required
-- [ ] Passwords are hashed (bcrypt), never stored in plain text
-- [ ] Tests pass for auth endpoints
+- [x] User can register, sign in, view dashboard, change password
+- [x] Protected routes redirect to sign-in when unauthenticated
+- [x] Sessions expire and re-authentication is required (7-day JWT)
+- [x] Passwords are hashed (bcrypt, 12 rounds), never stored in plain text
+- [x] Tests pass for auth endpoints
+- [ ] Delete-account endpoint also shipped (`DELETE /api/auth/account`) — beyond original scope, not yet reflected above
 
 ---
 
@@ -329,7 +333,7 @@ This table tracks all feature requests that come in after the initial build plan
 
 | Date | Requested By | Feature Description | Status | Target Phase |
 |------|-------------|---------------------|--------|-------------|
-| — | — | No requests yet | — | — |
+| 2026-08-16 | TicketNetwork support | Integrate Seatics MapWidget3 for real ticket-group listings + interactive seat map on event detail pages (CatalogAPI alone only returns a price-range summary) — see `docs/MapWidget3+Integration+Guide.pdf` | `[LOGGED]` | Phase 2 (event detail), overlaps Phase 5/7 |
 
 ### How to add a feature request
 
