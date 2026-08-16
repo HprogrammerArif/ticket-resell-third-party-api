@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import * as catalog from '../modules/ticketnetwork/catalog';
 import { ApiError } from '../middleware/errorHandler';
+import { cacheGet, buildCacheKey } from '../libs/cache';
 import type {
   CategoryParams, CategoryHierarchyParams,
   EventParams, EventSuggestParams, EventBulkParams,
@@ -14,6 +15,37 @@ import type {
 
 const router = Router();
 
+// ─── Cache TTL constants (seconds) ────────────────────────────────────────────
+
+const TTL = {
+  CATEGORIES: 60 * 60,        // 60 min  — changes rarely
+  EVENTS_LIST: 10 * 60,       // 10 min  — changes moderately
+  EVENTS_DETAIL: 15 * 60,     // 15 min  — event details are stable
+  PERFORMERS: 30 * 60,        // 30 min  — changes rarely
+  VENUES: 60 * 60,            // 60 min  — very stable
+  CITIES: 120 * 60,           // 2 hr    — almost never changes
+  COUNTRIES: 120 * 60,        // 2 hr
+  STATE_PROVINCES: 120 * 60,  // 2 hr
+  POSTAL_CODES: 30 * 60,      // 30 min
+  SUGGEST: 5 * 60,            // 5 min   — user-input driven
+} as const;
+
+// ─── Cache-Control header helpers ─────────────────────────────────────────────
+
+/**
+ * Set Cache-Control headers on a response.
+ * @param res       Express response object.
+ * @param maxAge    Browser/client max-age (seconds).
+ * @param sMaxAge   CDN/shared-cache s-maxage (seconds).
+ * @param swr       stale-while-revalidate window (seconds).
+ */
+function setCache(res: Response, maxAge: number, sMaxAge: number, swr = 60): void {
+  res.set(
+    'Cache-Control',
+    `public, max-age=${maxAge}, s-maxage=${sMaxAge}, stale-while-revalidate=${swr}`,
+  );
+}
+
 // ─── Categories ───────────────────────────────────────────────────────────────
 
 router.get('/categories', async (req: Request, res: Response, next: NextFunction) => {
@@ -23,7 +55,10 @@ router.get('/categories', async (req: Request, res: Response, next: NextFunction
       pageSize: req.query.pageSize ? Number(req.query.pageSize) : undefined,
       hasEvents: req.query.hasEvents === 'true',
     };
-    res.json(await catalog.getCategories(params));
+    const key = buildCacheKey('categories', params);
+    const data = await cacheGet(key, TTL.CATEGORIES, () => catalog.getCategories(params));
+    setCache(res, 300, TTL.CATEGORIES, 120);
+    res.json(data);
   } catch (err) { next(err); }
 });
 
@@ -36,7 +71,10 @@ router.get('/categories/*', async (req: Request, res: Response, next: NextFuncti
       pageNumber: req.query.pageNumber ? Number(req.query.pageNumber) : undefined,
       pageSize: req.query.pageSize ? Number(req.query.pageSize) : undefined,
     };
-    res.json(await catalog.getCategoryByPath(categoryPath, params));
+    const key = buildCacheKey(`categories/${categoryPath}`, params);
+    const data = await cacheGet(key, TTL.CATEGORIES, () => catalog.getCategoryByPath(categoryPath, params));
+    setCache(res, 300, TTL.CATEGORIES, 120);
+    res.json(data);
   } catch (err) { next(err); }
 });
 
@@ -49,7 +87,10 @@ router.get('/categoryhierarchies', async (req: Request, res: Response, next: Nex
       pageNumber: req.query.pageNumber ? Number(req.query.pageNumber) : undefined,
       pageSize: req.query.pageSize ? Number(req.query.pageSize) : undefined,
     };
-    res.json(await catalog.getCategoryHierarchies(params));
+    const key = buildCacheKey('categoryhierarchies', params);
+    const data = await cacheGet(key, TTL.CATEGORIES, () => catalog.getCategoryHierarchies(params));
+    setCache(res, 300, TTL.CATEGORIES, 120);
+    res.json(data);
   } catch (err) { next(err); }
 });
 
@@ -57,7 +98,10 @@ router.get('/categoryhierarchies/:id', async (req: Request, res: Response, next:
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) throw new ApiError(422, 'VALIDATION_ERROR', 'Hierarchy id must be a number');
-    res.json(await catalog.getCategoryHierarchyById(id));
+    const key = `categoryhierarchies/${id}`;
+    const data = await cacheGet(key, TTL.CATEGORIES, () => catalog.getCategoryHierarchyById(id));
+    setCache(res, 300, TTL.CATEGORIES, 120);
+    res.json(data);
   } catch (err) { next(err); }
 });
 
@@ -75,7 +119,10 @@ router.get('/events/search', async (req: Request, res: Response, next: NextFunct
       pageNumber: req.query.pageNumber ? Number(req.query.pageNumber) : undefined,
       pageSize: req.query.pageSize ? Number(req.query.pageSize) : undefined,
     };
-    res.json(await catalog.searchEvents(params));
+    const key = buildCacheKey('events/search', params);
+    const data = await cacheGet(key, TTL.EVENTS_LIST, () => catalog.searchEvents(params));
+    setCache(res, 60, TTL.EVENTS_LIST, 60);
+    res.json(data);
   } catch (err) { next(err); }
 });
 
@@ -89,7 +136,10 @@ router.get('/events/suggest', async (req: Request, res: Response, next: NextFunc
       includeVenueInfo: req.query.includeVenueInfo === 'true' ? true : undefined,
       filter: req.query.filter as string | undefined,
     };
-    res.json(await catalog.suggestEvents(params));
+    const key = buildCacheKey('events/suggest', params);
+    const data = await cacheGet(key, TTL.SUGGEST, () => catalog.suggestEvents(params));
+    setCache(res, 60, TTL.SUGGEST, 30);
+    res.json(data);
   } catch (err) { next(err); }
 });
 
@@ -104,7 +154,10 @@ router.get('/events/bulk', async (req: Request, res: Response, next: NextFunctio
       pageNumber: req.query.pageNumber ? Number(req.query.pageNumber) : undefined,
       pageSize: req.query.pageSize ? Number(req.query.pageSize) : undefined,
     };
-    res.json(await catalog.bulkEvents(params));
+    const key = buildCacheKey('events/bulk', params);
+    const data = await cacheGet(key, TTL.EVENTS_LIST, () => catalog.bulkEvents(params));
+    setCache(res, 60, TTL.EVENTS_LIST, 60);
+    res.json(data);
   } catch (err) { next(err); }
 });
 
@@ -118,7 +171,10 @@ router.get('/events', async (req: Request, res: Response, next: NextFunction) =>
       pageNumber: req.query.pageNumber ? Number(req.query.pageNumber) : undefined,
       pageSize: req.query.pageSize ? Number(req.query.pageSize) : undefined,
     };
-    res.json(await catalog.getEvents(params));
+    const key = buildCacheKey('events', params);
+    const data = await cacheGet(key, TTL.EVENTS_LIST, () => catalog.getEvents(params));
+    setCache(res, 60, TTL.EVENTS_LIST, 60);
+    res.json(data);
   } catch (err) { next(err); }
 });
 
@@ -126,7 +182,10 @@ router.get('/events/:id', async (req: Request, res: Response, next: NextFunction
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) throw new ApiError(422, 'VALIDATION_ERROR', 'Event id must be a number');
-    res.json(await catalog.getEventById(id));
+    const key = `events/${id}`;
+    const data = await cacheGet(key, TTL.EVENTS_DETAIL, () => catalog.getEventById(id));
+    setCache(res, 120, TTL.EVENTS_DETAIL, 120);
+    res.json(data);
   } catch (err) { next(err); }
 });
 
@@ -141,7 +200,10 @@ router.get('/performers/suggest', async (req: Request, res: Response, next: Next
       numberOfSuggestions: req.query.numberOfSuggestions ? Number(req.query.numberOfSuggestions) : undefined,
       filter: req.query.filter as string | undefined,
     };
-    res.json(await catalog.suggestPerformers(params));
+    const key = buildCacheKey('performers/suggest', params);
+    const data = await cacheGet(key, TTL.SUGGEST, () => catalog.suggestPerformers(params));
+    setCache(res, 60, TTL.SUGGEST, 30);
+    res.json(data);
   } catch (err) { next(err); }
 });
 
@@ -153,7 +215,10 @@ router.get('/performers', async (req: Request, res: Response, next: NextFunction
       pageNumber: req.query.pageNumber ? Number(req.query.pageNumber) : undefined,
       pageSize: req.query.pageSize ? Number(req.query.pageSize) : undefined,
     };
-    res.json(await catalog.getPerformers(params));
+    const key = buildCacheKey('performers', params);
+    const data = await cacheGet(key, TTL.PERFORMERS, () => catalog.getPerformers(params));
+    setCache(res, 300, TTL.PERFORMERS, 120);
+    res.json(data);
   } catch (err) { next(err); }
 });
 
@@ -161,7 +226,10 @@ router.get('/performers/:id', async (req: Request, res: Response, next: NextFunc
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) throw new ApiError(422, 'VALIDATION_ERROR', 'Performer id must be a number');
-    res.json(await catalog.getPerformerById(id));
+    const key = `performers/${id}`;
+    const data = await cacheGet(key, TTL.PERFORMERS, () => catalog.getPerformerById(id));
+    setCache(res, 300, TTL.PERFORMERS, 120);
+    res.json(data);
   } catch (err) { next(err); }
 });
 
@@ -176,7 +244,10 @@ router.get('/venues/suggest', async (req: Request, res: Response, next: NextFunc
       numberOfSuggestions: req.query.numberOfSuggestions ? Number(req.query.numberOfSuggestions) : undefined,
       filter: req.query.filter as string | undefined,
     };
-    res.json(await catalog.suggestVenues(params));
+    const key = buildCacheKey('venues/suggest', params);
+    const data = await cacheGet(key, TTL.SUGGEST, () => catalog.suggestVenues(params));
+    setCache(res, 60, TTL.SUGGEST, 30);
+    res.json(data);
   } catch (err) { next(err); }
 });
 
@@ -188,7 +259,10 @@ router.get('/venues', async (req: Request, res: Response, next: NextFunction) =>
       pageNumber: req.query.pageNumber ? Number(req.query.pageNumber) : undefined,
       pageSize: req.query.pageSize ? Number(req.query.pageSize) : undefined,
     };
-    res.json(await catalog.getVenues(params));
+    const key = buildCacheKey('venues', params);
+    const data = await cacheGet(key, TTL.VENUES, () => catalog.getVenues(params));
+    setCache(res, 300, TTL.VENUES, 120);
+    res.json(data);
   } catch (err) { next(err); }
 });
 
@@ -196,7 +270,10 @@ router.get('/venues/:id', async (req: Request, res: Response, next: NextFunction
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) throw new ApiError(422, 'VALIDATION_ERROR', 'Venue id must be a number');
-    res.json(await catalog.getVenueById(id));
+    const key = `venues/${id}`;
+    const data = await cacheGet(key, TTL.VENUES, () => catalog.getVenueById(id));
+    setCache(res, 300, TTL.VENUES, 120);
+    res.json(data);
   } catch (err) { next(err); }
 });
 
@@ -211,7 +288,10 @@ router.get('/cities/suggest', async (req: Request, res: Response, next: NextFunc
       numberOfSuggestions: req.query.numberOfSuggestions ? Number(req.query.numberOfSuggestions) : undefined,
       filter: req.query.filter as string | undefined,
     };
-    res.json(await catalog.suggestCities(params));
+    const key = buildCacheKey('cities/suggest', params);
+    const data = await cacheGet(key, TTL.SUGGEST, () => catalog.suggestCities(params));
+    setCache(res, 60, TTL.SUGGEST, 30);
+    res.json(data);
   } catch (err) { next(err); }
 });
 
@@ -223,7 +303,10 @@ router.get('/cities', async (req: Request, res: Response, next: NextFunction) =>
       pageNumber: req.query.pageNumber ? Number(req.query.pageNumber) : undefined,
       pageSize: req.query.pageSize ? Number(req.query.pageSize) : undefined,
     };
-    res.json(await catalog.getCities(params));
+    const key = buildCacheKey('cities', params);
+    const data = await cacheGet(key, TTL.CITIES, () => catalog.getCities(params));
+    setCache(res, 600, TTL.CITIES, 300);
+    res.json(data);
   } catch (err) { next(err); }
 });
 
@@ -231,7 +314,10 @@ router.get('/cities/:id', async (req: Request, res: Response, next: NextFunction
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) throw new ApiError(422, 'VALIDATION_ERROR', 'City id must be a number');
-    res.json(await catalog.getCityById(id));
+    const key = `cities/${id}`;
+    const data = await cacheGet(key, TTL.CITIES, () => catalog.getCityById(id));
+    setCache(res, 600, TTL.CITIES, 300);
+    res.json(data);
   } catch (err) { next(err); }
 });
 
@@ -244,7 +330,10 @@ router.get('/countries', async (req: Request, res: Response, next: NextFunction)
       pageNumber: req.query.pageNumber ? Number(req.query.pageNumber) : undefined,
       pageSize: req.query.pageSize ? Number(req.query.pageSize) : undefined,
     };
-    res.json(await catalog.getCountries(params));
+    const key = buildCacheKey('countries', params);
+    const data = await cacheGet(key, TTL.COUNTRIES, () => catalog.getCountries(params));
+    setCache(res, 600, TTL.COUNTRIES, 300);
+    res.json(data);
   } catch (err) { next(err); }
 });
 
@@ -252,7 +341,10 @@ router.get('/countries/:code', async (req: Request, res: Response, next: NextFun
   try {
     const { code } = req.params;
     if (!code || code.length < 2) throw new ApiError(422, 'VALIDATION_ERROR', 'Country code is required');
-    res.json(await catalog.getCountryByCode(code));
+    const key = `countries/${code}`;
+    const data = await cacheGet(key, TTL.COUNTRIES, () => catalog.getCountryByCode(code));
+    setCache(res, 600, TTL.COUNTRIES, 300);
+    res.json(data);
   } catch (err) { next(err); }
 });
 
@@ -265,7 +357,10 @@ router.get('/stateprovinces', async (req: Request, res: Response, next: NextFunc
       pageNumber: req.query.pageNumber ? Number(req.query.pageNumber) : undefined,
       pageSize: req.query.pageSize ? Number(req.query.pageSize) : undefined,
     };
-    res.json(await catalog.getStateProvinces(params));
+    const key = buildCacheKey('stateprovinces', params);
+    const data = await cacheGet(key, TTL.STATE_PROVINCES, () => catalog.getStateProvinces(params));
+    setCache(res, 600, TTL.STATE_PROVINCES, 300);
+    res.json(data);
   } catch (err) { next(err); }
 });
 
@@ -273,7 +368,10 @@ router.get('/stateprovinces/:id', async (req: Request, res: Response, next: Next
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) throw new ApiError(422, 'VALIDATION_ERROR', 'State province id must be a number');
-    res.json(await catalog.getStateProvinceById(id));
+    const key = `stateprovinces/${id}`;
+    const data = await cacheGet(key, TTL.STATE_PROVINCES, () => catalog.getStateProvinceById(id));
+    setCache(res, 600, TTL.STATE_PROVINCES, 300);
+    res.json(data);
   } catch (err) { next(err); }
 });
 
@@ -287,7 +385,10 @@ router.get('/postalcodes', async (req: Request, res: Response, next: NextFunctio
       pageNumber: req.query.pageNumber ? Number(req.query.pageNumber) : undefined,
       pageSize: req.query.pageSize ? Number(req.query.pageSize) : undefined,
     };
-    res.json(await catalog.getPostalCodes(params));
+    const key = buildCacheKey('postalcodes', params);
+    const data = await cacheGet(key, TTL.POSTAL_CODES, () => catalog.getPostalCodes(params));
+    setCache(res, 300, TTL.POSTAL_CODES, 120);
+    res.json(data);
   } catch (err) { next(err); }
 });
 
@@ -295,7 +396,10 @@ router.get('/postalcodes/:id', async (req: Request, res: Response, next: NextFun
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) throw new ApiError(422, 'VALIDATION_ERROR', 'Postal code id must be a number');
-    res.json(await catalog.getPostalCodeById(id));
+    const key = `postalcodes/${id}`;
+    const data = await cacheGet(key, TTL.POSTAL_CODES, () => catalog.getPostalCodeById(id));
+    setCache(res, 300, TTL.POSTAL_CODES, 120);
+    res.json(data);
   } catch (err) { next(err); }
 });
 
@@ -305,13 +409,17 @@ router.get('/search/suggest', async (req: Request, res: Response, next: NextFunc
   try {
     const q = (req.query.q as string | undefined)?.trim();
     if (!q) throw new ApiError(422, 'VALIDATION_ERROR', 'q query parameter is required');
-    res.json(await catalog.globalSuggest(q, {
+    const suggestParams = {
       eventsRequested: req.query.eventsRequested ? Number(req.query.eventsRequested) : undefined,
       performersRequested: req.query.performersRequested ? Number(req.query.performersRequested) : undefined,
       venuesRequested: req.query.venuesRequested ? Number(req.query.venuesRequested) : undefined,
       citiesRequested: req.query.citiesRequested ? Number(req.query.citiesRequested) : undefined,
       filter: req.query.filter as string | undefined,
-    }));
+    };
+    const key = buildCacheKey(`search/suggest/${q}`, suggestParams);
+    const data = await cacheGet(key, TTL.SUGGEST, () => catalog.globalSuggest(q, suggestParams));
+    setCache(res, 60, TTL.SUGGEST, 30);
+    res.json(data);
   } catch (err) { next(err); }
 });
 

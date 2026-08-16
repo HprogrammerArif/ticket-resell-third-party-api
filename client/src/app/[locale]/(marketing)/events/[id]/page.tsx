@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { getEventById, getEvents, getVenueById } from '@/libs/CatalogApi';
+import { getEventById, getEvents, getVenueById } from '@/libs/CachedCatalogApi';
 import { ApiError } from '@/libs/ApiClient';
 import { EventCard } from '@/components/catalog/EventCard';
 import { SectionHeading } from '@/components/catalog/SectionHeading';

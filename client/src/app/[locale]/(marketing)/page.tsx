@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 import Image from 'next/image';
 import { getTranslations, getFormatter, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/libs/I18nNavigation';
-import { getEvents, getCategories, getPerformers, getCities } from '@/libs/CatalogApi';
+import { getEvents, getCategories, getPerformers, getCities } from '@/libs/CachedCatalogApi';
 import { EventCard } from '@/components/catalog/EventCard';
 import { EventCardSkeleton } from '@/components/catalog/EventCardSkeleton';
 import { ArtistCard } from '@/components/catalog/ArtistCard';

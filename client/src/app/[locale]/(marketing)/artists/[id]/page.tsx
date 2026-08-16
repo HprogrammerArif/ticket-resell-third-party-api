@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { getPerformerById, getPerformers, searchEvents } from '@/libs/CatalogApi';
+import { getPerformerById, getPerformers, searchEvents } from '@/libs/CachedCatalogApi';
 import { ApiError } from '@/libs/ApiClient';
 import { ArtistCard } from '@/components/catalog/ArtistCard';
 import { ArtistCardSkeleton } from '@/components/catalog/ArtistCardSkeleton';
