@@ -7,6 +7,6 @@ const router = Router();
 
 // Auth routes before catalog so /api/auth/* bypasses the catalog rate limiter
 router.use('/api/auth', usersRouter);
-router.use('/api', catalogRateLimiter, catalogRouter);
+router.use('/api/catalog', catalogRateLimiter, catalogRouter);
 
 export default router;
