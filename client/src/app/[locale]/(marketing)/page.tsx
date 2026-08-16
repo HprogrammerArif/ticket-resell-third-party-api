@@ -95,7 +95,7 @@ export async function HeroSection(props: { locale: string }) {
 
 export async function CategoriesSection(props: { locale: string }) {
   const t = await getTranslations({ locale: props.locale, namespace: 'HomePage' });
-  const { results: categories } = await getCategories({ pageSize: 12 });
+  const { results: categories } = await getCategories({ pageSize: 12, hasEvents: true });
 
   return (
     <section className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">

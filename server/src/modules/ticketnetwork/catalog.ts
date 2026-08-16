@@ -36,9 +36,76 @@ function opts(p: Record<string, unknown>): { params?: Record<string, string | nu
   return Object.keys(filtered).length > 0 ? { params: filtered } : {};
 }
 
+// TN's list/search endpoints (`/events`, `/events/search`, `/performers`, `/venues`,
+// `/cities`) don't accept flat params like `categoryPath`/`city`/`stateProvince`/
+// `country`/`dateFrom`/`dateTo`/`performerId`/`venueId` at all — they only support
+// OData-style `filter`/`categoryFilter`/`performerFilter` strings. TN silently ignores
+// unrecognized params, so every one of these was a no-op filter that looked like it
+// worked (a result grid still rendered) while quietly returning unfiltered data.
+function odataQuote(value: string): string {
+  return `'${value.replace(/'/g, "''")}'`;
+}
+
+function odataAnd(clauses: (string | undefined)[]): string | undefined {
+  const parts = clauses.filter((c): c is string => Boolean(c));
+  return parts.length > 0 ? parts.join(' and ') : undefined;
+}
+
+// `date/date` is Edm.DateTimeOffset on TN's side (confirmed via their own OData
+// validation error), not Edm.String — DateTimeOffset literals are unquoted.
+function odataDate(value: string): string {
+  return `${value}T00:00:00Z`;
+}
+
+function eventQuery(params: EventParams): Record<string, string | number | undefined> {
+  const filter = odataAnd([
+    params.city ? `city/text/name eq ${odataQuote(params.city)}` : undefined,
+    params.venueId !== undefined ? `venue/id eq ${params.venueId}` : undefined,
+    params.dateFrom ? `date/date ge ${odataDate(params.dateFrom)}` : undefined,
+    params.dateTo ? `date/date le ${odataDate(params.dateTo)}` : undefined,
+  ]);
+  return {
+    filter,
+    categoryFilter: params.categoryPath ? `path eq ${odataQuote(params.categoryPath)}` : undefined,
+    performerFilter: params.performerId !== undefined ? `id eq ${params.performerId}` : undefined,
+    pageNumber: params.pageNumber,
+    pageSize: params.pageSize,
+  };
+}
+
+function performerQuery(params: PerformerParams): Record<string, string | number | undefined> {
+  return {
+    categoryFilter: params.categoryPath ? `path eq ${odataQuote(params.categoryPath)}` : undefined,
+    filter: params.keyword ? `contains(text/name,${odataQuote(params.keyword)})` : undefined,
+    pageNumber: params.pageNumber,
+    pageSize: params.pageSize,
+  };
+}
+
+function venueQuery(params: VenueParams): Record<string, string | number | undefined> {
+  const filter = odataAnd([
+    params.city ? `city/text/name eq ${odataQuote(params.city)}` : undefined,
+    params.stateProvince ? `stateProvince/text/name eq ${odataQuote(params.stateProvince)}` : undefined,
+  ]);
+  return { filter, pageNumber: params.pageNumber, pageSize: params.pageSize };
+}
+
+function cityQuery(params: CityParams): Record<string, string | number | undefined> {
+  const filter = odataAnd([
+    params.stateProvince ? `stateProvince/text/name eq ${odataQuote(params.stateProvince)}` : undefined,
+    params.country ? `country/text/name eq ${odataQuote(params.country)}` : undefined,
+  ]);
+  return { filter, pageNumber: params.pageNumber, pageSize: params.pageSize };
+}
+
 // --- Categories ---
 export function getCategories(params: CategoryParams = {}): Promise<TnPagedResult<TnCategory>> {
-  return tnRequest<TnPagedResult<TnCategory>>('/categories', opts(params));
+  const filter = params.hasEvents ? '_metadata/hasEvents eq true' : undefined;
+  return tnRequest<TnPagedResult<TnCategory>>('/categories', opts({
+    filter,
+    pageNumber: params.pageNumber,
+    pageSize: params.pageSize,
+  }));
 }
 
 export function getCategoryByPath(path: string, params: CategoryParams = {}): Promise<TnCategory> {
@@ -56,7 +123,7 @@ export function getCategoryHierarchyById(id: number): Promise<TnCategoryHierarch
 
 // --- Events ---
 export function getEvents(params: EventParams = {}): Promise<TnPagedResult<TnEvent>> {
-  return tnRequest<TnPagedResult<TnEvent>>('/events', opts(params));
+  return tnRequest<TnPagedResult<TnEvent>>('/events', opts(eventQuery(params)));
 }
 
 export function getEventById(id: number): Promise<TnEvent> {
@@ -67,8 +134,7 @@ export function searchEvents(params: EventParams = {}): Promise<TnPagedResult<Tn
   // TN's /events/search requires the search term as `q` (required on their side) —
   // our EventParams calls it `keyword`, which TN doesn't recognize, so every call
   // was silently missing its required param and got rejected with 400.
-  const { keyword, ...rest } = params;
-  return tnRequest<TnPagedResult<TnEvent>>('/events/search', opts({ ...rest, q: keyword }));
+  return tnRequest<TnPagedResult<TnEvent>>('/events/search', opts({ ...eventQuery(params), q: params.keyword }));
 }
 
 export function suggestEvents(params: EventSuggestParams): Promise<TnSuggestGroup<TnEventSuggest>> {
@@ -81,7 +147,7 @@ export function bulkEvents(params: EventBulkParams = {}): Promise<TnPagedResult<
 
 // --- Performers ---
 export function getPerformers(params: PerformerParams = {}): Promise<TnPagedResult<TnPerformer>> {
-  return tnRequest<TnPagedResult<TnPerformer>>('/performers', opts(params));
+  return tnRequest<TnPagedResult<TnPerformer>>('/performers', opts(performerQuery(params)));
 }
 
 export function getPerformerById(id: number): Promise<TnPerformer> {
@@ -94,7 +160,7 @@ export function suggestPerformers(params: SuggestParams): Promise<TnSuggestGroup
 
 // --- Venues ---
 export function getVenues(params: VenueParams = {}): Promise<TnPagedResult<TnVenue>> {
-  return tnRequest<TnPagedResult<TnVenue>>('/venues', opts(params));
+  return tnRequest<TnPagedResult<TnVenue>>('/venues', opts(venueQuery(params)));
 }
 
 export function getVenueById(id: number): Promise<TnVenue> {
@@ -107,7 +173,7 @@ export function suggestVenues(params: SuggestParams): Promise<TnSuggestGroup<TnV
 
 // --- Cities ---
 export function getCities(params: CityParams = {}): Promise<TnPagedResult<TnCity>> {
-  return tnRequest<TnPagedResult<TnCity>>('/cities', opts(params));
+  return tnRequest<TnPagedResult<TnCity>>('/cities', opts(cityQuery(params)));
 }
 
 export function getCityById(id: number): Promise<TnCity> {
@@ -147,5 +213,15 @@ export function getPostalCodeById(id: number): Promise<TnPostalCode> {
 
 // --- Global Suggest ---
 export function globalSuggest(query: string, params: Omit<GlobalSuggestParams, 'q'> = {}): Promise<TnSuggestResult> {
-  return tnRequest<TnSuggestResult>('/suggest', opts({ q: query, ...params }));
+  // TN omits each results group (events/performers/venues/cities) from the response
+  // entirely unless its *Requested count is explicitly passed — without these, TN
+  // returns a bare `{}`, and any caller reading e.g. `.performers.results` crashes.
+  return tnRequest<TnSuggestResult>('/suggest', opts({
+    q: query,
+    eventsRequested: params.eventsRequested ?? 5,
+    performersRequested: params.performersRequested ?? 5,
+    venuesRequested: params.venuesRequested ?? 5,
+    citiesRequested: params.citiesRequested ?? 5,
+    filter: params.filter,
+  }));
 }

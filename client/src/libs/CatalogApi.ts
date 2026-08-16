@@ -41,10 +41,14 @@ function toParams(obj: Record<string, string | number | boolean | undefined>): R
 // ─── Categories ───────────────────────────────────────────────────────────────
 
 export async function getCategories(
-  params?: { pageNumber?: number; pageSize?: number },
+  params?: { pageNumber?: number; pageSize?: number; hasEvents?: boolean },
 ): Promise<TnPagedResult<TnCategory>> {
   return ApiClient.get('/api/catalog/categories', {
-    params: toParams({ pageNumber: params?.pageNumber, pageSize: params?.pageSize }),
+    params: toParams({
+      pageNumber: params?.pageNumber,
+      pageSize: params?.pageSize,
+      hasEvents: params?.hasEvents,
+    }),
   });
 }
 

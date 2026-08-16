@@ -21,6 +21,7 @@ router.get('/categories', async (req: Request, res: Response, next: NextFunction
     const params: CategoryParams = {
       pageNumber: req.query.pageNumber ? Number(req.query.pageNumber) : undefined,
       pageSize: req.query.pageSize ? Number(req.query.pageSize) : undefined,
+      hasEvents: req.query.hasEvents === 'true',
     };
     res.json(await catalog.getCategories(params));
   } catch (err) { next(err); }

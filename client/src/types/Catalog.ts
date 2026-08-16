@@ -48,7 +48,7 @@ export type TnEventDate = {
 export type TnPriceValue = {
   value: number;
   currencyCode?: string;
-  text?: string;
+  text?: { formatted?: string };
 };
 
 export type TnPricingInfo = {
@@ -194,7 +194,7 @@ export type TnCategoryHierarchy = {
   name: string;
   description?: string;
   usages?: string[];
-  topCategoryNodeId?: string;
+  topCategoryNodeId?: number;
 };
 
 // ─── Countries ────────────────────────────────────────────────────────────────
@@ -220,11 +220,7 @@ export type TnStateProvince = {
 export type TnPostalCode = {
   id: number;
   code: string;
-  city?: string;
-  stateProvince?: string;
-  country?: string;
-  latitude?: number;
-  longitude?: number;
+  geoCenter?: { latitude: number; longitude: number };
 };
 
 // ─── Suggest Types ────────────────────────────────────────────────────────────
@@ -234,14 +230,21 @@ export type TnSuggestGroup<T> = {
   results: T[];
 };
 
+export type TnEventSuggestPerformer = {
+  name: string;
+  id: number;
+  role?: string;
+  isPerformance?: boolean;
+};
+
 export type TnEventSuggest = {
   id: number;
   name: string;
   date?: string;
   time?: string;
-  weekday?: string;
+  weekday?: number;
   scheduleStatus?: string;
-  performers?: string[];
+  performers?: TnEventSuggestPerformer[];
 };
 
 export type TnPerformerSuggest = {

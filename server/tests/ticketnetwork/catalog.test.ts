@@ -48,10 +48,12 @@ describe('TN catalog functions', () => {
     expect(tnRequest).toHaveBeenCalledWith('/events/42', {});
   });
 
-  it('getEvents({ city: "Toronto" }) forwards params', async () => {
+  it('getEvents({ city: "Toronto" }) forwards as TN\'s OData filter, not a flat "city" param', async () => {
     vi.mocked(tnRequest).mockResolvedValueOnce({ page: 1, count: 0, totalCount: 0, results: [] });
     await getEvents({ city: 'Toronto' });
-    expect(tnRequest).toHaveBeenCalledWith('/events', { params: { city: 'Toronto' } });
+    expect(tnRequest).toHaveBeenCalledWith('/events', {
+      params: { filter: "city/text/name eq 'Toronto'" },
+    });
   });
 
   it('searchEvents calls tnRequest("/events/search") with keyword forwarded as TN\'s required "q" param', async () => {
@@ -72,7 +74,7 @@ describe('TN catalog functions', () => {
     expect(tnRequest).toHaveBeenCalledWith('/venues/5', {});
   });
 
-  it('globalSuggest("leaf") calls tnRequest("/suggest", { params: { q: "leaf" } })', async () => {
+  it('globalSuggest("leaf") defaults each *Requested count so TN doesn\'t omit result groups', async () => {
     vi.mocked(tnRequest).mockResolvedValueOnce({
       events: { totalResultCount: 0, results: [] },
       performers: { totalResultCount: 0, results: [] },
@@ -80,6 +82,14 @@ describe('TN catalog functions', () => {
       cities: { totalResultCount: 0, results: [] },
     });
     await globalSuggest('leaf');
-    expect(tnRequest).toHaveBeenCalledWith('/suggest', { params: { q: 'leaf' } });
+    expect(tnRequest).toHaveBeenCalledWith('/suggest', {
+      params: {
+        q: 'leaf',
+        eventsRequested: 5,
+        performersRequested: 5,
+        venuesRequested: 5,
+        citiesRequested: 5,
+      },
+    });
   });
 });

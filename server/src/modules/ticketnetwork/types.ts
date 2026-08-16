@@ -39,10 +39,20 @@ export interface TnCategory {
   salesRank?: number;
   depth?: number;
   text: TnCategoryText;
+  hierarchy?: { id: number; name: string; usages?: string[] };
   parentCategory?: { path: string };
+  _metadata?: {
+    ticketCount: number;
+    hasTickets: boolean;
+    eventCount: number;
+    hasEvents: boolean;
+  };
 }
 export interface CategoryParams extends PaginationParams {
-  path?: string;
+  // Only categories TN reports as actually having events — most categories in a
+  // real hierarchy (e.g. "Performer role": Headliner/Opener/Home Team) structurally
+  // never have events attached and lead to dead-end pages if shown as browsable.
+  hasEvents?: boolean;
 }
 
 // --- Events ---
@@ -149,14 +159,20 @@ export interface CityParams extends PaginationParams {
 }
 
 // --- Suggestions ---
+export interface TnEventSuggestPerformer {
+  name: string;
+  id: number;
+  role?: string;
+  isPerformance?: boolean;
+}
 export interface TnEventSuggest {
   id: number;
   name: string;
   date?: string;
   time?: string;
-  weekday?: string;
+  weekday?: number;
   scheduleStatus?: string;
-  performers?: string[];
+  performers?: TnEventSuggestPerformer[];
 }
 export interface TnPerformerSuggest {
   id: number;
@@ -195,7 +211,7 @@ export interface TnCategoryHierarchy {
   name: string;
   description?: string;
   usages?: string[];
-  topCategoryNodeId?: string;
+  topCategoryNodeId?: number;
 }
 export interface CategoryHierarchyParams extends PaginationParams {
   filter?: string;
@@ -231,11 +247,7 @@ export interface StateProvinceParams extends PaginationParams {
 export interface TnPostalCode {
   id: number;
   code: string;
-  city?: string;
-  stateProvince?: string;
-  country?: string;
-  latitude?: number;
-  longitude?: number;
+  geoCenter?: { latitude: number; longitude: number };
 }
 export interface PostalCodeParams extends PaginationParams {
   filter?: string;

@@ -77,13 +77,14 @@ async function TopPerformers(props: { categoryPath: string; locale: string }) {
 async function SubcategoryChips(props: { parentPath: string; currentPath: string }) {
   let subcategories: TnCategory[] = [];
   try {
-    const result = await getCategories({ pageSize: 50 });
-    // Filter categories whose path starts with the current path and are one level deeper
-    const depthOfCurrent = props.currentPath.split('/').length;
+    const result = await getCategories({ pageSize: 50, hasEvents: true });
+    // TN category paths are dot-delimited (e.g. ".1859.1989.1894."), not
+    // slash-delimited — filter for direct children using dot segments.
+    const depthOfCurrent = props.currentPath.split('.').filter(Boolean).length;
     subcategories = result.results.filter((c) => {
       if (c.path === props.currentPath) return false;
-      if (!c.path.startsWith(props.currentPath + '/')) return false;
-      const depth = c.path.split('/').length;
+      if (!c.path.startsWith(props.currentPath)) return false;
+      const depth = c.path.split('.').filter(Boolean).length;
       return depth === depthOfCurrent + 1;
     });
   } catch {
