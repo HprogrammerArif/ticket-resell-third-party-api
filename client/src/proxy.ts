@@ -35,7 +35,11 @@ export default function proxy(request: NextRequest, _event: NextFetchEvent) {
     return NextResponse.redirect(dashboardUrl);
   }
 
-  return handleI18nRouting(request);
+  const response = handleI18nRouting(request);
+  if (response instanceof NextResponse) {
+    response.headers.set('x-pathname', pathname);
+  }
+  return response;
 }
 
 export const config = {

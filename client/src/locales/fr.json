@@ -72,14 +72,18 @@
     "error_generic": "Une erreur est survenue. Veuillez réessayer."
   },
   "Dashboard": {
-    "hello_message": "Bonjour {email}!",
+    "hello_message": "Bonjour {email} !",
     "alternative_message": "Bienvenue sur votre tableau de bord."
   },
   "DashboardLayout": {
-    "meta_title": "Tableau de bord",
-    "meta_description": "Gérez votre compte et vos paramètres.",
-    "dashboard_link": "Tableau de bord",
-    "user_profile_link": "Gérer votre compte",
+    "meta_title": "Tableau de bord — TicketLove.net",
+    "meta_description": "Gérez votre compte et vos billets.",
+    "nav_overview": "Aperçu",
+    "nav_profile": "Profil",
+    "nav_orders": "Mes commandes",
+    "nav_tickets": "Mes billets",
+    "nav_notifications": "Notifications",
+    "nav_settings": "Paramètres",
     "sign_out": "Se déconnecter"
   },
   "LocaleSwitcher": {

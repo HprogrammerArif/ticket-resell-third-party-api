@@ -76,11 +76,15 @@
     "alternative_message": "Welcome to your dashboard."
   },
   "DashboardLayout": {
-    "meta_title": "Dashboard",
-    "meta_description": "Manage your account and settings.",
-    "dashboard_link": "Dashboard",
-    "user_profile_link": "Manage your account",
-    "sign_out": "Sign out"
+    "meta_title": "Dashboard — TicketLove.net",
+    "meta_description": "Manage your account and tickets.",
+    "nav_overview": "Overview",
+    "nav_profile": "Profile",
+    "nav_orders": "My Orders",
+    "nav_tickets": "My Tickets",
+    "nav_notifications": "Notifications",
+    "nav_settings": "Settings",
+    "sign_out": "Log out"
   },
   "LocaleSwitcher": {
     "change_language": "Change language"
