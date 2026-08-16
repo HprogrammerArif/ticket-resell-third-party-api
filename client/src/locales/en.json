@@ -275,6 +275,27 @@
     "venues_heading": "Venues",
     "error_message": "Something went wrong.",
     "try_again": "Try again"
+  },
+  "DashboardOverview": {
+    "greeting": "Hey, {name}! 👋",
+    "greeting_fallback": "Hey there! 👋",
+    "best_show": "Your best show",
+    "best_show_empty": "No upcoming shows yet",
+    "upcoming_shows": "Upcoming shows",
+    "orders_count": "Orders",
+    "recent_orders": "Recent orders",
+    "no_orders": "No orders yet",
+    "recent_alerts": "Recent alerts",
+    "no_alerts": "No alerts yet"
+  },
+  "DashboardProfile": {
+    "heading": "Profile",
+    "avatar_alt": "Profile avatar",
+    "name_label": "Full name",
+    "email_label": "Email",
+    "save_button": "Save changes",
+    "save_success": "Profile updated successfully.",
+    "save_error": "Failed to update profile. Please try again."
   }
 }
 
