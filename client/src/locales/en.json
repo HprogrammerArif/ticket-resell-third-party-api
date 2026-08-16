@@ -206,7 +206,8 @@
     "faq_accessible_q": "Are accessible seating options available?",
     "faq_accessible_a": "Yes. Please contact us for accessible seating assistance.",
     "error_message": "Could not load this event.",
-    "try_again": "Try again"
+    "try_again": "Try again",
+    "ticket_map_title": "Ticket selection"
   },
   "ArtistsPage": {
     "meta_title": "Artists & Performers — TicketLove.net",

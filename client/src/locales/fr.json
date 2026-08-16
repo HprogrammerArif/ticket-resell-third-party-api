@@ -206,7 +206,8 @@
     "faq_accessible_q": "Des options d'accessibilité sont-elles disponibles ?",
     "faq_accessible_a": "Oui. Veuillez nous contacter pour une assistance aux sièges accessibles.",
     "error_message": "Impossible de charger cet événement.",
-    "try_again": "Réessayer"
+    "try_again": "Réessayer",
+    "ticket_map_title": "Sélection des billets"
   },
   "ArtistsPage": {
     "meta_title": "Artistes et interprètes — TicketLove.net",

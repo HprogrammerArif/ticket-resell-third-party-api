@@ -18,7 +18,11 @@ Format:
 - Sidebar simplified to static event facts only (price/CTA removed — the widget now owns that)
 - New env var `NEXT_PUBLIC_MAPWIDGET_WEBSITE_CONFIG_ID` (placeholder value `690` from TN's public guide — not yet confirmed as our real Maps config ID)
 - Updated `06-frontend-spec.md` and Phase 5 in `02-phases.md`: the custom `/checkout` review page is deprioritized since the widget now owns that flow
+- Widget is embedded via an `<iframe srcDoc="...">` containing its own static HTML document with a blocking `<script>` tag, rather than `next/script` — TN's widget script relies on `document.write`, which browsers reject for scripts injected asynchronously by `next/script`, so the widget needs a real synchronously-parsed document context (see `docs/superpowers/specs/2026-08-16-mapwidget3-integration-design.md`)
 - Follow-up: confirm the real `websiteConfigId` with TicketNetwork before treating this as fully verified
+- Follow-up: verify whether TN's MapWidget3 checkout hand-off navigates the whole page (`window.top.location`) or just the iframe (`window.location`) on ticket-selection completion — untested; if it's the latter, checkout would render awkwardly inside the 900px embedded frame
+- Follow-up: TN's widget script loads some sub-resources over plain `http://` even when the parent page is served over `https://` — the dev-only smoke test (HTTP end-to-end) couldn't exercise this, so HTTPS mixed-content behavior is unverified
+- This integration should not be promoted to a user-facing/production environment until: the real `websiteConfigId` is confirmed with TicketNetwork, AND the checkout hand-off behavior is verified on an HTTPS environment
 
 ---
 

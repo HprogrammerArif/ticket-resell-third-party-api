@@ -17,7 +17,6 @@ type EventDetailTabsProps = {
 
 export function EventDetailTabs({ tabs, children }: EventDetailTabsProps) {
   const [active, setActive] = useState<TabId>(tabs[0]?.id ?? 'tickets');
-  const activeIndex = tabs.findIndex((t) => t.id === active);
 
   return (
     <div>
@@ -52,10 +51,14 @@ export function EventDetailTabs({ tabs, children }: EventDetailTabsProps) {
         })}
       </div>
 
-      {/* Tab content */}
-      <div role="tabpanel">
-        {children[activeIndex] ?? children[0]}
-      </div>
+      {/* Tab content — all panels stay mounted so stateful content (e.g. the
+          ticket-selection widget) survives switching tabs; inactive panels
+          are just hidden rather than unmounted. */}
+      {tabs.map((tab, index) => (
+        <div key={tab.id} role="tabpanel" hidden={tab.id !== active}>
+          {children[index]}
+        </div>
+      ))}
     </div>
   );
 }

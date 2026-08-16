@@ -17,7 +17,7 @@
 |-------|------|--------|---------|
 | 0 | Repo & Environment Setup | `[DONE]` | — |
 | 1 | Express Backend — TicketNetwork Integration | `[DONE]` | — |
-| 2 | Next.js Frontend — Figma Implementation | `[NEEDS REVIEW]` | Ticket listings use CatalogAPI price-range summary only — MapWidget3 (seat map + real ticket groups) not yet integrated, see note below |
+| 2 | Next.js Frontend — Figma Implementation | `[NEEDS REVIEW]` | MapWidget3 (seat map + real ticket groups) is integrated, see note below — real `websiteConfigId` still unconfirmed with TicketNetwork |
 | 3 | User Account System | `[DONE]` | — |
 | 4 | Gift Card System | `[NOT STARTED]` | Open business questions below |
 | 5 | Pre-Checkout UI | `[NOT STARTED]` | — |
@@ -114,7 +114,9 @@
 
 **Figma source of truth:** https://www.figma.com/design/O1FzG0lsNLxynQw8oqqIhZ/Ticket-Love?node-id=0-1&m=dev
 
-> **2026-08-16 finding:** TicketNetwork support confirmed (see `docs/MapWidget3+Integration+Guide.pdf`) that CatalogAPI alone only returns a price-range *summary* (`pricingInfo.lowPrice/avgPrice/highPrice`) — it does not return the individual ticket groups or seat map needed for a real "select your seats" experience. That requires embedding TicketNetwork's **Seatics MapWidget3** (`mapwidget3-sandbox.seatics.com`), which handles the interactive seat map, itemized ticket listing, pre-checkout interstitial, and initial checkout hand-off (with UTM/promo config built in) as a drop-in widget. This directly affects the current event detail page (`events/[id]/page.tsx`, `TicketsTab`) and overlaps significantly with Phase 5 (Pre-Checkout UI) and Phase 7 (Checkout Redirect) scope. **Needs brainstorming + a design-doc update before implementation** — see Phase 2 note in Feature Requests Log.
+> **2026-08-16 finding (resolved — see 2026-08-16 update below):** TicketNetwork support confirmed (see `docs/MapWidget3+Integration+Guide.pdf`) that CatalogAPI alone only returns a price-range *summary* (`pricingInfo.lowPrice/avgPrice/highPrice`) — it does not return the individual ticket groups or seat map needed for a real "select your seats" experience. That requires embedding TicketNetwork's **Seatics MapWidget3** (`mapwidget3-sandbox.seatics.com`), which handles the interactive seat map, itemized ticket listing, pre-checkout interstitial, and initial checkout hand-off (with UTM/promo config built in) as a drop-in widget. This directly affects the current event detail page (`events/[id]/page.tsx`, `TicketsTab`) and overlaps significantly with Phase 5 (Pre-Checkout UI) and Phase 7 (Checkout Redirect) scope.
+>
+> **2026-08-16 update:** implemented. The old price-range-only `TicketsTab` was replaced with the `MapWidgetEmbed` component, which embeds MapWidget3 directly on the event detail page — see `docs/superpowers/specs/2026-08-16-mapwidget3-integration-design.md` for the design doc and `docs/project/CHANGELOG.md` for the implementation record. **Still open:** our real `websiteConfigId` has not been confirmed with TicketNetwork for MapWidget3 (the implementation uses TN's public placeholder value) — this integration should not be promoted to production until that's confirmed and the checkout hand-off behavior is verified on HTTPS.
 
 ### Business tasks
 - [ ] Review the Figma design with Steven and confirm no changes are needed before implementation begins
@@ -125,7 +127,7 @@
 - [x] Replace boilerplate homepage with real Ticket Love homepage (hero, categories, events this weekend, popular artists, browse by city, gift card promo, how it works, footer)
 - [x] Implement category browsing page (`/categories/[path]`)
 - [x] Implement events listing page (`/events`) with filters (date, city, category)
-- [x] Implement event detail page (`/events/[id]`) with ticket listings — *price-range summary only, see MapWidget3 finding above*
+- [x] Implement event detail page (`/events/[id]`) with ticket listings — *now via MapWidget3 embed, see note above*
 - [x] Implement artist/performer listing page (`/artists`)
 - [x] Implement artist detail page (`/artists/[id]`)
 - [x] Implement venue listing page (`/venues`)
@@ -144,7 +146,7 @@
 - [x] No hard-coded user-visible strings
 - [x] Responsive at all breakpoints
 - [x] `npm run lint` and `npm run check:types` pass
-- [ ] Real ticket groups/seat map on event detail page (blocked on MapWidget3 brainstorm — new since original scope)
+- [x] Real ticket groups/seat map on event detail page (MapWidget3 embedded — new since original scope; real `websiteConfigId` still unconfirmed with TicketNetwork, see note above)
 
 ---
 
@@ -335,7 +337,7 @@ This table tracks all feature requests that come in after the initial build plan
 
 | Date | Requested By | Feature Description | Status | Target Phase |
 |------|-------------|---------------------|--------|-------------|
-| 2026-08-16 | TicketNetwork support | Integrate Seatics MapWidget3 for real ticket-group listings + interactive seat map on event detail pages (CatalogAPI alone only returns a price-range summary) — see `docs/MapWidget3+Integration+Guide.pdf` | `[PLANNED]` | Phase 2 (event detail), overlaps Phase 5/7 |
+| 2026-08-16 | TicketNetwork support | Integrate Seatics MapWidget3 for real ticket-group listings + interactive seat map on event detail pages (CatalogAPI alone only returns a price-range summary) — see `docs/MapWidget3+Integration+Guide.pdf` | `[DONE]` | Phase 2 (event detail), overlaps Phase 5/7 |
 
 ### How to add a feature request
 

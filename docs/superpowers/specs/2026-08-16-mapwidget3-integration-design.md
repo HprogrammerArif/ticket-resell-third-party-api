@@ -29,6 +29,8 @@ EventDetailPage (RSC)
                  └─ widget self-renders into its container; owns selection → precheckout → redirect to TN hosted checkout
 ```
 
+> **Update (implementation, Task 3):** the architecture above was the original plan and is kept here as a record of what was tried first. It didn't work: TN's widget script relies on `document.write`, which browsers refuse to honor for scripts injected asynchronously (as `next/script` does, even with `strategy="afterInteractive"` or `"beforeInteractive"`). The implementation was changed to render the widget inside an `<iframe srcDoc="...">` containing a minimal, self-contained static HTML document with a blocking `<script src="...">` tag. This gives the widget's script a real, synchronously-parsed document context (an actual initial page load), which `document.write` requires. See `client/src/components/catalog/MapWidgetEmbed.tsx` for the current implementation.
+
 ## Component
 
 New file: `client/src/components/catalog/MapWidgetEmbed.tsx` (`'use client'`)
@@ -42,6 +44,8 @@ New file: `client/src/components/catalog/MapWidgetEmbed.tsx` (`'use client'`)
   - `useDarkTheme=true` — matches the site's existing dark theme (brand red `#ea2a43` / surface `#0f0f0f`)
 - No `useEffect`, no manual DOM script injection — `next/script` is the framework-native way to load a third-party script, consistent with `client/CLAUDE.md` §5.3's "always use next/image, next/font" spirit for third-party integrations
 - Exact query-parameter assembly and any container markup nuance gets cross-checked against the guide's literal example snippet at implementation time — this is a mechanical detail, not a design branch
+
+> **Update (implementation, Task 3):** the `next/script`-based loading described above was superseded during implementation. TN's widget script calls `document.write`, and browsers block `document.write` from scripts that were injected into an already-parsed document — which is exactly what `next/script` does (there's no `strategy` that avoids this, since the host page itself has already finished its initial parse by the time React mounts). The fix: `MapWidgetEmbed` now renders an `<iframe srcDoc="...">` whose `srcDoc` is a minimal static HTML document (own `<head>`/`<body>`, a mount `<div>`, and a blocking, non-deferred `<script src="...">` tag pointing at the same widget URL). Because the iframe's document is being written and parsed fresh, `document.write` works as the widget expects. The host page still does no manual DOM script injection and no `useEffect` — the script tag lives declaratively in the `srcDoc` string instead of a `next/script` element. See `client/src/components/catalog/MapWidgetEmbed.tsx`.
 
 ## Config (Env)
 
