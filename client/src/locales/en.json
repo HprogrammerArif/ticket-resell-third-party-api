@@ -188,6 +188,7 @@
   "EventDetailPage": {
     "meta_title": "{name} — TicketLove.net",
     "meta_title_fallback": "Event — TicketLove.net",
+    "tab_tickets": "Tickets",
     "tab_details": "Details",
     "tab_lineup": "Lineup",
     "tab_venue": "Venue",
