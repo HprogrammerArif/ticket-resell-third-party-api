@@ -74,21 +74,40 @@ export async function HeroSection(props: { locale: string }) {
           <SearchBar />
         </div>
       </div>
+    </section>
+  );
+}
 
-      {/* Sponsor strip */}
-      <div className="absolute bottom-0 left-0 right-0 bg-[var(--color-brand-subtle)] px-[107px] py-4 max-md:px-4">
-        <div className="mx-auto flex max-w-[1440px] items-center gap-8 overflow-x-auto">
-          {(['google', 'spotify', 'canva', 'zoom', 'slack'] as const).map((brand) => (
+export async function SponsorSection() {
+  const sponsors = [
+    { name: 'Google', src: '/sponsors/google.svg', width: 95, height: 40 },
+    { name: 'Spotify', src: '/sponsors/spotify.svg', width: 117, height: 40 },
+    { name: 'Canva', src: '/sponsors/canva.svg', width: 84, height: 40 },
+    { name: 'Zoom', src: '/sponsors/zoom.svg', width: 82, height: 40 },
+    { name: 'Slack', src: '/sponsors/slack.svg', width: 101, height: 40 },
+  ];
+
+  // Repeat items to ensure seamless infinite looping on all screen sizes
+  const repeatedSponsors = [...sponsors, ...sponsors, ...sponsors, ...sponsors];
+
+  return (
+    <section className="relative w-full overflow-hidden border-y border-[#262626]/50 bg-[#160a0e] py-4 md:py-6">
+      {/* Edge gradient fade masks */}
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-[#0f0f0f] to-transparent max-md:w-10" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-[#0f0f0f] to-transparent max-md:w-10" />
+
+      <div className="flex w-max animate-marquee items-center gap-12 sm:gap-16 md:gap-20">
+        {repeatedSponsors.map((sponsor, index) => (
+          <div key={index} className="flex flex-shrink-0 items-center justify-center">
             <Image
-              key={brand}
-              src={`/sponsors/${brand}.png`}
-              alt={brand}
-              width={80}
-              height={24}
-              className="opacity-70 grayscale invert"
+              src={sponsor.src}
+              alt={sponsor.name}
+              width={sponsor.width}
+              height={sponsor.height}
+              className="h-6 sm:h-7 w-auto object-contain opacity-70 transition-opacity duration-300 hover:opacity-100"
             />
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
     </section>
   );
@@ -346,6 +365,10 @@ export default async function HomePage(props: HomePageProps) {
     <>
       <Suspense fallback={<div className="h-[600px] animate-pulse bg-[#1a0a0d]" />}>
         <HeroSection locale={locale} />
+      </Suspense>
+
+      <Suspense>
+        <SponsorSection/>
       </Suspense>
 
       <Suspense fallback={<CategoriesSkeleton />}>
