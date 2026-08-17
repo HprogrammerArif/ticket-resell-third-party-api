@@ -6,17 +6,24 @@ interface DragScrollContainerProps {
   children: ReactNode;
   className?: string;
   scrollAmount?: number;
+  autoStep?: boolean;
+  stepInterval?: number; // ms between each step (e.g. 3000ms)
+  stepDistance?: number; // px to advance each step (e.g. 350px)
 }
 
 export function DragScrollContainer({
   children,
   className = '',
   scrollAmount = 450,
+  autoStep = false,
+  stepInterval = 2000,
+  stepDistance = 350,
 }: DragScrollContainerProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [showLeftFade, setShowLeftFade] = useState(false);
   const [showRightFade, setShowRightFade] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   // Tracking drag state
   const dragRef = useRef({
@@ -54,6 +61,25 @@ export function DragScrollContainer({
     const timeout = setTimeout(updateFades, 200);
     return () => clearTimeout(timeout);
   }, [children, updateFades]);
+
+  // Auto-step timer: advances by 1 step every `stepInterval` ms, pausing on hover/drag
+  useEffect(() => {
+    if (!autoStep) return;
+
+    const timer = setInterval(() => {
+      const el = ref.current;
+      if (!el || isHovered || dragRef.current.isDown) return;
+
+      const isNearEnd = el.scrollLeft >= el.scrollWidth - el.clientWidth - 30;
+      if (isNearEnd) {
+        el.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        el.scrollBy({ left: stepDistance, behavior: 'smooth' });
+      }
+    }, stepInterval);
+
+    return () => clearInterval(timer);
+  }, [autoStep, stepInterval, stepDistance, isHovered]);
 
   const scrollBy = (direction: 'left' | 'right') => {
     const el = ref.current;
@@ -110,7 +136,15 @@ export function DragScrollContainer({
   };
 
   return (
-    <div className="group relative w-full">
+    <div
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onTouchStart={() => setIsHovered(true)}
+      onTouchEnd={() => {
+        setTimeout(() => setIsHovered(false), 2500);
+      }}
+      className="group relative w-full"
+    >
       {/* Left scroll navigation arrow */}
       <button
         type="button"

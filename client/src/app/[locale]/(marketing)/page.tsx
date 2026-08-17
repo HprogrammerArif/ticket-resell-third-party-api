@@ -180,7 +180,7 @@ export async function WeekendEventsSection(props: { locale: string }) {
         seeAllHref="/events"
         seeAllLabel={t('see_all_events')}
       />
-      <DragScrollContainer>
+      <DragScrollContainer autoStep={true} stepInterval={3000} stepDistance={346}>
         {events.map((ev) => (
           <div key={ev.id} className="w-[300px] shrink-0 sm:w-[330px]">
             <EventCard event={ev} locale={props.locale} />
