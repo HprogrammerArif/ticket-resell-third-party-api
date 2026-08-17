@@ -49,6 +49,7 @@ export function SearchBar(props: {
           type="date"
           value={dateFrom}
           onChange={(e) => setDateFrom(e.target.value)}
+          style={{ colorScheme: 'dark' }}
           className="w-full rounded-full border border-[var(--color-surface-border)] bg-[var(--color-surface)] px-5 py-3 text-[14px] text-[var(--color-text-muted)] outline-none sm:w-44"
         />
       </div>
