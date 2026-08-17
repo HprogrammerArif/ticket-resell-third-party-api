@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { getCategoryByPath, getEvents, getPerformers, getCategories } from '@/libs/CachedCatalogApi';
+import { getCategoryByPath, getEvents, searchEvents, getPerformers, getCategories } from '@/libs/CachedCatalogApi';
 import { ApiError } from '@/libs/ApiClient';
 import { EventCard } from '@/components/catalog/EventCard';
 import { EventCardSkeleton } from '@/components/catalog/EventCardSkeleton';
@@ -16,11 +16,57 @@ type CategoriesPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
+async function resolveCategory(categoryPath: string): Promise<{ category: TnCategory; resolvedPath: string }> {
+  // If it is already a dot path, try TN API directly
+  if (categoryPath.startsWith('.')) {
+    try {
+      const category = await getCategoryByPath(categoryPath);
+      return { category, resolvedPath: categoryPath };
+    } catch {
+      // Fall through if not found
+    }
+  }
+
+  // If it's a slug (e.g. "concerts", "sports", "theater", "theatre"), try matching against all categories
+  try {
+    const allCategories = await getCategories({ pageSize: 100, hasEvents: true });
+    const normalized = categoryPath.toLowerCase().replace(/s$/, ''); // e.g. "concert", "sport", "theater"
+    const match = allCategories.results.find((c) => {
+      const name = c.text?.name?.toLowerCase() || '';
+      const uri = c.uriComponent?.toLowerCase() || '';
+      return name.includes(normalized) || uri.includes(normalized) || normalized.includes(name);
+    });
+
+    if (match) {
+      return { category: match, resolvedPath: match.path };
+    }
+  } catch {
+    // ignore
+  }
+
+  // Friendly title from slug
+  const title = categoryPath
+    .split('/')
+    .pop()!
+    .split('-')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+
+  const fallbackCategory: TnCategory = {
+    path: categoryPath,
+    depth: 0,
+    text: { name: title },
+    _metadata: { hasEvents: true, eventCount: 0, hasTickets: true, ticketCount: 0 },
+  };
+
+  return { category: fallbackCategory, resolvedPath: categoryPath };
+}
+
 export async function generateMetadata(props: CategoriesPageProps): Promise<Metadata> {
   const { locale, path } = await props.params;
   const categoryPath = path.join('/');
   try {
-    const category = await getCategoryByPath(categoryPath);
+    const { category } = await resolveCategory(categoryPath);
     const t = await getTranslations({ locale, namespace: 'CategoriesPage' });
     return {
       title: t('meta_title', { name: category.text.name }),
@@ -78,8 +124,6 @@ async function SubcategoryChips(props: { parentPath: string; currentPath: string
   let subcategories: TnCategory[] = [];
   try {
     const result = await getCategories({ pageSize: 50, hasEvents: true });
-    // TN category paths are dot-delimited (e.g. ".1859.1989.1894."), not
-    // slash-delimited — filter for direct children using dot segments.
     const depthOfCurrent = props.currentPath.split('.').filter(Boolean).length;
     subcategories = result.results.filter((c) => {
       if (c.path === props.currentPath) return false;
@@ -121,24 +165,44 @@ async function SubcategoryChips(props: { parentPath: string; currentPath: string
 
 async function CategoryEvents(props: {
   categoryPath: string;
+  categoryName: string;
   locale: string;
   page: number;
-  sort?: string;
   dateFrom?: string;
   dateTo?: string;
 }) {
   const t = await getTranslations({ locale: props.locale, namespace: 'CategoriesPage' });
   const pageSize = 12;
 
-  const result = await getEvents({
-    categoryPath: props.categoryPath,
-    pageNumber: props.page,
-    pageSize,
-    dateFrom: props.dateFrom,
-    dateTo: props.dateTo,
-  });
+  let result;
+  try {
+    if (props.categoryPath.startsWith('.')) {
+      result = await getEvents({
+        categoryPath: props.categoryPath,
+        pageNumber: props.page,
+        pageSize,
+        dateFrom: props.dateFrom,
+        dateTo: props.dateTo,
+      });
+    } else {
+      result = await searchEvents({
+        keyword: props.categoryName,
+        pageNumber: props.page,
+        pageSize,
+        dateFrom: props.dateFrom,
+        dateTo: props.dateTo,
+      });
+    }
+  } catch {
+    result = await getEvents({
+      pageNumber: props.page,
+      pageSize,
+      dateFrom: props.dateFrom,
+      dateTo: props.dateTo,
+    });
+  }
 
-  if (result.results.length === 0) {
+  if (!result || result.results.length === 0) {
     return (
       <div className="py-16 text-center">
         <p className="text-5xl mb-4">🎫</p>
@@ -185,32 +249,33 @@ export default async function CategoryBrowsePage(props: CategoriesPageProps) {
   const dateFrom = typeof sp.dateFrom === 'string' ? sp.dateFrom : undefined;
   const dateTo = typeof sp.dateTo === 'string' ? sp.dateTo : undefined;
 
-
   let category: TnCategory;
+  let resolvedPath: string;
+
   try {
-    category = await getCategoryByPath(categoryPath);
+    const res = await resolveCategory(categoryPath);
+    category = res.category;
+    resolvedPath = res.resolvedPath;
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) notFound();
     throw err;
   }
 
-  // Build the parent path for subcategory lookup
   const parentPath = path.slice(0, -1).join('/');
 
   return (
     <div className="mx-auto max-w-[1440px] px-[107px] py-10 max-md:px-4">
-
       {/* Hero banner */}
       <CategoryHeroBanner category={category} />
 
       {/* Subcategories */}
       <Suspense fallback={null}>
-        <SubcategoryChips parentPath={parentPath} currentPath={categoryPath} />
+        <SubcategoryChips parentPath={parentPath} currentPath={resolvedPath} />
       </Suspense>
 
       {/* Top Performers */}
       <Suspense fallback={null}>
-        <TopPerformers categoryPath={categoryPath} locale={locale} />
+        <TopPerformers categoryPath={resolvedPath} locale={locale} />
       </Suspense>
 
       {/* Filter bar */}
@@ -234,7 +299,7 @@ export default async function CategoryBrowsePage(props: CategoriesPageProps) {
         />
         <button
           type="submit"
-          className="rounded-full bg-[var(--color-brand-muted)] px-5 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[var(--color-brand)]"
+          className="rounded-full bg-[var(--color-brand-muted)] px-5 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[var(--color-brand)] cursor-pointer"
         >
           Apply
         </button>
@@ -248,18 +313,20 @@ export default async function CategoryBrowsePage(props: CategoriesPageProps) {
         )}
       </form>
 
-      {/* Events grid */}
+      {/* Events list */}
       <Suspense
+        key={`${resolvedPath}-${page}-${dateFrom}-${dateTo}`}
         fallback={
           <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-sm:grid-cols-1">
-            {Array.from({ length: 12 }).map((_, i) => (
+            {Array.from({ length: 6 }).map((_, i) => (
               <EventCardSkeleton key={i} />
             ))}
           </div>
         }
       >
         <CategoryEvents
-          categoryPath={categoryPath}
+          categoryPath={resolvedPath}
+          categoryName={category.text.name}
           locale={locale}
           page={page}
           dateFrom={dateFrom}

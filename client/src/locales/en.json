@@ -97,12 +97,15 @@
   },
   "Header": {
     "home": "Home",
+    "events": "Events",
     "sports": "Sports",
     "concerts": "Concerts",
     "theatre": "Theatre",
-    "gift_cards": "Gift Cards",
-    "get_started": "Get Started →",
-    "open_menu": "Open menu"
+    "categories": "Categories",
+    "sign_in": "Sign In",
+    "get_started": "Get Started",
+    "open_menu": "Open menu",
+    "close_menu": "Close menu"
   },
   "Footer": {
     "company_heading": "Company",

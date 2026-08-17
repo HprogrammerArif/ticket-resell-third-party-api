@@ -46,6 +46,9 @@ export async function tnRequest<T>(path: string, options: TnRequestOptions = {})
   }
 
   if (!response.ok) {
+    if (response.status === 404) {
+      throw new ApiError(404, 'NOT_FOUND', 'TicketNetwork resource not found');
+    }
     throw new ApiError(502, 'TN_API_ERROR', `TicketNetwork API returned ${response.status}`);
   }
 

@@ -1,70 +1,188 @@
-import Image from 'next/image';
-import { getTranslations } from 'next-intl/server';
-import { Link } from '@/libs/I18nNavigation';
+'use client';
 
-export async function Header(props: { locale: string }) {
-  const t = await getTranslations({ locale: props.locale, namespace: 'Header' });
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { useLocale, useTranslations } from 'next-intl';
+import { Link, usePathname, useRouter } from '@/libs/I18nNavigation';
+
+export function Header(_props?: { locale?: string }) {
+  const t = useTranslations('Header');
+  const pathname = usePathname();
+  const currentLocale = useLocale();
+  const router = useRouter();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
 
   const navLinks = [
     { label: t('home'), href: '/' },
-    { label: t('sports'), href: '/categories/sports' },
+    { label: t('events'), href: '/events' },
     { label: t('concerts'), href: '/categories/concerts' },
+    { label: t('sports'), href: '/categories/sports' },
     { label: t('theatre'), href: '/categories/theater' },
-    { label: t('gift_cards'), href: '/' },
+    { label: t('categories'), href: '/categories' },
   ] as const;
 
+  const toggleLanguage = () => {
+    const nextLocale = currentLocale === 'en' ? 'fr' : 'en';
+    const { search } = window.location;
+    router.push(`${pathname}${search}`, { locale: nextLocale, scroll: false });
+  };
+
+  const isActive = (href: string) => {
+    if (href === '/') return pathname === '/';
+    return pathname.startsWith(href);
+  };
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-[var(--color-surface-border)] bg-[var(--color-surface)]">
-      <div className="mx-auto flex max-w-[1440px] items-center justify-between px-[107px] py-4 max-md:px-4">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-3">
-          <Image src="/logo-icon.png" alt="" width={54} height={54} priority />
+    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#0c0c0e]/90 backdrop-blur-md transition-all duration-300">
+      <div className="mx-auto flex max-w-[1440px] items-center justify-between px-[107px] py-3.5 max-md:px-4">
+        {/* Brand Logo */}
+        <Link href="/" className="flex items-center gap-3 select-none">
+          <Image src="/logo-icon.png" alt="TicketLove" width={44} height={44} priority />
           <span
-            className="text-[28px] font-semibold leading-none tracking-[-1.5px] text-white"
+            className="text-[24px] font-bold leading-none tracking-[-1px] text-white sm:text-[26px]"
             style={{ fontFamily: 'var(--font-poppins)' }}
           >
-            Ticket
-            <span className="text-[var(--color-brand)]">L</span>
-            ove
-            <span className="text-[var(--color-brand)]">.</span>
-            net
+            Ticket<span className="text-[var(--color-brand)]">L</span>ove<span className="text-[var(--color-brand)]">.</span>net
           </span>
         </Link>
 
-        {/* Desktop nav */}
-        <nav className="hidden items-center gap-8 md:flex">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href + link.label}
-              href={link.href}
-              className="text-[14px] font-light text-[var(--color-text-light)] transition-colors hover:font-semibold hover:text-white"
-              style={{ fontFamily: 'var(--font-poppins)' }}
-            >
-              {link.label}
-            </Link>
-          ))}
+        {/* Desktop Navigation Links */}
+        <nav className="hidden items-center gap-7 lg:flex">
+          {navLinks.map((link) => {
+            const active = isActive(link.href);
+            return (
+              <Link
+                key={link.href + link.label}
+                href={link.href}
+                className={`relative py-1 text-[14px] transition-colors ${
+                  active
+                    ? 'font-semibold text-white'
+                    : 'font-normal text-[#a1a1a1] hover:text-white'
+                }`}
+                style={{ fontFamily: 'var(--font-poppins)' }}
+              >
+                {link.label}
+                {active && (
+                  <span className="absolute -bottom-1 left-0 h-0.5 w-full rounded-full bg-[var(--color-brand)] shadow-[0_0_8px_var(--color-brand)]" />
+                )}
+              </Link>
+            );
+          })}
         </nav>
 
-        {/* CTA */}
-        <Link
-          href="/sign-up"
-          className="hidden rounded-full bg-[var(--color-brand-muted)] px-6 py-2.5 text-[14px] font-medium text-white transition-colors hover:bg-[var(--color-brand)] md:block"
-          style={{ fontFamily: 'var(--font-poppins)' }}
-        >
-          {t('get_started')}
-        </Link>
+        {/* Desktop Header Actions (Language Switcher + Auth) */}
+        <div className="hidden items-center gap-4 md:flex">
+          {/* Language Toggle Pill */}
+          <button
+            type="button"
+            onClick={toggleLanguage}
+            title={currentLocale === 'en' ? 'Passer en Français' : 'Switch to English'}
+            className="flex h-8 items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 text-[12px] font-semibold text-[#cfcfcf] transition hover:border-white/30 hover:bg-white/10 hover:text-white cursor-pointer"
+          >
+            <span className="text-[14px]">🌐</span>
+            <span>{currentLocale.toUpperCase()}</span>
+          </button>
 
-        {/* Mobile hamburger placeholder — no JS needed until Phase 3 */}
-        <button
-          type="button"
-          aria-label={t('open_menu')}
-          className="flex flex-col gap-1.5 md:hidden"
-        >
-          <span className="block h-0.5 w-6 bg-white" />
-          <span className="block h-0.5 w-6 bg-white" />
-          <span className="block h-0.5 w-6 bg-white" />
-        </button>
+          {/* Sign In Link */}
+          <Link
+            href="/sign-in"
+            className="text-[14px] font-medium text-[#d1d1d1] transition-colors hover:text-white"
+            style={{ fontFamily: 'var(--font-poppins)' }}
+          >
+            {t('sign_in')}
+          </Link>
+
+          {/* Get Started Button */}
+          <Link
+            href="/sign-up"
+            className="inline-flex items-center rounded-full bg-[var(--color-brand)] px-5 py-2 text-[13px] font-semibold text-white shadow-md transition-all hover:scale-105 hover:bg-[#d41e37] hover:shadow-[0_0_15px_rgba(234,42,67,0.4)] active:scale-95"
+            style={{ fontFamily: 'var(--font-poppins)' }}
+          >
+            {t('get_started')}
+          </Link>
+        </div>
+
+        {/* Mobile Hamburger Button */}
+        <div className="flex items-center gap-3 lg:hidden">
+          {/* Quick Mobile Language Switcher */}
+          <button
+            type="button"
+            onClick={toggleLanguage}
+            className="flex h-8 items-center rounded-full border border-white/15 bg-white/5 px-2.5 text-[11px] font-semibold text-[#cfcfcf] md:hidden"
+          >
+            {currentLocale.toUpperCase()}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={mobileMenuOpen ? t('close_menu') : t('open_menu')}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-white/5 text-white transition hover:bg-white/10"
+          >
+            {mobileMenuOpen ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            )}
+          </button>
+        </div>
       </div>
+
+      {/* Mobile Drawer Menu */}
+      {mobileMenuOpen && (
+        <div className="border-t border-white/10 bg-[#12070a]/95 px-6 py-6 backdrop-blur-xl lg:hidden">
+          <nav className="flex flex-col space-y-3">
+            {navLinks.map((link) => {
+              const active = isActive(link.href);
+              return (
+                <Link
+                  key={link.href + link.label}
+                  href={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`rounded-xl px-4 py-2.5 text-[15px] transition-colors ${
+                    active
+                      ? 'bg-[var(--color-brand)] font-semibold text-white'
+                      : 'text-[#a1a1a1] hover:bg-white/5 hover:text-white'
+                  }`}
+                  style={{ fontFamily: 'var(--font-poppins)' }}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+
+            {/* Mobile Auth Actions */}
+            <div className="mt-4 flex flex-col gap-2.5 border-t border-white/10 pt-4">
+              <Link
+                href="/sign-in"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-center rounded-xl border border-white/15 bg-white/5 py-2.5 text-[14px] font-medium text-white transition hover:bg-white/10"
+              >
+                {t('sign_in')}
+              </Link>
+              <Link
+                href="/sign-up"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-center rounded-xl bg-[var(--color-brand)] py-2.5 text-[14px] font-semibold text-white shadow-md transition hover:bg-[#d41e37]"
+              >
+                {t('get_started')}
+              </Link>
+            </div>
+          </nav>
+        </div>
+      )}
     </header>
   );
 }
