@@ -1,4 +1,4 @@
-import { getTranslations } from 'next-intl/server';
+import { useTranslations } from 'next-intl';
 import { Link } from '@/libs/I18nNavigation';
 import type { TnEvent } from '@/types/Catalog';
 
@@ -31,8 +31,8 @@ function categoryVisual(name?: string): { gradient: string; emoji: string } {
   return { gradient: 'from-[#1a1a2e] to-[#16213e]', emoji: '🎟️' };
 }
 
-export async function EventCard(props: { event: TnEvent; locale: string }) {
-  const t = await getTranslations({ locale: props.locale, namespace: 'EventCard' });
+export function EventCard(props: { event: TnEvent; locale?: string }) {
+  const t = useTranslations('EventCard');
   const { event } = props;
 
   const dateStr = event.date.date

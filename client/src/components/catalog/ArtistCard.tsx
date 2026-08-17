@@ -1,4 +1,4 @@
-import { getTranslations } from 'next-intl/server';
+import { useTranslations } from 'next-intl';
 import { Link } from '@/libs/I18nNavigation';
 import type { TnPerformer } from '@/types/Catalog';
 
@@ -13,8 +13,8 @@ function nameToColor(name: string): string {
   return `hsl(${hue}, 55%, 40%)`;
 }
 
-export async function ArtistCard(props: { performer: TnPerformer; locale: string }) {
-  const t = await getTranslations({ locale: props.locale, namespace: 'ArtistCard' });
+export function ArtistCard(props: { performer: TnPerformer; locale?: string }) {
+  const t = useTranslations('ArtistCard');
   const { performer } = props;
 
   const initials = performer.text.name

@@ -14,6 +14,7 @@ import { SearchBar } from '@/components/catalog/SearchBar';
 import { SectionHeading } from '@/components/catalog/SectionHeading';
 import { HeroSlider } from '@/components/catalog/HeroSlider';
 import { DragScrollContainer } from '@/components/catalog/DragScrollContainer';
+import { CityEventsTabs } from '@/components/catalog/CityEventsTabs';
 
 type HomePageProps = { params: Promise<{ locale: string }> };
 
@@ -245,26 +246,35 @@ function ArtistsSkeleton() {
 
 export async function CityEventsSection(props: { locale: string }) {
   const t = await getTranslations({ locale: props.locale, namespace: 'HomePage' });
-  const { results: cities } = await getCities({ pageSize: 5, hasEvents: true });
-  const defaultCity = cities[0]?.text.name ?? '';
-  if (!defaultCity) return null;
-  const { results: events } = await getEvents({ city: defaultCity, pageSize: 6 });
+  const { results: cities } = await getCities({ pageSize: 8, hasEvents: true });
+  if (cities.length === 0) return null;
+
+  const cityGroups = await Promise.all(
+    cities.slice(0, 6).map(async (city) => {
+      const { results: events } = await getEvents({ city: city.text.name, pageSize: 6 });
+      return {
+        cityName: city.text.name,
+        state: city.stateProvince?.text.abbr ?? '',
+        events,
+      };
+    }),
+  );
+
+  const validGroups = cityGroups.filter((g) => g.events.length > 0);
+  if (validGroups.length === 0) return null;
 
   return (
     <section className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
       <SectionHeading
         title={t('city_electric')}
-        seeAllHref={`/events?city=${encodeURIComponent(defaultCity)}`}
+        seeAllHref="/events"
         seeAllLabel={t('see_all_events')}
       />
-      <p className="mb-4 text-[14px] text-[var(--color-text-muted)]">
-        {defaultCity}
-      </p>
-      <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-sm:grid-cols-1">
-        {events.map((ev) => (
-          <EventCard key={ev.id} event={ev} locale={props.locale} />
-        ))}
-      </div>
+      <CityEventsTabs
+        cityGroups={validGroups}
+        locale={props.locale}
+        seeAllLabel={t('see_all_events')}
+      />
     </section>
   );
 }
@@ -273,6 +283,11 @@ function CityEventsSkeleton() {
   return (
     <section className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
       <div className="mb-6 h-8 w-80 animate-pulse rounded bg-[#262626]" />
+      <div className="mb-8 flex gap-3 overflow-x-auto pb-2">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="h-10 w-32 shrink-0 animate-pulse rounded-full bg-[#262626]" />
+        ))}
+      </div>
       <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-sm:grid-cols-1">
         {Array.from({ length: 6 }).map((_, i) => (
           <EventCardSkeleton key={i} />

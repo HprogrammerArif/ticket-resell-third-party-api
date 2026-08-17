@@ -1,4 +1,4 @@
-import { getTranslations } from 'next-intl/server';
+import { useTranslations } from 'next-intl';
 import { Link } from '@/libs/I18nNavigation';
 import type { TnCategory } from '@/types/Catalog';
 
@@ -40,8 +40,8 @@ function categoryVisual(name: string): CategoryVisual {
   return { icon: '🎟️', gradient: 'from-[#1a1a2e] to-[#16213e]' };
 }
 
-export async function CategoryCard(props: { category: TnCategory; locale: string }) {
-  const t = await getTranslations({ locale: props.locale, namespace: 'CategoryCard' });
+export function CategoryCard(props: { category: TnCategory; locale?: string }) {
+  const t = useTranslations('CategoryCard');
   const { category } = props;
   const { icon, gradient } = categoryVisual(category.text.name);
   const eventCount = category._metadata?.eventCount;
