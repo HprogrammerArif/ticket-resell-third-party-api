@@ -62,7 +62,53 @@ export function DragScrollContainer({
     return () => clearTimeout(timeout);
   }, [children, updateFades]);
 
-  // Auto-step timer: advances by 1 step every `stepInterval` ms, pausing on hover/drag
+  const animationFrameRef = useRef<number | null>(null);
+
+  const cancelActiveAnimation = useCallback(() => {
+    if (animationFrameRef.current !== null) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+  }, []);
+
+  // Silky smooth scroll animation with cubic ease-in-out curve
+  const smoothScrollTo = useCallback((targetLeft: number, duration = 800) => {
+    const el = ref.current;
+    if (!el) return;
+
+    cancelActiveAnimation();
+
+    const startLeft = el.scrollLeft;
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    const clampedTarget = Math.max(0, Math.min(targetLeft, maxScroll));
+    const distance = clampedTarget - startLeft;
+
+    if (Math.abs(distance) < 1) return;
+
+    const startTime = performance.now();
+
+    // Cubic ease-in-out for smooth acceleration and deceleration
+    const easeInOutCubic = (t: number): number =>
+      t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
+
+    const step = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = easeInOutCubic(progress);
+
+      el.scrollLeft = startLeft + distance * eased;
+
+      if (progress < 1) {
+        animationFrameRef.current = requestAnimationFrame(step);
+      } else {
+        animationFrameRef.current = null;
+      }
+    };
+
+    animationFrameRef.current = requestAnimationFrame(step);
+  }, [cancelActiveAnimation]);
+
+  // Auto-step timer: smoothly glides by 1 step every `stepInterval` ms, pausing on hover/drag
   useEffect(() => {
     if (!autoStep) return;
 
@@ -72,26 +118,31 @@ export function DragScrollContainer({
 
       const isNearEnd = el.scrollLeft >= el.scrollWidth - el.clientWidth - 30;
       if (isNearEnd) {
-        el.scrollTo({ left: 0, behavior: 'smooth' });
+        smoothScrollTo(0, 900);
       } else {
-        el.scrollBy({ left: stepDistance, behavior: 'smooth' });
+        smoothScrollTo(el.scrollLeft + stepDistance, 800);
       }
     }, stepInterval);
 
-    return () => clearInterval(timer);
-  }, [autoStep, stepInterval, stepDistance, isHovered]);
+    return () => {
+      clearInterval(timer);
+      cancelActiveAnimation();
+    };
+  }, [autoStep, stepInterval, stepDistance, isHovered, smoothScrollTo, cancelActiveAnimation]);
 
   const scrollBy = (direction: 'left' | 'right') => {
     const el = ref.current;
     if (!el) return;
     const amount = direction === 'left' ? -scrollAmount : scrollAmount;
-    el.scrollBy({ left: amount, behavior: 'smooth' });
+    smoothScrollTo(el.scrollLeft + amount, 600);
   };
 
   // Mouse drag handlers
   const handleMouseDown = (e: React.MouseEvent) => {
     const el = ref.current;
     if (!el) return;
+
+    cancelActiveAnimation();
 
     dragRef.current = {
       isDown: true,
@@ -139,7 +190,10 @@ export function DragScrollContainer({
     <div
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onTouchStart={() => setIsHovered(true)}
+      onTouchStart={() => {
+        cancelActiveAnimation();
+        setIsHovered(true);
+      }}
       onTouchEnd={() => {
         setTimeout(() => setIsHovered(false), 2500);
       }}
