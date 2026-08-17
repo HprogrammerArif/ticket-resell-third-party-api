@@ -32,7 +32,8 @@ export async function ArtistCard(props: { performer: TnPerformer; locale: string
   return (
     <Link
       href={`/artists/${performer.id}`}
-      className="group flex flex-col items-center gap-3 rounded-2xl border border-[var(--color-surface-border)] bg-[var(--color-surface-raised)] p-5 text-center transition-all hover:border-[var(--color-brand-muted)] hover:shadow-lg hover:shadow-[var(--color-brand-subtle)]"
+      draggable={false}
+      className="group flex select-none flex-col items-center gap-3 rounded-2xl border border-[var(--color-surface-border)] bg-[var(--color-surface-raised)] p-5 text-center transition-all hover:border-[var(--color-brand-muted)] hover:shadow-lg hover:shadow-[var(--color-brand-subtle)]"
     >
       {/* Avatar with unique color */}
       <div className="relative size-20 overflow-hidden rounded-full ring-2 ring-transparent transition-all group-hover:ring-[var(--color-brand)]">

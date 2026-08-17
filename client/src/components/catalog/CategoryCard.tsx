@@ -50,8 +50,8 @@ export async function CategoryCard(props: { category: TnCategory; locale: string
   return (
     <Link
       href={`/categories/${category.path}`}
-      className={`group flex flex-col items-center justify-center gap-3 rounded-2xl border border-[var(--color-surface-border)] bg-gradient-to-br ${gradient} p-6 text-center transition-all hover:border-[var(--color-brand-muted)] hover:shadow-lg hover:shadow-[var(--color-brand-subtle)]`}
-      style={{ minWidth: '200px', minHeight: '200px' }}
+      draggable={false}
+      className={`group flex h-[200px] w-[200px] shrink-0 select-none flex-col items-center justify-center gap-3 rounded-2xl border border-[var(--color-surface-border)] bg-gradient-to-br ${gradient} p-6 text-center transition-all hover:border-[var(--color-brand-muted)] hover:shadow-lg hover:shadow-[var(--color-brand-subtle)]`}
     >
       <span className="text-5xl transition-transform group-hover:scale-110">{icon}</span>
       <p

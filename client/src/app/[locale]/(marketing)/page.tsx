@@ -13,6 +13,7 @@ import { CategoryCardSkeleton } from '@/components/catalog/CategoryCardSkeleton'
 import { SearchBar } from '@/components/catalog/SearchBar';
 import { SectionHeading } from '@/components/catalog/SectionHeading';
 import { HeroSlider } from '@/components/catalog/HeroSlider';
+import { DragScrollContainer } from '@/components/catalog/DragScrollContainer';
 
 type HomePageProps = { params: Promise<{ locale: string }> };
 
@@ -115,16 +116,16 @@ export async function SponsorSection() {
 
 export async function CategoriesSection(props: { locale: string }) {
   const t = await getTranslations({ locale: props.locale, namespace: 'HomePage' });
-  const { results: categories } = await getCategories({ pageSize: 12, hasEvents: true });
+  const { results: categories } = await getCategories({ pageSize: 50, hasEvents: true });
 
   return (
     <section className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
       <SectionHeading title={t('browse_by_category')} />
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <DragScrollContainer>
         {categories.map((cat) => (
           <CategoryCard key={cat.path} category={cat} locale={props.locale} />
         ))}
-      </div>
+      </DragScrollContainer>
     </section>
   );
 }
@@ -133,11 +134,11 @@ function CategoriesSkeleton() {
   return (
     <section className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
       <div className="mb-6 h-8 w-64 animate-pulse rounded bg-[#262626]" />
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <DragScrollContainer>
         {Array.from({ length: 6 }).map((_, i) => (
           <CategoryCardSkeleton key={i} />
         ))}
-      </div>
+      </DragScrollContainer>
     </section>
   );
 }
@@ -181,7 +182,7 @@ function WeekendEventsSkeleton() {
 
 export async function ArtistsSection(props: { locale: string }) {
   const t = await getTranslations({ locale: props.locale, namespace: 'HomePage' });
-  const { results: performers } = await getPerformers({ pageSize: 8 });
+  const { results: performers } = await getPerformers({ pageSize: 12 });
 
   return (
     <section className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
@@ -190,13 +191,13 @@ export async function ArtistsSection(props: { locale: string }) {
         seeAllHref="/artists"
         seeAllLabel={t('see_all_artists')}
       />
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <DragScrollContainer>
         {performers.map((p) => (
-          <div key={p.id} className="min-w-[160px]">
+          <div key={p.id} className="w-[180px] shrink-0">
             <ArtistCard performer={p} locale={props.locale} />
           </div>
         ))}
-      </div>
+      </DragScrollContainer>
     </section>
   );
 }
@@ -205,13 +206,13 @@ function ArtistsSkeleton() {
   return (
     <section className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
       <div className="mb-6 h-8 w-56 animate-pulse rounded bg-[#262626]" />
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <DragScrollContainer>
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="min-w-[160px]">
+          <div key={i} className="w-[180px] shrink-0">
             <ArtistCardSkeleton />
           </div>
         ))}
-      </div>
+      </DragScrollContainer>
     </section>
   );
 }
