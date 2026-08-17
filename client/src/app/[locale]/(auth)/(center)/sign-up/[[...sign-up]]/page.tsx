@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { SignUpForm } from '@/components/SignUpForm';
+import { getUser } from '@/libs/Auth';
 
 type SignUpPageProps = {
   params: Promise<{ locale: string }>;
@@ -22,6 +24,11 @@ export async function generateMetadata(props: SignUpPageProps): Promise<Metadata
 export default async function SignUpPage(props: SignUpPageProps) {
   const { locale } = await props.params;
   setRequestLocale(locale);
+
+  const user = await getUser();
+  if (user) {
+    redirect(`/${locale}/dashboard`);
+  }
 
   return <SignUpForm />;
 }

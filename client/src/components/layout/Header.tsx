@@ -5,12 +5,43 @@ import Image from 'next/image';
 import { useLocale, useTranslations } from 'next-intl';
 import { Link, usePathname, useRouter } from '@/libs/I18nNavigation';
 
+type AuthUser = {
+  id?: string;
+  email?: string;
+  displayName?: string | null;
+  role?: string;
+};
+
 export function Header(_props?: { locale?: string }) {
   const t = useTranslations('Header');
   const pathname = usePathname();
   const currentLocale = useLocale();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState<AuthUser | null>(null);
+
+  // Fetch authentication status on mount and on route changes
+  useEffect(() => {
+    let isMounted = true;
+    fetch('/api/auth/me')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (isMounted) {
+          if (data && !data.error && data.id) {
+            setUser(data);
+          } else {
+            setUser(null);
+          }
+        }
+      })
+      .catch(() => {
+        if (isMounted) setUser(null);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [pathname]);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -88,23 +119,36 @@ export function Header(_props?: { locale?: string }) {
             <span>{currentLocale.toUpperCase()}</span>
           </button>
 
-          {/* Sign In Link */}
-          <Link
-            href="/sign-in"
-            className="text-[14px] font-medium text-[#d1d1d1] transition-colors hover:text-white"
-            style={{ fontFamily: 'var(--font-poppins)' }}
-          >
-            {t('sign_in')}
-          </Link>
+          {user ? (
+            /* Authenticated: View Dashboard */
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-5 py-2 text-[13px] font-semibold text-white shadow-md transition-all hover:scale-105 hover:border-[var(--color-brand)] hover:bg-[var(--color-brand)] active:scale-95"
+              style={{ fontFamily: 'var(--font-poppins)' }}
+            >
+              <span>👤</span>
+              <span>{t('dashboard')}</span>
+            </Link>
+          ) : (
+            /* Unauthenticated: Sign In & Get Started */
+            <>
+              <Link
+                href="/sign-in"
+                className="text-[14px] font-medium text-[#d1d1d1] transition-colors hover:text-white"
+                style={{ fontFamily: 'var(--font-poppins)' }}
+              >
+                {t('sign_in')}
+              </Link>
 
-          {/* Get Started Button */}
-          <Link
-            href="/sign-up"
-            className="inline-flex items-center rounded-full bg-[var(--color-brand)] px-5 py-2 text-[13px] font-semibold text-white shadow-md transition-all hover:scale-105 hover:bg-[#d41e37] hover:shadow-[0_0_15px_rgba(234,42,67,0.4)] active:scale-95"
-            style={{ fontFamily: 'var(--font-poppins)' }}
-          >
-            {t('get_started')}
-          </Link>
+              <Link
+                href="/sign-up"
+                className="inline-flex items-center rounded-full bg-[var(--color-brand)] px-5 py-2 text-[13px] font-semibold text-white shadow-md transition-all hover:scale-105 hover:bg-[#d41e37] hover:shadow-[0_0_15px_rgba(234,42,67,0.4)] active:scale-95"
+                style={{ fontFamily: 'var(--font-poppins)' }}
+              >
+                {t('get_started')}
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile Hamburger Button */}
@@ -165,20 +209,33 @@ export function Header(_props?: { locale?: string }) {
 
             {/* Mobile Auth Actions */}
             <div className="mt-4 flex flex-col gap-2.5 border-t border-white/10 pt-4">
-              <Link
-                href="/sign-in"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-center rounded-xl border border-white/15 bg-white/5 py-2.5 text-[14px] font-medium text-white transition hover:bg-white/10"
-              >
-                {t('sign_in')}
-              </Link>
-              <Link
-                href="/sign-up"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-center rounded-xl bg-[var(--color-brand)] py-2.5 text-[14px] font-semibold text-white shadow-md transition hover:bg-[#d41e37]"
-              >
-                {t('get_started')}
-              </Link>
+              {user ? (
+                <Link
+                  href="/dashboard"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 rounded-xl bg-[var(--color-brand)] py-2.5 text-[14px] font-semibold text-white shadow-md transition hover:bg-[#d41e37]"
+                >
+                  <span>👤</span>
+                  <span>{t('dashboard')}</span>
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/sign-in"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-center rounded-xl border border-white/15 bg-white/5 py-2.5 text-[14px] font-medium text-white transition hover:bg-white/10"
+                  >
+                    {t('sign_in')}
+                  </Link>
+                  <Link
+                    href="/sign-up"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-center rounded-xl bg-[var(--color-brand)] py-2.5 text-[14px] font-semibold text-white shadow-md transition hover:bg-[#d41e37]"
+                  >
+                    {t('get_started')}
+                  </Link>
+                </>
+              )}
             </div>
           </nav>
         </div>
