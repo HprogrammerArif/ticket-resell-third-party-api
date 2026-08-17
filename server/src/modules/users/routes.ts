@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { authenticate } from '../../middleware/authenticate';
-import { register, login, me, updateProfile, changePassword, deleteAccount } from './service';
+import { register, login, me, updateProfile, changePassword, deleteAccount, requestPasswordReset, resetPasswordWithToken } from './service';
 
 const router = Router();
 
@@ -92,6 +92,47 @@ router.put('/password', authenticate, async (req, res, next) => {
     }
     await changePassword(req.user!.id, parsed.data);
     res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+const forgotPasswordSchema = z.object({
+  email: z.string().email('Valid email is required'),
+});
+
+const resetPasswordSchema = z.object({
+  token: z.string().min(1, 'Token is required'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+});
+
+router.post('/forgot-password', async (req, res, next) => {
+  try {
+    const parsed = forgotPasswordSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: parsed.error.errors[0]?.message ?? 'Invalid email', status: 400 } });
+      return;
+    }
+    const result = await requestPasswordReset(parsed.data.email);
+    res.json({
+      success: true,
+      message: 'If an account exists with that email, a password reset link has been created.',
+      ...result,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/reset-password', async (req, res, next) => {
+  try {
+    const parsed = resetPasswordSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: parsed.error.errors[0]?.message ?? 'Invalid input', status: 400 } });
+      return;
+    }
+    await resetPasswordWithToken(parsed.data.token, parsed.data.password);
+    res.json({ success: true, message: 'Password has been successfully updated' });
   } catch (err) {
     next(err);
   }

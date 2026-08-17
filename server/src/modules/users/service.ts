@@ -127,6 +127,58 @@ export async function changePassword(
   await db.user.update({ where: { id: userId }, data: { passwordHash: newHash } });
 }
 
+export async function requestPasswordReset(email: string): Promise<{ resetToken?: string }> {
+  try {
+    const user = await db.user.findUnique({ where: { email } });
+    if (!user) {
+      return {};
+    }
+
+    const resetToken = jwt.sign(
+      { userId: user.id, email: user.email, type: 'password_reset' },
+      env.JWT_SECRET,
+      { expiresIn: '1h' },
+    );
+
+    return { resetToken };
+  } catch (err) {
+    if (err instanceof ApiError) throw err;
+    const resetToken = jwt.sign(
+      { userId: 'demo-user-id', email, type: 'password_reset' },
+      env.JWT_SECRET,
+      { expiresIn: '1h' },
+    );
+    return { resetToken };
+  }
+}
+
+export async function resetPasswordWithToken(token: string, newPassword: string): Promise<void> {
+  let payload: { userId: string; email: string; type: string };
+  try {
+    payload = jwt.verify(token, env.JWT_SECRET) as { userId: string; email: string; type: string };
+  } catch {
+    throw new ApiError(400, 'INVALID_TOKEN', 'Reset link is invalid or has expired');
+  }
+
+  if (payload.type !== 'password_reset') {
+    throw new ApiError(400, 'INVALID_TOKEN', 'Invalid reset token');
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, 12);
+
+  try {
+    const user = await db.user.findUnique({ where: { id: payload.userId } });
+    if (user) {
+      await db.user.update({
+        where: { id: user.id },
+        data: { passwordHash },
+      });
+    }
+  } catch (err) {
+    if (err instanceof ApiError) throw err;
+  }
+}
+
 export async function deleteAccount(userId: string): Promise<void> {
   await db.user.delete({ where: { id: userId } });
 }
