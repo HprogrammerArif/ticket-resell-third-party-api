@@ -17,6 +17,7 @@ import { DragScrollContainer } from '@/components/catalog/DragScrollContainer';
 import { CityEventsTabs } from '@/components/catalog/CityEventsTabs';
 import { GiftCardBanner } from '@/components/catalog/GiftCardBanner';
 import { HowItWorksSection } from '@/components/catalog/HowItWorksSection';
+import { StatsSection } from '@/components/catalog/StatsSection';
 
 type HomePageProps = { params: Promise<{ locale: string }> };
 
@@ -312,34 +313,6 @@ function GiftCardSection(props: { locale: string; t: Awaited<ReturnType<typeof g
   );
 }
 
-function StatsSection(props: { locale: string; t: Awaited<ReturnType<typeof getTranslations>> }) {
-  const { t } = props;
-  const stats = [
-    { value: t('stat_1_value'), label: t('stat_1_label') },
-    { value: t('stat_2_value'), label: t('stat_2_label') },
-    { value: t('stat_3_value'), label: t('stat_3_label') },
-    { value: t('stat_4_value'), label: t('stat_4_label') },
-  ] as const;
-
-  return (
-    <section className="bg-[var(--color-surface-raised)] px-[107px] py-16 max-md:px-4">
-      <div className="mx-auto grid max-w-[1440px] grid-cols-4 gap-8 max-md:grid-cols-2">
-        {stats.map((stat) => (
-          <div key={stat.label} className="text-center">
-            <p
-              className="text-[48px] font-semibold text-[var(--color-brand)]"
-              style={{ fontFamily: 'var(--font-poppins)' }}
-            >
-              {stat.value}
-            </p>
-            <p className="mt-1 text-[14px] text-[var(--color-text-secondary)]">{stat.label}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 export default async function HomePage(props: HomePageProps) {
   const { locale } = await props.params;
   setRequestLocale(locale);
@@ -373,7 +346,16 @@ export default async function HomePage(props: HomePageProps) {
 
       <GiftCardSection locale={locale} t={t} />
       <HowItWorksSection locale={locale} />
-      <StatsSection locale={locale} t={t} />
+      <StatsSection
+        stat1Value={t('stat_1_value')}
+        stat1Label={t('stat_1_label')}
+        stat2Value={t('stat_2_value')}
+        stat2Label={t('stat_2_label')}
+        stat3Value={t('stat_3_value')}
+        stat3Label={t('stat_3_label')}
+        stat4Value={t('stat_4_value')}
+        stat4Label={t('stat_4_label')}
+      />
     </>
   );
 }
