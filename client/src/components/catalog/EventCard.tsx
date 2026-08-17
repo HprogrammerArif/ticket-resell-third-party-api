@@ -54,7 +54,8 @@ export async function EventCard(props: { event: TnEvent; locale: string }) {
   return (
     <Link
       href={`/events/${event.id}`}
-      className="group block overflow-hidden rounded-2xl border border-[var(--color-surface-border)] bg-[var(--color-surface-raised)] transition-all hover:border-[var(--color-brand-muted)] hover:shadow-lg hover:shadow-[var(--color-brand-subtle)]"
+      draggable={false}
+      className="group block select-none overflow-hidden rounded-2xl border border-[var(--color-surface-border)] bg-[var(--color-surface-raised)] transition-all hover:border-[var(--color-brand-muted)] hover:shadow-lg hover:shadow-[var(--color-brand-subtle)]"
     >
       {/* Visual header with category-themed gradient */}
       <div className={`relative h-44 w-full bg-gradient-to-br ${gradient} flex items-center justify-center overflow-hidden`}>

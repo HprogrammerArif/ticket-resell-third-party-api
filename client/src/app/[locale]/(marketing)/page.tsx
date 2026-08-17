@@ -171,7 +171,7 @@ export async function WeekendEventsSection(props: { locale: string }) {
   const sunday = new Date();
   sunday.setDate(sunday.getDate() + (7 - sunday.getDay()));
   const dateToStr = sunday.toISOString().split('T')[0]!;
-  const { results: events } = await getEvents({ dateFrom: today, dateTo: dateToStr, pageSize: 6 });
+  const { results: events } = await getEvents({ dateFrom: today, dateTo: dateToStr, pageSize: 12 });
 
   return (
     <section className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
@@ -180,11 +180,13 @@ export async function WeekendEventsSection(props: { locale: string }) {
         seeAllHref="/events"
         seeAllLabel={t('see_all_events')}
       />
-      <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-sm:grid-cols-1">
+      <DragScrollContainer>
         {events.map((ev) => (
-          <EventCard key={ev.id} event={ev} locale={props.locale} />
+          <div key={ev.id} className="w-[300px] shrink-0 sm:w-[330px]">
+            <EventCard event={ev} locale={props.locale} />
+          </div>
         ))}
-      </div>
+      </DragScrollContainer>
     </section>
   );
 }
@@ -193,11 +195,13 @@ function WeekendEventsSkeleton() {
   return (
     <section className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
       <div className="mb-6 h-8 w-72 animate-pulse rounded bg-[#262626]" />
-      <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-sm:grid-cols-1">
+      <DragScrollContainer>
         {Array.from({ length: 6 }).map((_, i) => (
-          <EventCardSkeleton key={i} />
+          <div key={i} className="w-[300px] shrink-0 sm:w-[330px]">
+            <EventCardSkeleton />
+          </div>
         ))}
-      </div>
+      </DragScrollContainer>
     </section>
   );
 }
