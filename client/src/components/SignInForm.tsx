@@ -8,6 +8,7 @@ import { Link, useRouter } from '@/libs/I18nNavigation';
 type FormData = {
   email: string;
   password: string;
+  rememberMe?: boolean;
 };
 
 export const SignInForm = () => {
@@ -21,7 +22,7 @@ export const SignInForm = () => {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<FormData>();
+  } = useForm<FormData>({ defaultValues: { rememberMe: true } });
 
   const onSubmit = async (data: FormData) => {
     setIsLoading(true);
@@ -31,7 +32,7 @@ export const SignInForm = () => {
       const response = await fetch('/api/auth/sign-in', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ email: data.email, password: data.password }),
       });
 
       const rawResult: unknown = await response.json();
@@ -52,75 +53,103 @@ export const SignInForm = () => {
   };
 
   return (
-    <div className="w-full max-w-[400px]">
-      <h1
-        className="mb-8 text-[32px] font-semibold text-white"
-        style={{ fontFamily: 'var(--font-poppins)' }}
-      >
-        {t('heading')}
-      </h1>
+    <div className="w-full max-w-[440px] rounded-3xl border border-white/10 bg-[#121215]/85 p-8 sm:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.8)] backdrop-blur-xl transition-all">
+      {/* Header Badge */}
+      <div className="mb-6 flex flex-col items-center text-center">
+        <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-[var(--color-brand)]/30 bg-[var(--color-brand)]/10 px-3.5 py-1 text-[12px] font-semibold text-[var(--color-brand)]">
+          <span className="inline-block size-1.5 rounded-full bg-[var(--color-brand)] animate-pulse" />
+          <span>{t('badge')}</span>
+        </div>
+        <h1
+          className="text-[26px] font-bold tracking-tight text-white sm:text-[30px]"
+          style={{ fontFamily: 'var(--font-poppins)' }}
+        >
+          {t('heading')}
+        </h1>
+        <p className="mt-2 text-[13px] leading-relaxed text-[#9e9e9e]">
+          {t('subheading')}
+        </p>
+      </div>
 
+      {/* Error Message */}
       {error && (
-        <div className="mb-4 rounded-lg bg-[var(--color-brand-subtle)] p-3 text-[14px] text-[var(--color-brand)]">
-          {error}
+        <div className="mb-5 flex items-center gap-2.5 rounded-xl border border-[var(--color-brand)]/30 bg-[var(--color-brand)]/10 p-3.5 text-[13px] font-medium text-[var(--color-brand)] animate-shake">
+          <svg className="size-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
+          <span>{error}</span>
         </div>
       )}
 
+      {/* Form */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        {/* Email Field */}
         <div>
           <label
             htmlFor="email"
-            className="mb-1.5 block text-[14px] font-medium text-[var(--color-text-secondary)]"
+            className="mb-1.5 block text-[13px] font-medium text-[#d4d4d4]"
           >
             {t('email_label')}
           </label>
-          <input
-            id="email"
-            type="email"
-            autoComplete="email"
-            placeholder={t('email_placeholder')}
-            {...register('email', {
-              required: 'Email is required',
-              pattern: { value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/iu, message: 'Invalid email' },
-            })}
-            className="w-full rounded-xl border border-[var(--color-surface-border)] bg-[var(--color-surface-raised)] px-4 py-3 text-[15px] text-white placeholder-[var(--color-text-muted)] outline-none focus:border-[var(--color-brand)]"
-          />
+          <div className="relative">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#737373]">
+              <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+              </svg>
+            </div>
+            <input
+              id="email"
+              type="email"
+              autoComplete="email"
+              placeholder={t('email_placeholder')}
+              {...register('email', {
+                required: 'Email is required',
+                pattern: { value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/iu, message: 'Invalid email address' },
+              })}
+              className="w-full rounded-xl border border-white/10 bg-[#1a1a1f] pl-10 pr-4 py-3 text-[14px] text-white placeholder-[#5a5a60] outline-none transition focus:border-[var(--color-brand)] focus:ring-1 focus:ring-[var(--color-brand)]/40"
+            />
+          </div>
           {errors.email && (
             <p className="mt-1 text-[12px] text-[var(--color-brand)]">{errors.email.message}</p>
           )}
         </div>
 
+        {/* Password Field */}
         <div>
           <label
             htmlFor="password"
-            className="mb-1.5 block text-[14px] font-medium text-[var(--color-text-secondary)]"
+            className="mb-1.5 block text-[13px] font-medium text-[#d4d4d4]"
           >
             {t('password_label')}
           </label>
           <div className="relative">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#737373]">
+              <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
             <input
               id="password"
               type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
               placeholder={t('password_placeholder')}
               {...register('password', { required: 'Password is required' })}
-              className="w-full rounded-xl border border-[var(--color-surface-border)] bg-[var(--color-surface-raised)] px-4 py-3 pr-12 text-[15px] text-white placeholder-[var(--color-text-muted)] outline-none focus:border-[var(--color-brand)]"
+              className="w-full rounded-xl border border-white/10 bg-[#1a1a1f] pl-10 pr-11 py-3 text-[14px] text-white placeholder-[#5a5a60] outline-none transition focus:border-[var(--color-brand)] focus:ring-1 focus:ring-[var(--color-brand)]/40"
             />
             <button
               type="button"
               aria-label={showPassword ? t('hide_password') : t('show_password')}
               onClick={() => setShowPassword((v) => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] hover:text-white"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#737373] transition hover:text-white"
             >
               {showPassword ? (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                  <line x1="1" y1="1" x2="23" y2="23" />
+                <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
                 </svg>
               ) : (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                  <circle cx="12" cy="12" r="3" />
+                <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
               )}
             </button>
@@ -130,36 +159,56 @@ export const SignInForm = () => {
           )}
         </div>
 
-        <div className="flex justify-end">
+        {/* Remember Me & Forgot Password */}
+        <div className="flex items-center justify-between pt-1">
+          <label className="flex cursor-pointer items-center gap-2 text-[12px] text-[#a3a3a3] hover:text-white select-none">
+            <input
+              type="checkbox"
+              {...register('rememberMe')}
+              className="size-3.5 rounded border border-white/20 bg-[#1a1a1f] accent-[var(--color-brand)] cursor-pointer"
+            />
+            <span>{t('remember_me')}</span>
+          </label>
+
           <Link
             href="/forgot-password"
-            className="text-[13px] text-[var(--color-brand)] hover:underline"
+            className="text-[12px] font-medium text-[var(--color-brand)] transition hover:underline"
           >
             {t('forgot_password')}
           </Link>
         </div>
 
+        {/* Submit Button */}
         <button
           type="submit"
           disabled={isLoading}
-          className="mt-2 w-full rounded-full border border-white py-3 text-[16px] font-medium text-white transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-2 w-full rounded-xl bg-gradient-to-r from-[var(--color-brand)] to-[#d41e37] py-3.5 text-[15px] font-semibold text-white shadow-[0_4px_20px_rgba(234,42,67,0.35)] transition-all hover:shadow-[0_4px_25px_rgba(234,42,67,0.55)] hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+          style={{ fontFamily: 'var(--font-poppins)' }}
         >
           {isLoading ? (
             <span className="flex items-center justify-center gap-2">
-              <span className="block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              <span className="block size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              <span>Logging in...</span>
             </span>
           ) : (
-            t('submit')
+            <span className="flex items-center justify-center gap-1.5">
+              <span>{t('submit')}</span>
+              <span>→</span>
+            </span>
           )}
         </button>
       </form>
 
-      <p className="mt-8 text-center text-[14px] text-[var(--color-text-secondary)]">
+      {/* Switch to Sign Up */}
+      <div className="mt-8 border-t border-white/10 pt-6 text-center text-[13px] text-[#9e9e9e]">
         {t('no_account')}{' '}
-        <Link href="/sign-up" className="text-white underline">
-          {t('sign_up_link')}
+        <Link
+          href="/sign-up"
+          className="font-semibold text-white transition hover:text-[var(--color-brand)] hover:underline"
+        >
+          {t('sign_up_link')} →
         </Link>
-      </p>
+      </div>
     </div>
   );
 };
