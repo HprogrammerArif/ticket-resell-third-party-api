@@ -105,22 +105,23 @@
     "open_menu": "Open menu"
   },
   "Footer": {
-    "company_heading": "COMPANY",
+    "company_heading": "Company",
     "company_about": "About",
     "company_services": "Services",
     "company_collections": "Collections",
-    "about_heading": "ABOUT US",
+    "about_heading": "About Us",
     "about_mission": "Mission",
     "about_careers": "Careers",
     "about_contact": "Contact",
-    "resources_heading": "RESOURCES",
+    "resources_heading": "Resources",
     "resources_privacy": "Privacy Policy",
     "resources_terms": "Terms of Sale",
     "resources_work_with_us": "Work with Us",
-    "subscribe_heading": "SUBSCRIBE TO STAY UPDATE",
+    "subscribe_heading": "Subscribe to Stay Updated",
     "subscribe_placeholder": "Enter your email",
     "subscribe_button": "Subscribe →",
-    "copyright": "©2026 TicketLove.net. All rights reserved"
+    "subscribe_success": "Thanks for subscribing! 🎉",
+    "copyright": "© 2026 TicketLove.net. All rights reserved."
   },
   "EventCard": {
     "buy_now": "Buy Now",
