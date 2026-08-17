@@ -16,6 +16,7 @@ import { HeroSlider } from '@/components/catalog/HeroSlider';
 import { DragScrollContainer } from '@/components/catalog/DragScrollContainer';
 import { CityEventsTabs } from '@/components/catalog/CityEventsTabs';
 import { GiftCardBanner } from '@/components/catalog/GiftCardBanner';
+import { HowItWorksSection } from '@/components/catalog/HowItWorksSection';
 
 type HomePageProps = { params: Promise<{ locale: string }> };
 
@@ -311,35 +312,6 @@ function GiftCardSection(props: { locale: string; t: Awaited<ReturnType<typeof g
   );
 }
 
-function HowItWorksSection(props: { locale: string; t: Awaited<ReturnType<typeof getTranslations>> }) {
-  const { t } = props;
-  const steps = [
-    { title: t('step_1_title'), description: t('step_1_description'), icon: '🔍' },
-    { title: t('step_2_title'), description: t('step_2_description'), icon: '🎫' },
-    { title: t('step_3_title'), description: t('step_3_description'), icon: '🎉' },
-  ] as const;
-
-  return (
-    <section className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
-      <SectionHeading title={t('how_it_works_heading')} />
-      <div className="grid grid-cols-3 gap-8 max-md:grid-cols-1">
-        {steps.map((step) => (
-          <div key={step.title} className="rounded-2xl border border-[var(--color-surface-border)] bg-[var(--color-surface-raised)] p-8 text-center">
-            <div className="mb-4 text-5xl">{step.icon}</div>
-            <h3
-              className="mb-3 text-[20px] font-semibold text-[var(--color-text-primary)]"
-              style={{ fontFamily: 'var(--font-poppins)' }}
-            >
-              {step.title}
-            </h3>
-            <p className="text-[14px] text-[var(--color-text-secondary)]">{step.description}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 function StatsSection(props: { locale: string; t: Awaited<ReturnType<typeof getTranslations>> }) {
   const { t } = props;
   const stats = [
@@ -400,7 +372,7 @@ export default async function HomePage(props: HomePageProps) {
       </Suspense>
 
       <GiftCardSection locale={locale} t={t} />
-      <HowItWorksSection locale={locale} t={t} />
+      <HowItWorksSection locale={locale} />
       <StatsSection locale={locale} t={t} />
     </>
   );
