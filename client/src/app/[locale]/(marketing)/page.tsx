@@ -12,6 +12,7 @@ import { CategoryCard } from '@/components/catalog/CategoryCard';
 import { CategoryCardSkeleton } from '@/components/catalog/CategoryCardSkeleton';
 import { SearchBar } from '@/components/catalog/SearchBar';
 import { SectionHeading } from '@/components/catalog/SectionHeading';
+import { HeroSlider } from '@/components/catalog/HeroSlider';
 
 type HomePageProps = { params: Promise<{ locale: string }> };
 
@@ -29,10 +30,10 @@ export async function HeroSection(props: { locale: string }) {
 
   return (
     <section className="relative min-h-[600px] bg-gradient-to-br from-[#0f0f0f] to-[#1a0a0d] px-[107px] py-20 max-md:px-4">
-      {/* Background concert overlay shimmer */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0f0f0f] via-transparent to-transparent" />
+      {/* Background concert image slider */}
+      <HeroSlider />
 
-      <div className="relative mx-auto max-w-[1440px]">
+      <div className="relative z-30 mx-auto max-w-[1440px]">
         {featured && (
           <div className="max-w-2xl">
             <h1
