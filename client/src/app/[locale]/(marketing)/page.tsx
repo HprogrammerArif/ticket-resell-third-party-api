@@ -15,6 +15,7 @@ import { SectionHeading } from '@/components/catalog/SectionHeading';
 import { HeroSlider } from '@/components/catalog/HeroSlider';
 import { DragScrollContainer } from '@/components/catalog/DragScrollContainer';
 import { CityEventsTabs } from '@/components/catalog/CityEventsTabs';
+import { GiftCardBanner } from '@/components/catalog/GiftCardBanner';
 
 type HomePageProps = { params: Promise<{ locale: string }> };
 
@@ -300,44 +301,13 @@ function CityEventsSkeleton() {
 function GiftCardSection(props: { locale: string; t: Awaited<ReturnType<typeof getTranslations>> }) {
   const { t } = props;
   return (
-    <section className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1a0a0d] to-[#0f0f0f] p-12 max-md:p-6">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(234,42,67,0.15),transparent_60%)]" />
-        <div className="relative grid grid-cols-2 gap-8 max-md:grid-cols-1">
-          <div>
-            <p className="mb-2 text-[14px] font-medium text-[var(--color-brand)]">
-              {t('gift_card_heading')}
-            </p>
-            <h2
-              className="mb-4 text-[40px] font-semibold leading-tight text-white max-md:text-[28px]"
-              style={{ fontFamily: 'var(--font-poppins)' }}
-            >
-              {t('gift_card_subheading')}
-            </h2>
-            <p className="mb-6 text-[var(--color-text-secondary)]">
-              {t('gift_card_description')}
-            </p>
-            {/* TODO: update href when /gift-cards route exists */}
-            <Link
-              href="/gift-cards"
-              className="inline-block rounded-full bg-[var(--color-brand)] px-8 py-3 font-medium text-white hover:bg-[#c41e33]"
-            >
-              {t('gift_card_cta')}
-            </Link>
-          </div>
-          {/* Static gift card visual */}
-          <div className="flex items-center justify-center">
-            <div className="w-64 rounded-2xl border border-[var(--color-brand-muted)] bg-[var(--color-surface-raised)] p-6 text-center">
-              <p className="mb-2 text-[14px] text-[var(--color-text-muted)]">{t('gift_card_label')}</p>
-              <p className="text-[48px] font-semibold text-[var(--color-brand)]">$100</p>
-              <p className="mt-2 text-[13px] tracking-widest text-[var(--color-text-muted)]">
-                8472
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+    <GiftCardBanner
+      heading={t('gift_card_heading')}
+      subheading={t('gift_card_subheading')}
+      description={t('gift_card_description')}
+      cta={t('gift_card_cta')}
+      cardLabel={t('gift_card_label')}
+    />
   );
 }
 
