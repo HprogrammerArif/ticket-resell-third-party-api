@@ -120,11 +120,33 @@ export async function CategoriesSection(props: { locale: string }) {
 
   return (
     <section className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
-      <SectionHeading title={t('browse_by_category')} />
+      <SectionHeading
+        title={t('browse_by_category')}
+        seeAllHref="/categories"
+        seeAllLabel={t('see_all_categories')}
+      />
       <DragScrollContainer>
         {categories.map((cat) => (
           <CategoryCard key={cat.path} category={cat} locale={props.locale} />
         ))}
+        <Link
+          href="/categories"
+          draggable={false}
+          className="group flex h-[200px] w-[200px] shrink-0 select-none flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-[var(--color-surface-border)] bg-[var(--color-surface-raised)]/60 p-6 text-center transition-all hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-subtle)]"
+        >
+          <div className="flex size-12 items-center justify-center rounded-full bg-white/5 text-xl text-white transition-all group-hover:scale-110 group-hover:bg-[var(--color-brand)]">
+            →
+          </div>
+          <p
+            className="text-[15px] font-semibold text-[var(--color-text-primary)] transition-colors group-hover:text-white"
+            style={{ fontFamily: 'var(--font-poppins)' }}
+          >
+            {t('see_all_categories')}
+          </p>
+          <span className="text-[12px] text-[var(--color-text-muted)]">
+            Explore directory
+          </span>
+        </Link>
       </DragScrollContainer>
     </section>
   );

@@ -144,6 +144,7 @@
     "meta_description": "Trouvez des billets pour des concerts, sports, théâtre et plus encore.",
     "hero_get_tickets": "Obtenir des billets →",
     "browse_by_category": "Parcourir par catégorie",
+    "see_all_categories": "Voir toutes les catégories",
     "happening_this_weekend": "Ce week-end",
     "popular_artists": "Artistes populaires",
     "city_electric": "Votre ville est électrique en ce moment",
@@ -236,11 +237,18 @@
     "try_again": "Réessayer"
   },
   "CategoriesPage": {
+    "all_categories_meta_title": "Toutes les catégories — TicketLove.net",
+    "all_categories_meta_description": "Parcourez toutes les catégories de billets : concerts, sports, théâtre, comédie, festivals et plus encore.",
+    "all_categories_title": "Toutes les catégories",
+    "all_categories_subtitle": "Explorez des milliers d'événements en direct dans toutes les catégories.",
+    "filter_search": "Rechercher des catégories...",
     "meta_title": "{name} — TicketLove.net",
     "meta_title_fallback": "Catégorie — TicketLove.net",
     "meta_description": "Parcourir les événements dans {name}.",
     "breadcrumb_home": "Accueil",
+    "breadcrumb_categories": "Catégories",
     "no_events": "Aucun événement trouvé dans cette catégorie.",
+    "no_categories": "Aucune catégorie trouvée.",
     "loading": "Chargement...",
     "error_message": "Une erreur s'est produite lors du chargement de cette catégorie.",
     "try_again": "Réessayer"

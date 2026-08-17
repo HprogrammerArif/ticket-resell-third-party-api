@@ -144,6 +144,7 @@
     "meta_description": "Find tickets to concerts, sports, theatre, and more. Buy safely with TicketLove.net.",
     "hero_get_tickets": "Get Tickets →",
     "browse_by_category": "Browse by Category",
+    "see_all_categories": "See All Categories",
     "happening_this_weekend": "Happening this Weekend",
     "popular_artists": "Popular Artists",
     "city_electric": "Your City is Electric Right Now",
@@ -236,11 +237,18 @@
     "try_again": "Try again"
   },
   "CategoriesPage": {
+    "all_categories_meta_title": "All Categories — TicketLove.net",
+    "all_categories_meta_description": "Browse all ticket categories: concerts, sports, theater, comedy, festivals, and more.",
+    "all_categories_title": "All Categories",
+    "all_categories_subtitle": "Explore thousands of live events across all categories.",
+    "filter_search": "Search categories...",
     "meta_title": "{name} — TicketLove.net",
     "meta_title_fallback": "Category — TicketLove.net",
     "meta_description": "Browse events in {name}.",
     "breadcrumb_home": "Home",
+    "breadcrumb_categories": "Categories",
     "no_events": "No events found in this category.",
+    "no_categories": "No categories found.",
     "loading": "Loading...",
     "error_message": "Something went wrong loading this category.",
     "try_again": "Try again"
