@@ -57,6 +57,33 @@ function odataDate(value: string): string {
   return `${value}T00:00:00Z`;
 }
 
+function buildCategoryFilter(categoryPath?: string): string | undefined {
+  if (!categoryPath) return undefined;
+  const norm = categoryPath.trim().toLowerCase();
+  if (norm === 'concerts' || norm === 'concert') {
+    return `contains(path, '1986')`;
+  }
+  if (norm === 'sports' || norm === 'sport') {
+    return `contains(path, '1988')`;
+  }
+  if (norm === 'theatre' || norm === 'theater') {
+    return `contains(path, '1989')`;
+  }
+  if (norm === 'comedy') {
+    return `contains(path, '1872') or contains(text/name, 'COMEDY')`;
+  }
+  if (norm === 'family') {
+    return `contains(path, '2094') or contains(path, '1869') or contains(text/name, 'FAMILY') or contains(text/name, 'CHILDREN')`;
+  }
+  if (norm === 'festivals' || norm === 'festival') {
+    return `contains(path, '1877') or contains(path, '1876') or contains(text/name, 'FESTIVAL')`;
+  }
+  if (categoryPath.startsWith('.')) {
+    return `contains(path, ${odataQuote(categoryPath)})`;
+  }
+  return `contains(text/name, ${odataQuote(categoryPath)})`;
+}
+
 function eventQuery(params: EventParams): Record<string, string | number | undefined> {
   const filter = odataAnd([
     // `takedownAt` is TN's own "de-listed from websites, no longer for sale" cutoff —
@@ -70,7 +97,7 @@ function eventQuery(params: EventParams): Record<string, string | number | undef
   ]);
   return {
     filter,
-    categoryFilter: params.categoryPath ? `path eq ${odataQuote(params.categoryPath)}` : undefined,
+    categoryFilter: buildCategoryFilter(params.categoryPath),
     performerFilter: params.performerId !== undefined ? `id eq ${params.performerId}` : undefined,
     pageNumber: params.pageNumber,
     pageSize: params.pageSize,
@@ -79,7 +106,7 @@ function eventQuery(params: EventParams): Record<string, string | number | undef
 
 function performerQuery(params: PerformerParams): Record<string, string | number | undefined> {
   return {
-    categoryFilter: params.categoryPath ? `path eq ${odataQuote(params.categoryPath)}` : undefined,
+    categoryFilter: buildCategoryFilter(params.categoryPath),
     filter: params.keyword ? `contains(text/name,${odataQuote(params.keyword)})` : undefined,
     pageNumber: params.pageNumber,
     pageSize: params.pageSize,
@@ -147,7 +174,10 @@ export function suggestEvents(params: EventSuggestParams): Promise<TnSuggestGrou
 }
 
 export function bulkEvents(params: EventBulkParams = {}): Promise<TnPagedResult<TnEvent>> {
-  return tnRequest<TnPagedResult<TnEvent>>('/events/bulk', opts(params));
+  return tnRequest<TnPagedResult<TnEvent>>('/events/bulk', opts({
+    ...params,
+    // sort and timeOfDayFilter are top-level query params on TN, not OData — pass as-is
+  }));
 }
 
 // --- Performers ---

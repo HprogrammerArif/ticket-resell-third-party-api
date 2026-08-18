@@ -348,7 +348,15 @@ export type EventBulkParams = {
   categoryFilter?: string;
   performerFilter?: string;
   geoFilter?: string;
+  timeOfDayFilter?: string;
+  sort?: string;
   fields?: string;
+  // Convenience params (transformed to OData on the server)
+  keyword?: string;
+  city?: string;
+  categoryPath?: string;
+  dateFrom?: string;
+  dateTo?: string;
   pageNumber?: number;
   pageSize?: number;
 };

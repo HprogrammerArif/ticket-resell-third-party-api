@@ -290,6 +290,8 @@ export interface EventBulkParams extends PaginationParams {
   categoryFilter?: string;
   performerFilter?: string;
   geoFilter?: string;
+  timeOfDayFilter?: string;
+  sort?: string;
   fields?: string;
 }
 

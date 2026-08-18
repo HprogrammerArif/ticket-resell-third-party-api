@@ -15,6 +15,21 @@ import type {
 
 const router = Router();
 
+// ─── OData filter helpers (for /events/bulk convenience params) ───────────────
+
+function odataQuote(value: string): string {
+  return `'${value.replace(/'/g, "''")}'`;
+}
+
+function odataAnd(clauses: (string | undefined)[]): string | undefined {
+  const parts = clauses.filter((c): c is string => Boolean(c));
+  return parts.length > 0 ? parts.join(' and ') : undefined;
+}
+
+function odataDate(value: string): string {
+  return `${value}T00:00:00Z`;
+}
+
 // ─── Cache TTL constants (seconds) ────────────────────────────────────────────
 
 const TTL = {
@@ -145,11 +160,35 @@ router.get('/events/suggest', async (req: Request, res: Response, next: NextFunc
 
 router.get('/events/bulk', async (req: Request, res: Response, next: NextFunction) => {
   try {
+    // Build OData filter from convenience params (same helpers as /events)
+    const city = req.query.city as string | undefined;
+    const dateFrom = req.query.dateFrom as string | undefined;
+    const dateTo = req.query.dateTo as string | undefined;
+    const keyword = req.query.keyword as string | undefined;
+
+    const clauses: (string | undefined)[] = [
+      // Exclude expired events
+      `takedownAt ge ${new Date().toISOString()}`,
+      city ? `city/text/name eq ${odataQuote(city)}` : undefined,
+      dateFrom ? `date/date ge ${odataDate(dateFrom)}` : undefined,
+      dateTo ? `date/date le ${odataDate(dateTo)}` : undefined,
+      keyword ? `contains(text/name,${odataQuote(keyword)})` : undefined,
+      // Allow raw filter passthrough too
+      req.query.filter as string | undefined,
+    ];
+    const mergedFilter = odataAnd(clauses);
+
+    const categoryPath = req.query.categoryPath as string | undefined;
+
     const params: EventBulkParams = {
-      filter: req.query.filter as string | undefined,
-      categoryFilter: req.query.categoryFilter as string | undefined,
+      filter: mergedFilter,
+      categoryFilter: categoryPath
+        ? `path eq ${odataQuote(categoryPath)}`
+        : (req.query.categoryFilter as string | undefined),
       performerFilter: req.query.performerFilter as string | undefined,
       geoFilter: req.query.geoFilter as string | undefined,
+      timeOfDayFilter: req.query.timeOfDayFilter as string | undefined,
+      sort: req.query.sort as string | undefined,
       fields: req.query.fields as string | undefined,
       pageNumber: req.query.pageNumber ? Number(req.query.pageNumber) : undefined,
       pageSize: req.query.pageSize ? Number(req.query.pageSize) : undefined,
