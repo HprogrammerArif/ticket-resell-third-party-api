@@ -31,21 +31,15 @@ export default async function CenteredLayout(props: {
       <header className="relative z-10 w-full border-b border-white/5 bg-[#0e0e11]/60 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1440px] items-center justify-between px-6 py-4 sm:px-12">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 select-none group">
+          <Link href="/" className="flex items-center select-none group">
             <Image
-              src="/logo-icon.png"
-              alt="TicketLove"
-              width={38}
-              height={38}
-              className="transition-transform group-hover:scale-105"
+              src="/assets/nav_logo.svg"
+              alt="TicketLove.net"
+              width={200}
+              height={44}
+              className="h-9 w-auto object-contain transition-transform group-hover:scale-[1.02]"
               priority
             />
-            <span
-              className="text-[22px] font-bold tracking-tight text-white"
-              style={{ fontFamily: 'var(--font-poppins)' }}
-            >
-              Ticket<span className="text-[var(--color-brand)]">L</span>ove<span className="text-[var(--color-brand)]">.</span>net
-            </span>
           </Link>
 
           {/* Back to Home Link */}

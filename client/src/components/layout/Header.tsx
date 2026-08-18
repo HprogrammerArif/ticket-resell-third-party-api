@@ -72,14 +72,15 @@ export function Header(_props?: { locale?: string }) {
     <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#0c0c0e]/90 backdrop-blur-md transition-all duration-300">
       <div className="mx-auto flex max-w-[1440px] items-center justify-between px-[107px] py-3.5 max-md:px-4">
         {/* Brand Logo */}
-        <Link href="/" className="flex items-center gap-3 select-none">
-          <Image src="/logo-icon.png" alt="TicketLove" width={44} height={44} priority />
-          <span
-            className="text-[24px] font-bold leading-none tracking-[-1px] text-white sm:text-[26px]"
-            style={{ fontFamily: 'var(--font-poppins)' }}
-          >
-            Ticket<span className="text-[var(--color-brand)]">L</span>ove<span className="text-[var(--color-brand)]">.</span>net
-          </span>
+        <Link href="/" className="flex items-center select-none group">
+          <Image
+            src="/assets/nav_logo.svg"
+            alt="TicketLove.net"
+            width={210}
+            height={46}
+            className="h-10 w-auto object-contain transition-transform group-hover:scale-[1.02]"
+            priority
+          />
         </Link>
 
         {/* Desktop Navigation Links */}
