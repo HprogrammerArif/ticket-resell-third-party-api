@@ -8,7 +8,7 @@ interface DragScrollContainerProps {
   scrollAmount?: number;
   autoStep?: boolean;
   stepInterval?: number; // ms between each step (e.g. 3000ms)
-  stepDistance?: number; // px to advance each step (e.g. 350px)
+  stepDistance?: number; // px to advance each step (e.g. 346px)
 }
 
 export function DragScrollContainer({
@@ -16,8 +16,8 @@ export function DragScrollContainer({
   className = '',
   scrollAmount = 450,
   autoStep = false,
-  stepInterval = 2000,
-  stepDistance = 350,
+  stepInterval = 3000,
+  stepDistance = 346,
 }: DragScrollContainerProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [showLeftFade, setShowLeftFade] = useState(false);
@@ -62,53 +62,7 @@ export function DragScrollContainer({
     return () => clearTimeout(timeout);
   }, [children, updateFades]);
 
-  const animationFrameRef = useRef<number | null>(null);
-
-  const cancelActiveAnimation = useCallback(() => {
-    if (animationFrameRef.current !== null) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-    }
-  }, []);
-
-  // Silky smooth scroll animation with cubic ease-in-out curve
-  const smoothScrollTo = useCallback((targetLeft: number, duration = 800) => {
-    const el = ref.current;
-    if (!el) return;
-
-    cancelActiveAnimation();
-
-    const startLeft = el.scrollLeft;
-    const maxScroll = el.scrollWidth - el.clientWidth;
-    const clampedTarget = Math.max(0, Math.min(targetLeft, maxScroll));
-    const distance = clampedTarget - startLeft;
-
-    if (Math.abs(distance) < 1) return;
-
-    const startTime = performance.now();
-
-    // Cubic ease-in-out for smooth acceleration and deceleration
-    const easeInOutCubic = (t: number): number =>
-      t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
-
-    const step = (currentTime: number) => {
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = easeInOutCubic(progress);
-
-      el.scrollLeft = startLeft + distance * eased;
-
-      if (progress < 1) {
-        animationFrameRef.current = requestAnimationFrame(step);
-      } else {
-        animationFrameRef.current = null;
-      }
-    };
-
-    animationFrameRef.current = requestAnimationFrame(step);
-  }, [cancelActiveAnimation]);
-
-  // Auto-step timer: smoothly glides by 1 step every `stepInterval` ms, pausing on hover/drag
+  // Smooth automatic stepping timer
   useEffect(() => {
     if (!autoStep) return;
 
@@ -118,31 +72,29 @@ export function DragScrollContainer({
 
       const isNearEnd = el.scrollLeft >= el.scrollWidth - el.clientWidth - 30;
       if (isNearEnd) {
-        smoothScrollTo(0, 900);
+        el.scrollTo({ left: 0, behavior: 'smooth' });
       } else {
-        smoothScrollTo(el.scrollLeft + stepDistance, 800);
+        el.scrollBy({ left: stepDistance, behavior: 'smooth' });
       }
     }, stepInterval);
 
     return () => {
       clearInterval(timer);
-      cancelActiveAnimation();
     };
-  }, [autoStep, stepInterval, stepDistance, isHovered, smoothScrollTo, cancelActiveAnimation]);
+  }, [autoStep, stepInterval, stepDistance, isHovered]);
 
+  // Smooth scroll via arrow buttons
   const scrollBy = (direction: 'left' | 'right') => {
     const el = ref.current;
     if (!el) return;
     const amount = direction === 'left' ? -scrollAmount : scrollAmount;
-    smoothScrollTo(el.scrollLeft + amount, 600);
+    el.scrollBy({ left: amount, behavior: 'smooth' });
   };
 
   // Mouse drag handlers
   const handleMouseDown = (e: React.MouseEvent) => {
     const el = ref.current;
     if (!el) return;
-
-    cancelActiveAnimation();
 
     dragRef.current = {
       isDown: true,
@@ -190,12 +142,9 @@ export function DragScrollContainer({
     <div
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onTouchStart={() => {
-        cancelActiveAnimation();
-        setIsHovered(true);
-      }}
+      onTouchStart={() => setIsHovered(true)}
       onTouchEnd={() => {
-        setTimeout(() => setIsHovered(false), 2500);
+        setTimeout(() => setIsHovered(false), 2000);
       }}
       className="group relative w-full"
     >
@@ -204,7 +153,7 @@ export function DragScrollContainer({
         type="button"
         onClick={() => scrollBy('left')}
         aria-label="Scroll left"
-        className={`absolute -left-4 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-[#141414]/90 text-white shadow-2xl backdrop-blur-md transition-all duration-200 hover:scale-110 hover:border-transparent hover:bg-[var(--color-brand)] active:scale-95 max-md:hidden ${
+        className={`absolute -left-4 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-[#141414]/90 text-white shadow-2xl backdrop-blur-md transition-all duration-200 hover:scale-110 hover:border-transparent hover:bg-[var(--color-brand)] active:scale-95 max-md:hidden cursor-pointer ${
           showLeftFade ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
       >
@@ -218,7 +167,7 @@ export function DragScrollContainer({
         type="button"
         onClick={() => scrollBy('right')}
         aria-label="Scroll right"
-        className={`absolute -right-4 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-[#141414]/90 text-white shadow-2xl backdrop-blur-md transition-all duration-200 hover:scale-110 hover:border-transparent hover:bg-[var(--color-brand)] active:scale-95 max-md:hidden ${
+        className={`absolute -right-4 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-[#141414]/90 text-white shadow-2xl backdrop-blur-md transition-all duration-200 hover:scale-110 hover:border-transparent hover:bg-[var(--color-brand)] active:scale-95 max-md:hidden cursor-pointer ${
           showRightFade ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
       >
@@ -251,7 +200,6 @@ export function DragScrollContainer({
         } ${className}`}
         style={{
           WebkitOverflowScrolling: 'touch',
-          scrollBehavior: isDragging ? 'auto' : 'smooth',
         }}
       >
         {children}

@@ -325,7 +325,7 @@ export default async function HomePage(props: HomePageProps) {
       </Suspense>
 
       <Suspense>
-        <SponsorSection/>
+        <SponsorSection />
       </Suspense>
 
       <Suspense fallback={<CategoriesSkeleton />}>
