@@ -1,0 +1,87 @@
+name: ticketlove
+
+# Requires a `.env` file beside this one (see .env.example).
+# Compose reads ./.env for BOTH ${VAR} interpolation below AND env_file injection.
+# Renaming it breaks POSTGRES_PASSWORD interpolation and the stack will not start.
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data # TLS certificates live here — MUST persist
+      - caddy_config:/config
+    networks: [internal]
+    depends_on:
+      web:
+        condition: service_healthy
+
+  web:
+    image: ghcr.io/hprogrammerarif/ticketlove-web:${TAG:-latest}
+    restart: unless-stopped
+    env_file: [.env]
+    environment:
+      BACKEND_API_URL: http://api:8000 # Internal Docker DNS
+    networks: [internal]
+    depends_on:
+      api:
+        condition: service_healthy
+
+  api:
+    image: ghcr.io/hprogrammerarif/ticketlove-api:${TAG:-latest}
+    restart: unless-stopped
+    env_file: [.env]
+    environment:
+      NODE_ENV: production
+      PORT: 8000
+      DATABASE_URL: postgresql://ticketlove:${POSTGRES_PASSWORD}@db:5432/ticketlove
+    networks: [internal]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  migrate:
+    image: ghcr.io/hprogrammerarif/ticketlove-api:${TAG:-latest}
+    restart: "no"
+    command: ["npx", "prisma", "migrate", "deploy"]
+    environment:
+      DATABASE_URL: postgresql://ticketlove:${POSTGRES_PASSWORD}@db:5432/ticketlove
+    networks: [internal]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ticketlove
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ticketlove
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks: [internal]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ticketlove -d ticketlove"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command:
+      - postgres
+      - -c
+      - shared_buffers=256MB
+      - -c
+      - max_connections=50
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:
+
+networks:
+  internal:
+    driver: bridge

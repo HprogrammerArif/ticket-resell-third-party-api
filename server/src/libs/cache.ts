@@ -1,14 +1,16 @@
 import NodeCache from 'node-cache';
+import { logger } from './logger';
 
 /**
  * Singleton in-memory cache instance.
  * Uses stdTTL=0 (no default TTL) — each entry specifies its own TTL via cacheGet.
  * checkperiod=120 runs expired-key cleanup every 2 minutes.
+ * maxKeys=5000 bounds memory footprint on a constrained VPS.
  * useClones=false avoids deep-cloning cached JSON on every read; safe here since
  * callers only ever read cached values and pass them straight to res.json(),
  * never mutate them in place.
  */
-const cache = new NodeCache({ stdTTL: 0, checkperiod: 120, useClones: false });
+const cache = new NodeCache({ stdTTL: 0, checkperiod: 120, useClones: false, maxKeys: 5000 });
 
 // Tracks in-flight fetches per key so concurrent misses for the same key share
 // one upstream call instead of each firing its own (TicketNetwork's Sandbox API
@@ -47,7 +49,11 @@ export async function cacheGet<T>(
 
   const promise = fetcher()
     .then((value) => {
-      cache.set(key, value, ttlSeconds);
+      try {
+        cache.set(key, value, ttlSeconds);
+      } catch (err) {
+        logger.warn({ err, key }, 'Failed to set cache entry (e.g. maxKeys reached)');
+      }
       return value;
     })
     .finally(() => {
@@ -64,12 +70,12 @@ export async function cacheGet<T>(
  */
 export function buildCacheKey(
   base: string,
-  params?: Record<string, string | number | boolean | undefined>,
+  params?: object,
 ): string {
   if (!params) return base;
 
   const parts = Object.entries(params)
-    .filter((entry): entry is [string, string | number | boolean] => entry[1] !== undefined)
+    .filter((entry): entry is [string, string | number | boolean] => entry[1] !== undefined && (typeof entry[1] === 'string' || typeof entry[1] === 'number' || typeof entry[1] === 'boolean'))
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([k, v]) => `${k}=${String(v)}`);
 

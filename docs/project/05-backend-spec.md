@@ -95,8 +95,7 @@ JWT_EXPIRES_IN=7d
 PORT=8000
 NODE_ENV=development
 
-# Sentry
-SENTRY_DSN=
+# Error tracking: none currently — Sentry removed 2026-08-20 (ADR-012)
 ```
 
 ---
@@ -390,4 +389,4 @@ Never expose Prisma errors, stack traces, or SQL details. The global `errorHandl
 - [ ] All admin routes protected by `requireAdmin` middleware
 - [ ] Zod validation on all incoming request bodies
 - [ ] Rate limiter active on all catalog routes
-- [ ] Sentry scrubs sensitive fields before sending (no passwords, no tokens, no gift card codes)
+- [ ] If error tracking is ever re-added, it scrubs sensitive fields before sending (no passwords, no tokens, no gift card codes) — see ADR-012

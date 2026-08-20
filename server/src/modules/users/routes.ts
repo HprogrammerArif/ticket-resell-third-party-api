@@ -32,7 +32,7 @@ router.post('/register', async (req, res, next) => {
   try {
     const parsed = registerSchema.safeParse(req.body);
     if (!parsed.success) {
-      res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: parsed.error.errors[0]?.message ?? 'Invalid input', status: 400 } });
+      res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: parsed.error.issues[0]?.message ?? 'Invalid input', status: 400 } });
       return;
     }
     const result = await register(parsed.data);
@@ -73,7 +73,7 @@ router.put('/profile', authenticate, async (req, res, next) => {
   try {
     const parsed = profileSchema.safeParse(req.body);
     if (!parsed.success) {
-      res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: parsed.error.errors[0]?.message ?? 'Invalid input', status: 400 } });
+      res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: parsed.error.issues[0]?.message ?? 'Invalid input', status: 400 } });
       return;
     }
     const user = await updateProfile(req.user!.id, parsed.data);
@@ -87,7 +87,7 @@ router.put('/password', authenticate, async (req, res, next) => {
   try {
     const parsed = passwordSchema.safeParse(req.body);
     if (!parsed.success) {
-      res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: parsed.error.errors[0]?.message ?? 'Invalid input', status: 400 } });
+      res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: parsed.error.issues[0]?.message ?? 'Invalid input', status: 400 } });
       return;
     }
     await changePassword(req.user!.id, parsed.data);
@@ -110,7 +110,7 @@ router.post('/forgot-password', async (req, res, next) => {
   try {
     const parsed = forgotPasswordSchema.safeParse(req.body);
     if (!parsed.success) {
-      res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: parsed.error.errors[0]?.message ?? 'Invalid email', status: 400 } });
+      res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: parsed.error.issues[0]?.message ?? 'Invalid email', status: 400 } });
       return;
     }
     const result = await requestPasswordReset(parsed.data.email);
@@ -128,7 +128,7 @@ router.post('/reset-password', async (req, res, next) => {
   try {
     const parsed = resetPasswordSchema.safeParse(req.body);
     if (!parsed.success) {
-      res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: parsed.error.errors[0]?.message ?? 'Invalid input', status: 400 } });
+      res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: parsed.error.issues[0]?.message ?? 'Invalid input', status: 400 } });
       return;
     }
     await resetPasswordWithToken(parsed.data.token, parsed.data.password);

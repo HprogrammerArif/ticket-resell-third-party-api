@@ -1,5 +1,41 @@
+# Dependencies
 node_modules/
+.pnp
+.pnp.js
+
+# OS & Logs
 .DS_Store
 *.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Environment & Secrets
+# Compose reads /opt/ticketlove/.env on the server; only *.example files are tracked.
 .env
-.env.local
+.env.*
+!.env.example
+!.env.production.example
+
+# Build Outputs
+dist/
+.next/
+out/
+build/
+*.tsbuildinfo
+
+# Coverage & Tests
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+
+# IDE & Misc
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

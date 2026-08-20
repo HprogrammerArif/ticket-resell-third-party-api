@@ -1,6 +1,6 @@
 # Ticket Love — Project Documentation Suite
 
-**Last Updated:** 2026-08-13
+**Last Updated:** 2026-08-20
 **Project:** Ticket Love (ticket reselling platform)
 **Client:** Steven
 **Author:** Mohammed Arif
@@ -26,6 +26,8 @@ Both you (as developer/business owner) and AI agents (Claude Code) should read t
 | `04-ai-tooling.md` | MCP servers, skills, CLAUDE.md conventions, Figma workflow | Setting up a new dev machine, starting a Claude session |
 | `05-backend-spec.md` | Express server module design, Prisma schema, TicketNetwork integration | Building or modifying the backend |
 | `06-frontend-spec.md` | Next.js page structure, Figma-to-route mapping, component patterns | Building or modifying the frontend |
+| `07-ticketnetwork-liaison.md` | What TicketNetwork has confirmed, what we verified ourselves, what's still open, and who is blocked on what | Before emailing TicketNetwork, or when an integration question turns on "did they ever answer this?" |
+| `08-deployment.md` | Production deployment: architecture decisions, pre-flight code changes, step-by-step VPS setup, CI/CD, backups, runbook | Deploying, or changing anything about hosting/infrastructure |
 | `CHANGELOG.md` | Running log of doc and decision changes | After updating any doc |
 
 ---

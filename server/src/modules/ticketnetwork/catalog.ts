@@ -24,7 +24,7 @@ import type {
 // ignores them and falls back to its own defaults (page 1, 50 per page) every
 // time. `includeTotalCount` is opt-in on TN's side (omitted otherwise), so it's
 // requested whenever pagination is in play, since our UI's page counts depend on it.
-function opts(p: Record<string, unknown>): { params?: Record<string, string | number> } {
+function opts(p: object): { params?: Record<string, string | number> } {
   const filtered: Record<string, string | number> = {};
   for (const [key, value] of Object.entries(p)) {
     if (typeof value !== 'string' && typeof value !== 'number') continue;

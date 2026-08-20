@@ -22,7 +22,7 @@ When a decision changes, update the entry and add a note in `CHANGELOG.md`. Do n
 
 **Context:** The project needs a React-based frontend with server-side rendering for SEO (event and artist pages need to be indexed), i18n support, and a solid deployment story.
 
-**Decision:** Next.js 16 with the App Router. The project was scaffolded from a well-configured Next.js boilerplate that already includes Tailwind v4, next-intl, Vitest, Playwright, Sentry, and strict TypeScript.
+**Decision:** Next.js 16 with the App Router. The project was scaffolded from a well-configured Next.js boilerplate that already includes Tailwind v4, next-intl, Vitest, Playwright, and strict TypeScript. (It also shipped with Sentry, which was removed on 2026-08-20 — see ADR-012.)
 
 **Consequences:**
 - React Server Components (RSC) are the default — client components must be explicitly opted into with `"use client"`.
@@ -143,33 +143,36 @@ When a decision changes, update the entry and add a note in `CHANGELOG.md`. Do n
 
 ---
 
-## ADR-009 — Database: PostgreSQL
+## ADR-009 — Database: PostgreSQL (Self-Hosted in Docker with Automated Off-Server Backups)
 
-**Date:** 2026-08-12 | **Status:** Active
+**Date:** 2026-08-12 | **Updated:** 2026-08-20 (Decision D6 in `08-deployment.md`) | **Status:** Active
 
-**Context:** The project needs a relational database for users, gift cards, and optional catalog caching.
+**Context:** The project needs a relational database for users, gift cards, and catalog caching. Local latency is critical because Next.js server components query the backend on every authenticated request. GoDaddy does not provide managed PostgreSQL.
 
-**Decision:** PostgreSQL, accessed via Prisma on the Express backend. Local dev uses a Docker-based or local Postgres instance. Production uses a managed Postgres service (provider TBD in Phase 8).
+**Decision:** Self-hosted PostgreSQL 17 in a dedicated container on the private Docker network with a named volume (`pgdata`), paired with nightly AES256-encrypted dumps synced off-server to Cloudflare R2 / Backblaze B2, and quarterly restore drills.
 
 **Consequences:**
+- Zero cloud database egress costs and sub-millisecond query latency.
+- Database is never exposed to public internet (no host port publishing).
+- Backup discipline is strictly mandatory (nightly cron + off-server sync).
 - Schema is version-controlled via Prisma migrations in `server/prisma/migrations/`.
-- Migrations must be committed alongside schema changes — never apply un-migrated schema changes.
-- Sensitive tables: `users` (hashed passwords), `gift_cards` (codes). Treat carefully.
+- Migrations deploy automatically via Compose `migrate` one-shot service on each release.
+- Sensitive tables: `User` (hashed passwords), `GiftCard` (codes and balances), `GiftCardRedemption` (immutable financial records). Treat carefully — these are the reason the backup discipline above is mandatory rather than optional.
 
 ---
 
-## ADR-010 — Rate Limiting: Respect TicketNetwork's 60 req/min Trial Limit
+## ADR-010 — Rate Limiting: Respect TicketNetwork's Production Ceiling (50 req/min)
 
-**Date:** 2026-08-12 | **Status:** Active (will update when Production tier is confirmed)
+**Date:** 2026-08-12 | **Updated:** 2026-08-20 (liaison R24/D6, P11) | **Status:** Active
 
-**Context:** TicketNetwork's Trial tier allows 60 requests per minute. Exceeding this will result in throttled or blocked requests.
+**Context:** TicketNetwork Production starts at 50 requests per minute (lower than Sandbox Trial's 60 req/min).
 
-**Decision:** Add rate limiting middleware in Express that respects this limit. Additionally, cache frequently accessed, low-volatility data (categories, popular events) in the Postgres DB to reduce live API calls. Cache TTL: 1 hour for categories, 15 minutes for events.
+**Decision:** Express rate limiter ceiling is set to 45 req/min (`RATE_LIMIT_MAX_REQUESTS = 45`) with `trust proxy = 1`. In-memory `node-cache` (bounded at 5000 keys) absorbs the vast majority of catalog read traffic, ensuring upstream requests stay well below limits.
 
 **Consequences:**
-- Caching tables (`categories`, `events`, `performers`, `venues`) serve as a local cache layer.
-- A background sync job (or on-demand cache invalidation) keeps cached data fresh.
-- Rate limiter must be updated when Production API tier is confirmed.
+- Protects against accidental rate limit exhaustion on TicketNetwork Production.
+- `app.set('trust proxy', 1)` ensures rate limit buckets are keyed per real client IP.
+- Cache invalidation and memory usage are strictly bounded to prevent VPS OOMs.
 
 ---
 
@@ -188,15 +191,17 @@ When a decision changes, update the entry and add a note in `CHANGELOG.md`. Do n
 
 ---
 
-## ADR-012 — Error Tracking: Sentry
+## ADR-012 — Error Tracking: None (Sentry Removed)
 
-**Date:** 2026-08-12 | **Status:** Active
+**Date:** 2026-08-12 | **Updated:** 2026-08-20 | **Status:** Active — supersedes the original Sentry decision
 
-**Context:** The boilerplate includes Sentry instrumentation. The Express backend also needs error tracking.
+**Context:** The Next.js boilerplate shipped with Sentry instrumentation (`instrumentation.ts`, `instrumentation-client.ts`, `withSentryConfig`, and a `/monitoring` tunnel route). It was never configured with a real DSN or org/project, so it produced no data, while still adding a dependency, build-time source-map upload, and a `NEXT_PUBLIC_SENTRY_DISABLED` flag threaded through the Dockerfile, Playwright config, and VS Code launch config.
 
-**Decision:** Sentry for both client (already configured in boilerplate) and server (to be configured in Phase 0). Use separate Sentry projects for frontend and backend for cleaner error isolation.
+**Decision:** Remove Sentry entirely. `@sentry/nextjs` is uninstalled, both instrumentation files are deleted, `global-error.tsx` no longer reports, and every `NEXT_PUBLIC_SENTRY_*` reference is gone from the build pipeline.
 
 **Consequences:**
-- Never surface raw error messages (stack traces, SQL errors) to the client.
-- Use structured `ApiError` class on the backend for all API-layer errors.
-- Sensitive data (passwords, tokens, card codes) must be scrubbed from Sentry payloads.
+- Never surface raw error messages (stack traces, SQL errors) to the client. Still holds.
+- Use structured `ApiError` class on the backend for all API-layer errors. Still holds.
+- Backend errors go to Pino (`server/src/libs/logger.ts`) and land in `docker compose logs`, capped at 10 MB × 3 files per container.
+- **Open gap:** there is no aggregated error tracking and no alerting. An unhandled exception in production is invisible until someone reads the logs or a user reports it. Uptime monitoring (Phase I3) catches *down*, not *broken*.
+- **Revisit before launch.** Options if error tracking is wanted again: Sentry's free tier, GlitchTip (self-hostable, Sentry-SDK-compatible), Highlight, or shipping Pino output to a log service. If any Sentry-compatible SDK returns, the scrubbing rule applies — passwords, tokens, and gift card codes must never leave the server.

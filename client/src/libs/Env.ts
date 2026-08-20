@@ -9,6 +9,11 @@ export const Env = createEnv({
   client: {
     NEXT_PUBLIC_APP_URL: z.string().optional(),
     NEXT_PUBLIC_MAPWIDGET_WEBSITE_CONFIG_ID: z.string(),
+    // Which Seatics deployment to load maps from. Deliberately NOT derived from
+    // NODE_ENV: a production Docker build still points at TN's sandbox catalog,
+    // and sandbox event IDs do not exist in production Seatics (the widget
+    // answers `emptyEvent:true` and renders nothing).
+    NEXT_PUBLIC_MAPWIDGET_ENV: z.enum(['sandbox', 'production']).default('sandbox'),
   },
   shared: {
     NODE_ENV: z.enum(['test', 'development', 'production']).optional(),
@@ -18,6 +23,7 @@ export const Env = createEnv({
     JWT_SECRET: process.env.JWT_SECRET,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_MAPWIDGET_WEBSITE_CONFIG_ID: process.env.NEXT_PUBLIC_MAPWIDGET_WEBSITE_CONFIG_ID,
+    NEXT_PUBLIC_MAPWIDGET_ENV: process.env.NEXT_PUBLIC_MAPWIDGET_ENV,
     NODE_ENV: process.env.NODE_ENV,
   },
 });

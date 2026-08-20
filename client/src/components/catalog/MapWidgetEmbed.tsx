@@ -7,7 +7,12 @@ type MapWidgetEmbedProps = {
   eventId: number;
 };
 
-const MAPWIDGET_HOST = Env.NODE_ENV === 'production'
+// Bound to NEXT_PUBLIC_MAPWIDGET_ENV, not NODE_ENV. Those are different
+// questions: NODE_ENV describes how this bundle was built, while the Seatics
+// deployment must match whichever TicketNetwork catalog supplied the event ID.
+// A production build pointed at the TN sandbox must still load sandbox maps —
+// production Seatics does not know sandbox event IDs and returns an empty map.
+const MAPWIDGET_HOST = Env.NEXT_PUBLIC_MAPWIDGET_ENV === 'production'
   ? 'https://mapwidget3.seatics.com'
   : 'https://mapwidget3-sandbox.seatics.com';
 

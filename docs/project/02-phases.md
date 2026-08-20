@@ -1,6 +1,6 @@
 # 02 — Phases & Build Plan
 
-**Last Updated:** 2026-08-16
+**Last Updated:** 2026-08-20
 
 ---
 
@@ -33,11 +33,11 @@
 **Goal:** Both the frontend and backend are runnable locally, connected to each other, with a real Postgres database and all tooling in place.
 
 ### Business tasks
-- [ ] Decide on hosting provider for production (e.g., Railway, Render, Vercel + Railway)
-- [ ] Set up a GitHub repository (or confirm existing one)
-- [ ] Register a domain for Ticket Love [OPEN]
-- [ ] Decide on Sentry org/project for error tracking
-- [ ] Purchase/confirm SSL certificate strategy (usually handled by host)
+- [x] Decide on hosting provider for production (GoDaddy VPS, 72.167.46.90)
+- [x] Set up a GitHub repository (HprogrammerArif/ticket-resell-third-party-api)
+- [x] Register a domain for Ticket Love (ticketlove.net)
+- [x] Sentry decision: removed entirely on 2026-08-20 (ADR-012) — no error tracking currently
+- [x] Purchase/confirm SSL certificate strategy (Caddy automatic TLS via Let's Encrypt)
 
 ### Engineering tasks
 - [x] Scaffold the Express backend in `server/` with TypeScript
@@ -49,7 +49,7 @@
 - [x] Confirm `client/` Drizzle is disabled/ignored (Mode 2 — frontend never touches DB)
 - [x] Set up `.env` files for both client and server (never commit secrets)
 - [x] Verify `npm run dev` starts both services concurrently
-- [ ] Set up Sentry for both client and server (deferred to Phase 2)
+- [ ] ~~Set up Sentry for both client and server~~ — cancelled, Sentry removed (ADR-012)
 - [x] Set up a `concurrently` script at root to run both services
 
 ### Done criteria
@@ -305,27 +305,52 @@
 
 **Status:** `[NOT STARTED]`
 **Goal:** Ticket Love is live in production, monitored, and stable.
+**Full plan:** `08-deployment.md` — architecture decisions, pre-flight code changes, and the A–I step-by-step. This section is the checklist; that document is the detail.
+
+**Target infrastructure** (decided 2026-08-20, see `08-deployment.md` Part 2):
+GoDaddy VPS (AlmaLinux, cPanel removed) running Docker Compose — Caddy (TLS) → Next.js → Express → PostgreSQL. Images are built in GitHub Actions and pulled by the server. Express and Postgres are never published to the internet.
 
 ### Business tasks
-- [ ] Confirm production hosting choice
-- [ ] Confirm domain and SSL
+- [x] Confirm production hosting choice — GoDaddy VPS, `ticketlove.net`, 72.167.46.90
+- [x] Confirm domain and SSL — DNS at GoDaddy, certificates via Caddy / Let's Encrypt
+- [x] Decide: remove cPanel (decision: YES, rebuild without cPanel)
+- [x] Set up off-server backup storage account (Cloudflare R2 / Backblaze B2 via rclone)
+- [ ] Decide transactional email provider (Resend / Postmark / SES) — deferred
+- [ ] Decide error-tracking replacement, or accept the gap (ADR-012)
 - [ ] Confirm with TicketNetwork: request Production API access (confirm NDA covers production or if separate)
 - [ ] Agree on go-live date with Steven
 - [ ] Confirm backup/recovery strategy with Steven
 
-### Engineering tasks
-- [ ] Set up production environment variables (separate from Sandbox)
-- [ ] Configure production Postgres database
-- [ ] Configure production Sentry project
-- [ ] Set up CI/CD pipeline (GitHub Actions)
-- [ ] Set up health check monitoring (e.g., Better Uptime)
-- [ ] Run full regression test in production before announcing go-live
-- [ ] Set up database backup schedule
+### Engineering tasks — pre-flight code changes (08-deployment Part 3)
+- [x] P1  `client/next.config.ts` → `output: 'standalone'`
+- [x] P2  Add `server/tsconfig.build.json`; verify `npm run build` emits `dist/server.js`
+- [x] P3  `app.set('trust proxy', 1)` — rate limiting is broken behind a proxy without it
+- [x] P4  Add `helmet` + `compression` to Express
+- [x] P5  Graceful SIGTERM/SIGINT shutdown in `server/src/server.ts`
+- [x] P6  Untrack `client/.env.production`; replace with `.env.production.example`
+- [x] P7  Delete `client/pnpm-lock.yaml` (two lockfiles resolved to npm standard)
+- [x] P8  Expand root `.gitignore` (build output, env files)
+- [x] P9  Add `/health/ready` with a database ping
+- [x] P10 `maxKeys` on the node-cache instance + handle its throw
+- [x] P11 `RATE_LIMIT_MAX_REQUESTS` lowered to 45 (TN Production ceiling is 50, not 60)
+
+### Engineering tasks — infrastructure (08-deployment Phases A–I)
+- [ ] A  Server prep: rebuild without cPanel, deploy user, SSH keys, firewalld, fail2ban, swap, Docker
+- [x] B  `server/Dockerfile` + `.dockerignore`
+- [x] C  `client/Dockerfile` + `.dockerignore` (build-time `NEXT_PUBLIC_*` args, mounted build secrets)
+- [x] D  `docker-compose.yml` + `Caddyfile` + `docker-compose.dev.yml` + `.env.example`
+- [x] E  `infra/backup.sh` + `infra/rollback.sh`
+- [x] G  Set up CI/CD pipeline (`.github/workflows/deploy.yml`)
+- [ ] H  DNS: A records for `@` and `www` → 72.167.46.90; remove GoDaddy parking records
+- [ ] I  Set up health check monitoring (e.g., UptimeRobot)
+- [ ] I  Run full regression test in production before announcing go-live
 
 ### Done criteria
-- [ ] Site is live and accessible at the production domain
-- [ ] All Sandbox credentials replaced with Production credentials
-- [ ] Sentry receiving events from production
+- [ ] Site is live and accessible at the production domain over HTTPS
+- [ ] `nmap` against the VPS shows only ports 22, 80, 443 open
+- [ ] A restore from backup has been performed and verified
+- [ ] All Sandbox credentials replaced with Production credentials (web image **rebuilt**, not just restarted — `NEXT_PUBLIC_*` is baked in at build time)
+- [ ] Error-tracking replacement chosen, or the gap explicitly accepted (ADR-012)
 - [ ] CI/CD pipeline passing
 - [ ] Steven has confirmed the site is acceptable for launch
 

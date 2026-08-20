@@ -22,7 +22,6 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
-    "@sentry/nextjs": "^10.52.0",
     "@t3-oss/env-nextjs": "^0.13.11",
     "jose": "^6.2.9",
     "next": "^16.2.6",

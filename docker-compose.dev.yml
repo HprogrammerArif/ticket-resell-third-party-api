@@ -1,0 +1,75 @@
+# Local development / local testing overlay for docker-compose.yml.
+#
+# Deliberately NOT named docker-compose.override.yml: Compose auto-merges that
+# filename on every `docker compose up`, so a stray copy on the production VPS
+# would inject these build: blocks (and localhost URLs) into a real deploy.
+# Always pass it explicitly:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+#
+# NEVER copy this file to /opt/ticketlove on the server.
+#
+# Caddy is not usable locally: the Caddyfile requests certificates for
+# ticketlove.net, which cannot be validated from a laptop. Bring up the stack
+# without it and hit Next.js directly on http://localhost:3000 :
+#
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml \
+#     up --build db migrate api web
+
+services:
+  web:
+    # Published only in dev — in production Caddy is the sole public listener.
+    ports:
+      - "127.0.0.1:3000:3000"
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_APP_URL: http://localhost:3000
+        # Sandbox value. The production websiteConfigId is still [OPEN] with TN.
+        NEXT_PUBLIC_MAPWIDGET_WEBSITE_CONFIG_ID: "690"
+        # Seatics deployment must match the TN catalog in TN_BASE_URL.
+        # TN_BASE_URL is the sandbox, so maps must be sandbox too: production
+        # Seatics does not know sandbox event IDs and renders an empty map.
+        NEXT_PUBLIC_MAPWIDGET_ENV: sandbox
+      # client/Dockerfile mounts this to satisfy @t3-oss/env-nextjs validation at
+      # build time. CI supplies the same secret via build-push-action `secrets:`.
+      secrets:
+        - jwt_secret
+
+  db:
+    # Loopback-only, for a local DB GUI (TablePlus/DBeaver on localhost:55432).
+    # Deliberately absent from docker-compose.yml — see D4.
+    #
+    # Host port is 55432, not 5432: a natively installed Postgres commonly holds
+    # 5432 on 0.0.0.0, which makes this mapping fail to bind, and — worse — would
+    # otherwise let a GUI pointed at localhost:5432 silently open the wrong
+    # database. The container-side port is unchanged, so nothing inside the
+    # network (DATABASE_URL uses db:5432) is affected.
+    ports:
+      - "127.0.0.1:55432:5432"
+
+  api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+
+  # NO build: block here, deliberately.
+  #
+  # `migrate` and `api` share one image (same build, different command). Giving
+  # both a build: block makes Compose emit two bake targets that export to the
+  # same tag concurrently, and the containerd image store rejects the second:
+  #
+  #   target migrate: failed to solve:
+  #   image "ghcr.io/hprogrammerarif/ticketlove-api:latest": already exists
+  #
+  # `api` builds the tag; `migrate` reuses it from the local image store.
+  # Consequence: always include `api` in the service list you build, e.g.
+  # `up --build db migrate api web`. Building `migrate` alone finds no local
+  # image and falls through to a registry pull.
+
+# Sourced from JWT_SECRET in ./.env — build-time only, never enters layer history.
+# The runtime value is injected separately through env_file.
+secrets:
+  jwt_secret:
+    environment: JWT_SECRET

@@ -1,0 +1,12 @@
+node_modules
+.next
+out
+.env
+.env.*
+!.env.production.example
+*.log
+coverage
+test-results
+playwright-report
+storybook-static
+.storybook
