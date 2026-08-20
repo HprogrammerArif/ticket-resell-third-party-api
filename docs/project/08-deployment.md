@@ -1113,7 +1113,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/ticketlove
+  # IMAGE_PREFIX is computed per-job — see note below on lowercase.
 
 jobs:
   test:
@@ -1190,6 +1190,15 @@ jobs:
             docker compose up -d --remove-orphans
             docker image prune -f
 ```
+
+> **Container registry names must be lowercase.** `github.repository_owner` preserves the account casing (`HprogrammerArif`), and buildx rejects that with `invalid tag: repository name must be lowercase`. Compute it instead, as the first step of the build job:
+>
+> ```yaml
+> - name: Compute lowercase image prefix
+>   run: echo "IMAGE_PREFIX=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/ticketlove" >> "$GITHUB_ENV"
+> ```
+>
+> `${VAR,,}` is bash lowercase expansion. This must match the hardcoded lowercase image names in `docker-compose.yml`.
 
 **Why tag by `github.sha`:** every deploy is traceable to a commit, and rollback is re-running Compose with an older SHA. `latest` alone gives you no way back.
 
