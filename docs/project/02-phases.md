@@ -33,7 +33,7 @@
 **Goal:** Both the frontend and backend are runnable locally, connected to each other, with a real Postgres database and all tooling in place.
 
 ### Business tasks
-- [x] Decide on hosting provider for production (GoDaddy VPS, 72.167.46.90)
+- [x] Decide on hosting provider for production — **Hostinger VPS (KVM 2, Ubuntu 24.04)**. Was GoDaddy; changed 2026-08-21, see D1 in `08-deployment.md`
 - [x] Set up a GitHub repository (HprogrammerArif/ticket-resell-third-party-api)
 - [x] Register a domain for Ticket Love (ticketlove.net)
 - [x] Sentry decision: removed entirely on 2026-08-20 (ADR-012) — no error tracking currently
@@ -308,12 +308,15 @@
 **Full plan:** `08-deployment.md` — architecture decisions, pre-flight code changes, and the A–I step-by-step. This section is the checklist; that document is the detail.
 
 **Target infrastructure** (decided 2026-08-20, see `08-deployment.md` Part 2):
-GoDaddy VPS (AlmaLinux, cPanel removed) running Docker Compose — Caddy (TLS) → Next.js → Express → PostgreSQL. Images are built in GitHub Actions and pulled by the server. Express and Postgres are never published to the internet.
+Hostinger VPS (KVM 2 — 2 vCPU / 8 GB, Ubuntu 24.04 LTS, no control panel) running Docker Compose — Caddy (TLS) → Next.js → Express → PostgreSQL. Images are built in GitHub Actions and pulled by the server. Express and Postgres are never published to the internet. The domain stays registered at GoDaddy; only a DNS record points here.
 
 ### Business tasks
-- [x] Confirm production hosting choice — GoDaddy VPS, `ticketlove.net`, 72.167.46.90
+- [x] Confirm production hosting choice — **Hostinger VPS KVM 2**, Ubuntu 24.04, US region
+- [ ] Steven: purchase the Hostinger VPS and add Arif via Account Sharing
+- [ ] Steven: cancel the GoDaddy VPS + cPanel licence (refund window closes ~23 Aug) — **domains must not be touched**
 - [x] Confirm domain and SSL — DNS at GoDaddy, certificates via Caddy / Let's Encrypt
-- [x] Decide: remove cPanel (decision: YES, rebuild without cPanel)
+- [x] Decide: remove cPanel — **superseded.** GoDaddy offers no cPanel-free image, and separately confirmed in writing that Docker "may be restricted or blocked". Left the provider entirely rather than working around it (D1)
+- [ ] Take the bundled free domain if offered, as a **staging** address (Phase H2) — check its renewal price
 - [x] Set up off-server backup storage account (Cloudflare R2 / Backblaze B2 via rclone)
 - [ ] Decide transactional email provider (Resend / Postmark / SES) — deferred
 - [ ] Decide error-tracking replacement, or accept the gap (ADR-012)
@@ -335,13 +338,14 @@ GoDaddy VPS (AlmaLinux, cPanel removed) running Docker Compose — Caddy (TLS) �
 - [x] P11 `RATE_LIMIT_MAX_REQUESTS` lowered to 45 (TN Production ceiling is 50, not 60)
 
 ### Engineering tasks — infrastructure (08-deployment Phases A–I)
-- [ ] A  Server prep: rebuild without cPanel, deploy user, SSH keys, firewalld, fail2ban, swap, Docker
+- [ ] A  Server prep (Ubuntu): deploy user, SSH keys, ufw, fail2ban, unattended-upgrades, swap, Docker
 - [x] B  `server/Dockerfile` + `.dockerignore`
 - [x] C  `client/Dockerfile` + `.dockerignore` (build-time `NEXT_PUBLIC_*` args, mounted build secrets)
 - [x] D  `docker-compose.yml` + `Caddyfile` + `docker-compose.dev.yml` + `.env.example`
 - [x] E  `infra/backup.sh` + `infra/rollback.sh`
 - [x] G  Set up CI/CD pipeline (`.github/workflows/deploy.yml`)
-- [ ] H  DNS: A records for `@` and `www` → 72.167.46.90; remove GoDaddy parking records
+- [ ] H  DNS at GoDaddy: A records for `@` and `www` → new Hostinger IP; remove parking records
+- [ ] H2 Point the staging domain at the server and rehearse the full HTTPS stack there first
 - [ ] I  Set up health check monitoring (e.g., UptimeRobot)
 - [ ] I  Run full regression test in production before announcing go-live
 

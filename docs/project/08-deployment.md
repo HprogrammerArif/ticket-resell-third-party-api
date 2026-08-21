@@ -1,8 +1,8 @@
 # 08 — Production Deployment
 
-**Last Updated:** 2026-08-20 (revised — Sentry removed, `.env` naming, prisma runtime dep)
+**Last Updated:** 2026-08-21 (host changed GoDaddy → Hostinger; Phase A rewritten for Ubuntu; staging domain added)
 **Status:** `[NOT STARTED]` — this document is the plan for Phase 8
-**Target:** GoDaddy VPS (`ticketlove.net`, 72.167.46.90)
+**Target:** Hostinger VPS, Ubuntu 24.04 LTS (`ticketlove.net`, IP TBC)
 **Audience:** written for someone deploying for the first time. Every step says *what* to run and *why* it matters.
 
 ---
@@ -15,7 +15,7 @@
 - **Part 4** — the deployment itself, Phase A through Phase I, in order.
 - **Part 5** — the runbook: how to deploy, roll back, restore, and debug once it is live.
 - **Part 6** — cost, scaling, and what to do when you outgrow this.
-- **Appendix** — glossary, cPanel fallback path, troubleshooting.
+- **Appendix** — glossary and troubleshooting.
 
 > **Reality check before you start:** Phase 7 (checkout redirect) is `[BLOCKED: NDA not signed]` and the backend still points at TicketNetwork **Sandbox** (`TN_BASE_URL=https://sandbox.tn-apis.com/catalog/v2`). What you are building here is the *production infrastructure*. It is real, permanent, and worth doing now — but do not point real customers at it until TN production credentials exist. See Phase I.
 
@@ -25,20 +25,19 @@
 
 ### 1.1 The server
 
-From the GoDaddy Hosting dashboard:
+**Host changed 2026-08-21: GoDaddy → Hostinger.** See D1 for why. The original GoDaddy VPS was cancelled before anything was deployed to it.
 
 | Property | Value | What it means |
 |---|---|---|
-| Product | GoDaddy VPS ("Servers") | A whole virtual machine. You get **root**. This is the good kind of hosting — not shared hosting. |
-| OS | AlmaLinux 10 | A free, RHEL-compatible Linux. Package manager is `dnf`. |
-| Control panel | cPanel / WHM | Pre-installed. See Decision D1 — we are removing this. |
-| IP | `72.167.46.90` | Your public IPv4. DNS will point here. |
-| IPv6 | `2603:3:6102:d510::` | Available, 1 of 5 used. |
-| CPU | 2 cores | Fine for this workload. |
-| RAM | **4 GB, 1.35 GB already used** | The tightest constraint. That 1.35 GB is cPanel, not your app. |
-| Disk | 100 GB, 13 GB used | Plenty. |
-| Region | United States (West) | Matters when picking a backup region and any external DB. |
-| cPanel sites | **None** | Nothing to migrate. This is the ideal moment to restructure. |
+| Provider | Hostinger VPS (KVM 2) | Docker is a supported, documented feature here — the reason for the move. |
+| OS | Ubuntu 24.04 LTS, no control panel | Package manager is `apt`; firewall is `ufw`. |
+| Control panel | **None** | Deliberate. Nothing competes for ports 80/443. |
+| IP | `<NEW_IP>` — fill in once provisioned | DNS will point here. |
+| CPU | 2 vCPU | Same as the old server. |
+| RAM | **8 GB** | Double the old 4 GB. The headroom problem is gone. |
+| Disk | ~100 GB NVMe | Plenty. |
+| Region | United States | Near the US ticket-buying audience and TicketNetwork's API. |
+| Access | SSH key set at provisioning | No password ever transmitted. |
 
 ### 1.2 The domain
 
@@ -82,28 +81,34 @@ These follow the ADR format used in `03-tech-decisions.md`.
 
 ---
 
-### D1 — Remove cPanel; rebuild the VPS as plain AlmaLinux
+### D1 — Host on Hostinger, not GoDaddy
 
-**Decision:** Rebuild the server from the GoDaddy panel using a **plain AlmaLinux image with no cPanel**.
+**Decision:** Run on a Hostinger KVM 2 VPS with Ubuntu 24.04 LTS and no control panel. The GoDaddy VPS is cancelled.
 
-**Context:** cPanel/WHM is built for PHP and WordPress shared hosting. It runs and manages Apache (or LiteSpeed) on ports 80/443, its own MySQL/MariaDB, Exim for mail, Dovecot for IMAP, and a stack of PHP handlers. None of that is used by a Node.js + Next.js + PostgreSQL application.
+**Context:** The project began on a GoDaddy VPS that shipped with cPanel. Two separate problems emerged, and only one of them was the one we went looking for.
 
-**Why this matters concretely:**
+**Problem 1 — cPanel.** It is built for PHP and WordPress hosting. It consumed 1.35 GB of 4 GB with zero sites deployed, held ports 80/443 that the reverse proxy needs, and cost **$239.88/year** as a separate licence. None of it was used by a Node.js application.
 
-1. **RAM.** Your dashboard shows 1.35 GB of 4 GB consumed with *zero sites deployed*. That is cPanel's baseline. You would be handing a third of your server to software you never call.
-2. **Port conflict.** cPanel's Apache owns 80 and 443. Our reverse proxy needs those ports. Coexisting means fighting cPanel's config-regeneration system, which overwrites manual edits on updates.
-3. **Cost.** cPanel is licensed per-server, typically $15–45/month. If GoDaddy bills it separately, removing it is a direct saving. Check your invoice.
-4. **Timing.** The dashboard says *"Looks like you don't have any cPanel sites yet."* There is nothing to migrate. **The cost of this change is zero today and rises every week you wait.**
+The intended fix was to rebuild without it. **That turned out to be impossible:** GoDaddy's rebuild wizard offers only `AlmaLinux 8/9/10 (cPanel)` under a heading that reads *"Choose an operating system — Includes cPanel."* The server already ran AlmaLinux 10 (cPanel), so rebuilding would have produced an identical machine.
 
-**On email at ticketlove.net:** use a dedicated provider — Google Workspace, Zoho Mail, or Fastmail. Self-hosting mail means managing SPF, DKIM, DMARC, reverse DNS, and IP reputation; VPS IP ranges are widely blocklisted by default, so your password-reset emails would land in spam. This is genuinely not worth doing yourself. Transactional email (password resets) should go through Resend, Postmark, or AWS SES.
+**Problem 2 — the decisive one.** Asked directly, GoDaddy support answered in writing:
 
-**How:** GoDaddy panel → **Server Actions** (top-right on your hosting dashboard) → look for *Rebuild Server* / *Reinstall OS* / *Change Operating System*. Choose AlmaLinux **without** a control panel. If the option is missing, open a support ticket — the number on your dashboard is **040-67607600** — and ask for "AlmaLinux 9 or 10, no control panel."
+> *"GoDaddy does not support the use of Docker applications or containers on our hosting environment. While installation may be possible, such applications may be restricted or blocked by system administrators."*
 
-> **A rebuild erases the entire disk.** That is fine right now because the server is empty. Confirm the server is empty before you click it.
+The entire architecture is Docker (D2). A provider stating they may block the core technology is not a platform to build a business on — regardless of whether it would have worked in practice.
 
-**Consequences:** You lose the cPanel GUI and administer the server over SSH. That is the industry-standard way to run this stack, and everything you need is in Part 4.
+Two further details informed the call. Their reply recommended **Remote Desktop Connection**, a Windows tool, for a Linux server — evidence the answer was a template for a different product. And their point 4 confirmed self-managed configurations fall outside their support scope entirely.
 
-**Fallback:** If you cannot remove cPanel, see **Appendix B** for the coexistence path. It works, but it is meaningfully more fragile.
+**Why now rather than later:** at the time of the decision nothing was deployed — no DNS pointed at the server, no data existed, no site was live. Migration cost was a few hours. After launch it would have meant downtime, DNS propagation, and migrating a live database holding real customer accounts and gift-card balances. This was the cheapest possible moment to move.
+
+**Why Hostinger:** Docker is a supported, documented feature rather than a tolerated one. No control-panel licence. The KVM 2 tier ships 8 GB against the old 4 GB, which removes the memory-headroom constraint that shaped several decisions below. AWS was considered and rejected — variable billing is a poor fit for a cost-sensitive client project, its free tier instances are too small for this stack, and its strengths (elasticity, managed services, global scale) apply to none of this workload yet.
+
+**Consequences:**
+- Phase A is written for Ubuntu (`apt`, `ufw`, `unattended-upgrades`), not AlmaLinux.
+- No control panel means nothing competes for ports 80/443 — Caddy binds them directly.
+- **The domain stays registered at GoDaddy.** Registrar and host are independent; only a DNS record changes. Cancelling hosting must not touch `ticketlove.net`, `rezerve.la`, or `funnwurkz.com`.
+- Nothing built to this point is wasted. The containerised app, Compose file, CI pipeline, and images move to any Linux host unchanged — which is precisely the portability D2 was chosen for.
+- **Revisit AWS when** traffic outgrows one server, managed database backups matter more than a predictable bill, or infrastructure spend becomes noise against revenue.
 
 ---
 
@@ -115,7 +120,7 @@ These follow the ADR format used in `03-tech-decisions.md`.
 
 **Why Docker here:**
 
-- **The image you test is the image that runs.** No "works on my machine" caused by a Node version difference between your Windows box and AlmaLinux.
+- **The image you test is the image that runs.** No "works on my machine" caused by a Node version difference between your Windows box and the server.
 - **Your stack is genuinely multi-service.** Next.js + Express + PostgreSQL + a reverse proxy is exactly the shape Compose is for.
 - **Rollback is one command.** Images are tagged by git commit; reverting is re-pointing a tag and restarting.
 - **Network isolation is free.** Postgres and Express bind to the internal Docker network only and are unreachable from the internet — which is precisely what §1.4 enables.
@@ -494,8 +499,8 @@ Track it as a launch gate, not a deployment gate.
 ```
                         Internet
                             |
-        ticketlove.net  ->  A record  ->  72.167.46.90
-        www.ticketlove.net ->  A record ->  72.167.46.90
+        ticketlove.net  ->  A record  ->  <NEW_IP>
+        www.ticketlove.net ->  A record ->  <NEW_IP>
                             |
                             v
               +---------------------------+
@@ -527,56 +532,47 @@ Track it as a launch gate, not a deployment gate.
 
 ### Phase A — Prepare the server
 
-**A1. Rebuild without cPanel** (Decision D1). GoDaddy panel → Server Actions → Rebuild/Reinstall → AlmaLinux, no control panel. Wait for it to finish and note the root password GoDaddy gives you.
+Written for **Ubuntu 24.04 LTS**. Run every command as `root` unless stated otherwise. Substitute the real IP for `<NEW_IP>` throughout.
 
-**A2. First SSH login.** From your Windows machine, in PowerShell:
+**A1. Provision.** Hostinger VPS → KVM 2 → **Ubuntu 24.04 LTS, no control panel** → US region. Paste your SSH **public** key into the key field during setup, so no password is ever transmitted.
+
+**A2. First login.** From PowerShell on Windows:
 
 ```powershell
-ssh root@72.167.46.90
+ssh root@<NEW_IP>
 ```
 
-Type `yes` at the host-key prompt, then the root password.
+Type `yes` at the host-key prompt. With the key set at provisioning, no password is requested.
 
-**A3. Update everything.**
+**A3. Update, and install what Phase A needs.**
 
 ```bash
-dnf update -y
-dnf install -y dnf-automatic firewalld fail2ban git curl vim
+apt update && apt upgrade -y
+apt install -y ufw fail2ban unattended-upgrades git curl vim ca-certificates
 ```
 
-**A4. Set the timezone and enable time sync.** Correct clocks matter for TLS validation and log correlation.
+**A4. Timezone and clock sync.** Correct clocks matter for TLS validation and for correlating logs.
 
 ```bash
 timedatectl set-timezone UTC
 timedatectl set-ntp true
 ```
 
-**A5. Create a non-root deploy user.** Never run the app as root, and never SSH as root day to day.
+**A5. Create a non-root user.** Never run the app as root, and never SSH as root day to day.
 
 ```bash
-adduser deploy
-usermod -aG wheel deploy          # 'wheel' is the sudo group on RHEL-family
-mkdir -p /home/deploy/.ssh
-chmod 700 /home/deploy/.ssh
+adduser deploy                    # prompts for a password; set a strong one
+usermod -aG sudo deploy           # 'sudo' is the admin group on Ubuntu (not 'wheel')
 ```
 
-**A6. Set up SSH keys.** On **your Windows machine**, not the server:
-
-```powershell
-ssh-keygen -t ed25519 -C "deploy@ticketlove"
-# accept the default path; set a passphrase
-type $env:USERPROFILE\.ssh\id_ed25519.pub
-```
-
-Copy that output. Back on the server:
+**A6. Give `deploy` your SSH key.** Copy root's authorised key across rather than re-pasting it:
 
 ```bash
-vi /home/deploy/.ssh/authorized_keys     # paste the public key, save
-chmod 600 /home/deploy/.ssh/authorized_keys
-chown -R deploy:deploy /home/deploy/.ssh
+rsync --archive --chown=deploy:deploy ~/.ssh /home/deploy/
 ```
 
-**Test it in a second terminal before continuing** — `ssh deploy@72.167.46.90` must work without a password. If you skip this test and then disable password login, you lock yourself out.
+> **Open a second terminal and confirm `ssh deploy@<NEW_IP>` works before continuing.**
+> A7 disables password login. If the key is wrong and you have already run A7, you are locked out of your own server and need Hostinger's emergency console to recover.
 
 **A7. Harden SSH.** Edit `/etc/ssh/sshd_config`:
 
@@ -587,34 +583,52 @@ PubkeyAuthentication yes
 ```
 
 ```bash
-sshd -t && systemctl restart sshd     # sshd -t validates config first
+sshd -t && systemctl restart ssh    # sshd -t validates config first; the unit is 'ssh' on Ubuntu
 ```
 
-**A8. Firewall.** Deny everything except SSH, HTTP, and HTTPS.
+**A8. Firewall.** Deny everything inbound except SSH, HTTP, and HTTPS.
 
 ```bash
-systemctl enable --now firewalld
-firewall-cmd --permanent --add-service=ssh
-firewall-cmd --permanent --add-service=http
-firewall-cmd --permanent --add-service=https
-firewall-cmd --reload
-firewall-cmd --list-all
+ufw default deny incoming
+ufw default allow outgoing
+ufw allow OpenSSH
+ufw allow 80/tcp
+ufw allow 443/tcp
+ufw enable
+ufw status verbose
 ```
 
-**A9. fail2ban.** Bans IPs after repeated failed SSH logins. A public VPS sees thousands of brute-force attempts per day.
+Note what is absent: **no rule for 8000 or 5432.** The API and database are never published to the host (D4), so there is nothing to allow.
+
+**A9. fail2ban.** Bans IPs after repeated failed SSH logins — a public VPS sees thousands of brute-force attempts daily.
 
 ```bash
+cat > /etc/fail2ban/jail.local <<'EOF'
+[sshd]
+enabled  = true
+backend  = systemd
+maxretry = 5
+bantime  = 1h
+EOF
+
 systemctl enable --now fail2ban
+fail2ban-client status sshd
 ```
+
+`backend = systemd` matters on Ubuntu 24.04: sshd logs to the journal, not to `/var/log/auth.log`, and the default file backend silently finds nothing.
 
 **A10. Automatic security updates.**
 
 ```bash
-sed -i 's/^apply_updates = no/apply_updates = yes/' /etc/dnf/automatic.conf
-systemctl enable --now dnf-automatic.timer
+cat > /etc/apt/apt.conf.d/20auto-upgrades <<'EOF'
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";
+EOF
+
+systemctl enable --now unattended-upgrades
 ```
 
-**A11. Add swap.** With 4 GB of RAM, swap is a safety net that turns a hard OOM kill into temporary slowness.
+**A11. Add swap.** Less critical at 8 GB than it was at 4 GB, but it still converts a hard OOM kill into temporary slowness.
 
 ```bash
 fallocate -l 2G /swapfile
@@ -622,23 +636,33 @@ chmod 600 /swapfile
 mkswap /swapfile
 swapon /swapfile
 echo '/swapfile none swap sw 0 0' >> /etc/fstab
-sysctl -w vm.swappiness=10           # prefer RAM; use swap only under pressure
+sysctl -w vm.swappiness=10          # prefer RAM; use swap only under pressure
 echo 'vm.swappiness=10' >> /etc/sysctl.conf
+free -h
 ```
 
-**A12. Install Docker.**
+**A12. Install Docker** from Docker's official Ubuntu repository — not `apt install docker.io`, which ships an older build.
 
 ```bash
-dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+chmod a+r /etc/apt/keyrings/docker.asc
+
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] \
+  https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
+  > /etc/apt/sources.list.d/docker.list
+
+apt update
+apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
 systemctl enable --now docker
-usermod -aG docker deploy            # lets 'deploy' run docker without sudo
+usermod -aG docker deploy           # lets 'deploy' run docker without sudo
 docker --version && docker compose version
 ```
 
-Log out and back in as `deploy` for the group change to apply.
+Log out and back in as `deploy` for the group change to take effect.
 
-**A13. Cap the log size.** Docker's default JSON logging grows without limit and will eventually fill the disk. Create `/etc/docker/daemon.json`:
+**A13. Cap Docker's logs.** The default JSON driver grows without limit and will eventually fill the disk. Create `/etc/docker/daemon.json`:
 
 ```json
 {
@@ -649,6 +673,16 @@ Log out and back in as `deploy` for the group change to apply.
 
 ```bash
 systemctl restart docker
+```
+
+**A14. Verify before moving on.**
+
+```
+[ ] ssh deploy@<NEW_IP> works with a key, no password
+[ ] ssh root@<NEW_IP> is REFUSED
+[ ] ufw status shows only 22, 80, 443
+[ ] docker run --rm hello-world succeeds as the deploy user
+[ ] free -h shows ~8 GB RAM and 2 GB swap
 ```
 
 ---
@@ -1016,7 +1050,7 @@ chmod 600 .env     # owner-read-only
 
 | Secret | Purpose |
 |---|---|
-| `VPS_HOST` | `72.167.46.90` |
+| `VPS_HOST` | the Hostinger VPS IP |
 | `VPS_USER` | `deploy` |
 | `VPS_SSH_KEY` | Private key for a **separate deploy-only** keypair |
 | `JWT_SECRET` | Needed at build time for Next env validation |
@@ -1214,18 +1248,22 @@ echo "<PAT>" | docker login ghcr.io -u HprogrammerArif --password-stdin
 
 ### Phase H — DNS
 
+**The domain stays registered at GoDaddy.** Registrar and host are separate concerns: the registrar holds the *name*, the host runs the *server*. Moving hosts changes one DNS record, nothing more. Transferring the domain would cost a renewal fee, can trigger a 60-day ICANN lock, and buys nothing.
+
+> **When cancelling GoDaddy hosting, state explicitly that domains are not to be touched.** `ticketlove.net`, `rezerve.la`, and `funnwurkz.com` must stay registered and active. A lapsed domain can be registered by anyone, and is effectively unrecoverable.
+
 At GoDaddy: **My Products → Domains → ticketlove.net → DNS → Manage DNS.**
 
 | Type | Name | Value | TTL |
 |---|---|---|---|
-| A | `@` | `72.167.46.90` | 600 |
-| A | `www` | `72.167.46.90` | 600 |
+| A | `@` | `<NEW_IP>` | 600 |
+| A | `www` | `<NEW_IP>` | 600 |
 
 **Delete any existing parking or forwarding records** for `@` and `www` — GoDaddy adds these by default and they will shadow yours.
 
-Use TTL 600 (10 minutes) during setup so mistakes are cheap to correct. Raise it to 3600 once things are stable.
+Use TTL 600 (10 minutes) during setup so mistakes are cheap to correct. Raise it to 3600 once stable.
 
-**Do DNS before the first `docker compose up`.** Caddy needs the domain to already resolve to this server in order to complete the Let's Encrypt challenge. If it starts first and fails, you burn Let's Encrypt rate-limit attempts.
+**Do DNS before the first `docker compose up`.** Caddy needs the domain to already resolve to this server to complete the Let's Encrypt challenge. If it starts first and fails, you burn Let's Encrypt rate-limit attempts.
 
 Verify from your machine:
 
@@ -1233,7 +1271,25 @@ Verify from your machine:
 nslookup ticketlove.net
 ```
 
-Propagation is usually minutes at GoDaddy, occasionally up to an hour.
+#### H2 — The staging domain (strongly recommended)
+
+If a second domain is available — a free one bundled with hosting is ideal — point it at the same server first:
+
+| Type | Name | Value | TTL |
+|---|---|---|---|
+| A | `@` | `<NEW_IP>` | 600 |
+
+Then add it to the `Caddyfile` alongside the real domain:
+
+```
+ticketlove-staging.example, ticketlove.net, www.ticketlove.net {
+```
+
+**Why this is worth the trouble:** Caddy can only prove HTTPS works by obtaining a real certificate from Let's Encrypt against a real domain. Without a staging address, the first live test of certificate issuance happens on `ticketlove.net` itself — the address customers use. With one, the entire stack can be rehearsed end to end on a throwaway name nobody knows, and the real domain is only pointed across once everything is proven.
+
+Let's Encrypt also rate-limits certificate issuance per domain. Burning failed attempts on a staging name costs nothing; burning them on `ticketlove.net` can lock you out of HTTPS for hours.
+
+Remove the staging hostname from the `Caddyfile` once the real domain is live, or keep it as a permanent pre-deploy rehearsal target.
 
 ---
 
@@ -1252,6 +1308,7 @@ docker compose logs -f caddy # watch the certificate get issued
 **I2. Verification checklist.** Do not call this done until every line passes:
 
 ```
+[ ] (if staging exists) the full checklist below passes on the staging domain FIRST
 [ ] https://ticketlove.net loads with a valid padlock
 [ ] http://ticketlove.net redirects to https (Caddy does this automatically)
 [ ] https://www.ticketlove.net works
@@ -1260,7 +1317,7 @@ docker compose logs -f caddy # watch the certificate get issued
 [ ] Catalog/events page returns real TicketNetwork data
 [ ] `docker compose exec db psql -U ticketlove -c '\dt'` lists all 8 tables
 [ ] `curl -s localhost` from the server does NOT reach the API directly
-[ ] `nmap 72.167.46.90` from elsewhere shows only 22, 80, 443
+[ ] `nmap <NEW_IP>` from elsewhere shows only 22, 80, 443
 [ ] backup.sh runs and produces a .gpg file
 [ ] The restore drill (F5) succeeds
 [ ] Server logs capture a deliberately triggered error (`docker compose logs api`)
@@ -1326,7 +1383,7 @@ docker compose exec db psql -U ticketlove -d ticketlove
 The database has no public port by design, so tunnel over SSH:
 
 ```powershell
-ssh -L 5433:localhost:5432 deploy@72.167.46.90
+ssh -L 5433:localhost:5432 deploy@<NEW_IP>
 ```
 
 Then point your GUI at `localhost:5433`. This requires the `db` service to publish to the host loopback; if it does not, tunnel to a temporary `socat` container or use `psql` in the container instead. Prefer the container shell — it keeps D4 intact.
@@ -1361,34 +1418,34 @@ docker system df            # see what is using space
 
 | Item | Cost |
 |---|---|
-| GoDaddy VPS | already paid |
-| Domain | already paid |
-| cPanel license | **saved**, if billed separately (D1) |
+| Hostinger VPS (KVM 2) | fixed monthly, no variable billing |
+| Domain (stays at GoDaddy) | already paid |
+| cPanel license | **eliminated** — was $239.88/year (D1) |
 | GHCR | free (public), generous free tier (private) |
 | Backblaze B2 / R2 | ~$0.01–0.50/mo at this data volume |
 | Error tracking | none — removed (ADR-012) |
 | UptimeRobot | free tier |
 | **Additional** | **≈ $0–5/month** |
 
-### Expected resource use after cPanel removal
+### Expected resource use
 
 | Service | Typical RSS |
 |---|---|
-| AlmaLinux base | ~250 MB |
+| Ubuntu 24.04 base | ~250 MB |
 | Docker daemon | ~100 MB |
 | Caddy | ~30 MB |
 | PostgreSQL | ~350 MB |
 | Express API | ~200 MB |
 | Next.js | ~400 MB |
-| **Total** | **≈ 1.3 GB of 4 GB** |
+| **Total** | **≈ 1.3 GB of 8 GB** |
 
-That leaves ~2.7 GB of headroom, plus 2 GB of swap. Comfortable — **as long as builds happen in CI** (D3).
+That leaves ~6.7 GB of headroom, plus 2 GB of swap. The memory pressure that shaped D3 and P10 is gone on this hardware — but **keep building in CI anyway** (D3): builds on the server would still contend with a live Postgres, and the pipeline already works.
 
 ### When to scale
 
 | Signal | Action |
 |---|---|
-| Sustained RAM > 3 GB | Upgrade the VPS (GoDaddy: *Upgrade Server*) |
+| Sustained RAM > 6 GB | Upgrade the VPS tier (KVM 4) |
 | CPU pinned during traffic peaks | Add a second `web` replica behind Caddy |
 | Postgres becomes the bottleneck | Move it to managed (revisit D6) |
 | You need zero-downtime deploys | Two `web` replicas + Caddy load balancing |
@@ -1418,17 +1475,9 @@ The `cacheGet` abstraction in `server/src/libs/cache.ts` already isolates the ca
 
 ---
 
-## Appendix B — Fallback: keeping cPanel
+## Appendix B — *(removed)*
 
-Only if D1 turns out to be impossible.
-
-cPanel's Apache holds ports 80 and 443, so Caddy cannot bind them. Options:
-
-1. **Apache as the outer proxy.** In WHM, create the domain, then add a `ProxyPass` rule via *Apache Configuration → Include Editor* forwarding to `127.0.0.1:3000`. Bind Caddy elsewhere or drop it and use cPanel's AutoSSL for certificates. Fragile: cPanel regenerates Apache config on updates and can overwrite includes. Use `userdata` includes, which survive regeneration.
-2. **Different ports.** Serve on `:8443`. Unacceptable for a public site — nobody types `ticketlove.net:8443`.
-3. **A second IP.** Your VPS has 3 IPv4 addresses (1 of 3 used). Request a second, bind Apache to one and Caddy to the other, and point DNS at Caddy's. This is the cleanest coexistence, though it still leaves cPanel consuming ~1.35 GB of RAM for no benefit.
-
-If you must coexist, option 3 is the one to pick. But re-read D1 first — with zero cPanel sites deployed, removal costs nothing today.
+This appendix covered coexisting with cPanel's Apache on the GoDaddy VPS. **Obsolete as of 2026-08-21** — D1 moved the project to a Hostinger VPS with no control panel, so nothing competes for ports 80/443. Retained as a heading only so Appendix C keeps its letter.
 
 ---
 
@@ -1436,7 +1485,8 @@ If you must coexist, option 3 is the one to pick. But re-read D1 first — with 
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| Caddy cannot get a certificate | DNS not propagated, or port 80 blocked | `nslookup ticketlove.net`; check `firewall-cmd --list-all` |
+| Caddy cannot get a certificate | DNS not propagated, or port 80 blocked | `nslookup ticketlove.net`; check `ufw status` |
+| Locked out after hardening SSH | A7 ran before the key was tested | Hostinger panel → emergency console |
 | `next build` fails in CI on env validation | `JWT_SECRET` or `NEXT_PUBLIC_MAPWIDGET_WEBSITE_CONFIG_ID` missing | Add both as Actions secrets (Phase E3) |
 | Login succeeds, protected pages 401 | `JWT_SECRET` differs between `api` and `web` | Both must read the same `.env` |
 | `dist/server.js` not found in the image | The P2 tsconfig issue | Apply `tsconfig.build.json` |

@@ -26,6 +26,36 @@ Replaced with `NEXT_PUBLIC_MAPWIDGET_ENV` (`sandbox` | `production`), which must
 
 ---
 
+## 2026-08-21 — Host changed: GoDaddy → Hostinger (D1 rewritten)
+
+The GoDaddy VPS is being cancelled before anything was deployed to it. Two problems, and the second is the one that decided it.
+
+**The cPanel problem (what we went looking for).** cPanel consumed 1.35 GB of 4 GB with zero sites deployed, held ports 80/443, and cost **$239.88/year** as a separate licence — confirmed by GoDaddy support. The intended fix was a rebuild without it. **That is not possible:** the rebuild wizard offers only `AlmaLinux 8/9/10 (cPanel)` under a heading reading *"Choose an operating system — Includes cPanel"*, and the server already ran AlmaLinux 10 (cPanel), so a rebuild would have produced an identical machine.
+
+**The Docker problem (what actually decided it).** Asked directly, GoDaddy answered in writing: *"GoDaddy does not support the use of Docker applications or containers on our hosting environment. While installation may be possible, such applications may be restricted or blocked by system administrators."* The entire architecture is Docker (D2). A provider stating they may block the core technology is not a platform to build on, regardless of whether it would have worked in practice.
+
+Two details reinforced it: their reply recommended **Remote Desktop Connection** — a Windows tool — for a Linux server, indicating a template answer for a different product; and their point 4 confirmed self-managed configurations fall outside their support scope.
+
+**Timing.** Nothing was deployed, no DNS pointed at the server, no data existed. Migration cost was hours. After launch it would have meant downtime, DNS propagation, and migrating a live database holding customer accounts and gift-card balances. This was the cheapest possible moment to move.
+
+**New target: Hostinger VPS KVM 2** — 2 vCPU / 8 GB / Ubuntu 24.04 LTS, no control panel, US region. Docker is a supported documented feature there. AWS was considered and rejected: variable billing suits a cost-sensitive client project poorly, its free-tier instances are too small for this stack (1 GB against ~1.3 GB needed), and its strengths apply to none of this workload yet. Recorded in D1 with revisit triggers.
+
+**Doc changes:**
+
+- **D1 rewritten** end to end — was "remove cPanel, rebuild as plain AlmaLinux", now "host on Hostinger, not GoDaddy"
+- **Phase A rewritten for Ubuntu** — `apt` for `dnf`, `ufw` for `firewalld`, `unattended-upgrades` for `dnf-automatic`, `sudo` group for `wheel`, `systemctl restart ssh` for `sshd`. Two Ubuntu-specific traps documented: fail2ban needs `backend = systemd` on 24.04 because sshd logs to the journal rather than `auth.log`, and Docker must come from Docker's own repo rather than `apt install docker.io`. Added an A14 verification checklist
+- **Phase H2 added — staging domain.** Caddy can only prove HTTPS by obtaining a real Let's Encrypt certificate against a real domain, so without one the first live test of certificate issuance happens on `ticketlove.net` itself. A throwaway domain lets the whole stack be rehearsed first, and keeps failed attempts off `ticketlove.net`'s issuance rate limit. Phase I now runs its checklist against staging before the real domain
+- **Domain separation made explicit** in Phase H. The domain stays registered at GoDaddy; only a DNS record changes. Flagged that the hosting cancellation must not touch `ticketlove.net`, `rezerve.la`, or `funnwurkz.com` — a lapsed domain is effectively unrecoverable
+- **Appendix B removed** (cPanel/Apache coexistence) — obsolete with no control panel
+- Memory figures updated throughout: ~1.3 GB of **8 GB** rather than 4 GB. The pressure that motivated D3 and P10 is gone on this hardware; D3 (build in CI) is kept anyway, since server builds would still contend with a live Postgres and the pipeline already works
+- Placeholder `<NEW_IP>` throughout until the server is provisioned
+
+**Not affected:** nothing built so far is wasted. The Dockerfiles, Compose stack, CI pipeline, and published images move to any Linux host unchanged — which is exactly the portability D2 was chosen for. CI remains green.
+
+**Files affected:** `08-deployment.md` (§1.1, D1, Phase A, Phase H, Phase I, Part 6, Appendix B), `02-phases.md` (Phase 0 and Phase 8 host references, new Steven action items).
+
+---
+
 ## 2026-08-20 — Deployment review fixes + Sentry removed
 
 Review pass over the Docker/CI work below. Three findings would have broken the deploy, one was a credential leak, and Sentry was removed at the client's request.
