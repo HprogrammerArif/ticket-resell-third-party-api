@@ -17,13 +17,13 @@
 |-------|------|--------|---------|
 | 0 | Repo & Environment Setup | `[DONE]` | — |
 | 1 | Express Backend — TicketNetwork Integration | `[DONE]` | — |
-| 2 | Next.js Frontend — Figma Implementation | `[NEEDS REVIEW]` | MapWidget3 (seat map + real ticket groups) is integrated, see note below — real `websiteConfigId` still unconfirmed with TicketNetwork |
+| 2 | Next.js Frontend — Figma Implementation | `[NEEDS REVIEW]` | MapWidget3 integrated and rendering live maps. `websiteConfigId` closed 2026-08-20 (both `690` and `12498` work — R26/Q4). Remaining risk: TN does not recommend the iframe the embed depends on (D4, Q10) |
 | 3 | User Account System | `[DONE]` | — |
 | 4 | Gift Card System | `[NOT STARTED]` | Open business questions below |
 | 5 | Pre-Checkout UI | `[NOT STARTED]` | — |
 | 6 | Admin Dashboard Shell (Steven) | `[NOT STARTED]` | — |
-| 7 | Wire Checkout Redirect | `[NOT STARTED]` | `[BLOCKED: NDA not signed]` |
-| 8 | Production Deployment | `[NOT STARTED]` | Phases 1–7 complete |
+| 7 | Wire Checkout Redirect | `[NOT STARTED]` | `[BLOCKED: awaiting Sandbox checkout access]` — NDA signed 2026-08-19. Access stalled on our own unsent clarification to Ian (A2), then needs `useC3` / `c3CheckoutDomain` values from Integration Support (Q6) |
+| 8 | Production Deployment | `[DONE]` (infrastructure) | Live at https://ticketlove.net on Hostinger since 2026-08-22 — server hardened, HTTPS, automated deploys, tested backups. Remaining: off-server backup copy (awaiting B2/R2 choice), and the launch gates in Phases 4–7 before real customers. See `09-deployment-record.md` and `10-remaining-work.md` |
 
 ---
 

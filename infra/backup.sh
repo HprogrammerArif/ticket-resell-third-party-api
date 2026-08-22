@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # TicketLove — Automated Encrypted Database Backup & Off-Server Sync
-# Run nightly via cron (e.g. at 03:15 UTC)
+#
+# Run nightly via cron (see infra/README-backups.md).
+#
+# Produces an AES256-encrypted, gzipped pg_dump and — once an rclone remote is
+# configured — ships it off-server. A backup that only exists on the machine it
+# came from is not a backup: the single most likely thing to destroy the data is
+# also the thing that would destroy the copy.
 # ==============================================================================
 
 set -euo pipefail
@@ -9,37 +15,67 @@ set -euo pipefail
 STAMP=$(date +%Y%m%d-%H%M%S)
 DIR=/opt/ticketlove/backups
 PASSPHRASE_FILE=/opt/ticketlove/.backup-passphrase
-COMPOSE_FILE=/opt/ticketlove/docker-compose.yml
+COMPOSE_DIR=/opt/ticketlove
+RCLONE_REMOTE="${RCLONE_REMOTE:-ticketlove-backup}"   # override via env
+RETAIN_DAYS=7
 
 mkdir -p "$DIR"
 
 if [ ! -f "$PASSPHRASE_FILE" ]; then
-  echo "Error: Passphrase file $PASSPHRASE_FILE not found!" >&2
+  echo "ERROR: passphrase file $PASSPHRASE_FILE not found" >&2
   exit 1
 fi
 
-echo "Starting backup at $(date)..."
+# cd rather than `-f`: Compose resolves ${POSTGRES_PASSWORD} from ./.env in the
+# project directory, and cron runs with a different working directory.
+cd "$COMPOSE_DIR"
 
-# 1. Dump from inside the container, compress, and AES256 encrypt
-docker compose -f "$COMPOSE_FILE" exec -T db \
+OUT="$DIR/ticketlove-$STAMP.dump.gz.gpg"
+
+echo "[$(date -Is)] starting backup -> $OUT"
+
+# --format=custom keeps pg_restore's selective-restore options available.
+# PIPESTATUS is checked because a failing pg_dump inside a pipeline would
+# otherwise still produce a small, valid-looking .gpg file.
+set +e
+docker compose exec -T db \
   pg_dump -U ticketlove -d ticketlove --format=custom \
   | gzip \
   | gpg --batch --yes --symmetric --cipher-algo AES256 \
         --passphrase-file "$PASSPHRASE_FILE" \
-        -o "$DIR/ticketlove-$STAMP.dump.gz.gpg"
+        -o "$OUT"
+STATUS=("${PIPESTATUS[@]}")
+set -e
 
-echo "Database dump and encryption completed: $DIR/ticketlove-$STAMP.dump.gz.gpg"
+for i in "${!STATUS[@]}"; do
+  if [ "${STATUS[$i]}" -ne 0 ]; then
+    echo "ERROR: stage $i of the dump pipeline failed (exit ${STATUS[$i]})" >&2
+    rm -f "$OUT"
+    exit 1
+  fi
+done
 
-# 2. Upload to Cloudflare R2 / Backblaze B2 (if rclone is configured)
-if command -v rclone &> /dev/null; then
-  echo "Syncing backup to off-server remote storage..."
-  rclone copy "$DIR/ticketlove-$STAMP.dump.gz.gpg" remote:ticketlove-backups/
-  echo "Off-server backup synced successfully."
+SIZE=$(stat -c %s "$OUT")
+if [ "$SIZE" -lt 1000 ]; then
+  echo "ERROR: backup is only ${SIZE} bytes — refusing to keep a likely-empty dump" >&2
+  rm -f "$OUT"
+  exit 1
+fi
+echo "[$(date -Is)] encrypted dump written: $OUT (${SIZE} bytes)"
+
+# --- Off-server copy -----------------------------------------------------------
+# Configure once with: rclone config   (remote name must match RCLONE_REMOTE)
+if rclone listremotes 2>/dev/null | grep -q "^${RCLONE_REMOTE}:"; then
+  echo "[$(date -Is)] uploading to ${RCLONE_REMOTE}:ticketlove-backups/"
+  rclone copy "$OUT" "${RCLONE_REMOTE}:ticketlove-backups/"
+  echo "[$(date -Is)] off-server copy complete"
 else
-  echo "Notice: rclone is not installed or configured. Backup is local only."
+  echo "[$(date -Is)] WARNING: rclone remote '${RCLONE_REMOTE}' is not configured." >&2
+  echo "[$(date -Is)] WARNING: this backup exists ONLY on this server and does not" >&2
+  echo "[$(date -Is)] WARNING: protect against disk or server loss. Run 'rclone config'." >&2
 fi
 
-# 3. Retain 7 days locally (remote bucket holds the long tail)
-find "$DIR" -name 'ticketlove-*.dump.gz.gpg' -mtime +7 -delete
-
-echo "Backup process finished successfully at $(date)."
+# --- Local retention -----------------------------------------------------------
+find "$DIR" -name 'ticketlove-*.dump.gz.gpg' -mtime +${RETAIN_DAYS} -delete
+echo "[$(date -Is)] backup finished. Local copies:"
+ls -1sh "$DIR" | tail -n +2

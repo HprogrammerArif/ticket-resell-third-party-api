@@ -26,6 +26,39 @@ Replaced with `NEXT_PUBLIC_MAPWIDGET_ENV` (`sandbox` | `production`), which must
 
 ---
 
+## 2026-08-22 — Production is live; backups running with a proven restore
+
+**https://ticketlove.net is live** on the Hostinger VPS (`31.220.54.150`), with automated deploys and nightly tested backups. Phase 8 infrastructure is `[DONE]`.
+
+**Phase A — server.** Ubuntu 24.04 hardened: `deploy` user with key-only SSH, root login and password auth both verified refused, `ufw` limited to 22/80/443, fail2ban on the sshd journal, unattended security upgrades, 2 GB swap, Docker log caps. Monarx malware scanner uninstalled and masked — it scans for PHP web shells, irrelevant to a Docker/Node host, and its auto-removal feature could have quarantined container files. Docker turned out to be pre-installed by Hostinger (29.7.2 / Compose v5.5.0), so A12 was skipped.
+
+**Phase H — DNS and TLS.** The domain was found pointing at Hostinger parking nameservers serving a zone that existed in neither account. Returned to GoDaddy's nameservers, single A record to the VPS, `www` as a CNAME to the apex. Caddy obtained Let's Encrypt certificates for both names on first start, valid to 20 Nov 2026.
+
+**Phase G — auto-deploy enabled.** A dedicated CI keypair (separate from the developer key, independently revocable), `VPS_HOST`/`VPS_USER`/`VPS_SSH_KEY` secrets, `DEPLOY_ENABLED=true`. Verified with a full run: tests 33s, build 6m21s, deploy 34s. The deploy was confirmed real, not just green — `api` and `web` showed "Up 58 seconds" while `db` and `caddy` showed 29 and 20 minutes, so only the app containers cycled and the database volume survived.
+
+**Phase F — backups.** `infra/backup.sh` hardened and scheduled at 03:15 UTC. Four safeguards added: `PIPESTATUS` checked on every pipeline stage (the exit code comes from `gpg`, which will happily encrypt an empty stream — without this a failing `pg_dump` produces a directory of healthy-looking backups containing nothing), a 1 KB minimum size check, `cd` into the project directory because cron runs elsewhere and Compose resolves `${POSTGRES_PASSWORD}` from `./.env`, and a loud warning when no off-server remote is configured.
+
+**Restore drill — PASS.** Not a row count: a sentinel gift card (`drill-001`, balance 123.45) was planted, backed up, **deleted from the live database**, then restored into a scratch DB and confirmed present — proving it came from the encrypted file rather than production. 9 tables restored.
+
+**Verified end to end from outside:** HTTPS 200 with valid TLS, HTTP 308 → HTTPS, `www` 200, HSTS/nosniff/Referrer-Policy present, signup succeeding through browser → Next → Express → Postgres, and both the API and Postgres confirmed unreachable from the internet. Idle use: 742 MB of 7.8 GB RAM.
+
+**Problems hit and fixed** (full table in `09-deployment-record.md` Part 9). Nine of the fifteen failed *silently*:
+
+- **SSH hardening didn't apply.** Two drop-in files conflicted; sshd takes the **first** value and `50-cloud-init.conf` shipped `PasswordAuthentication yes`. Caught with `sshd -T`, fixed with `00-hardening.conf` sorting ahead of both
+- **fail2ban watched nothing.** Ubuntu 24.04 logs sshd to the journal, not `auth.log` — needs `backend = systemd`
+- **The CI key was swallowed into a comment.** `authorized_keys` had no trailing newline, so `>>` fused both keys onto one line. SSH treats the remainder as a free-form comment, so the developer key kept working and nothing looked wrong. Caught with `wc -l`, fixed by rewriting and validating with `ssh-keygen -l`
+- **The crontab silently didn't install.** `grep -v` returns 1 on empty input and `set -e` killed the subshell before the schedule line
+- **GHCR rejected the image tag** — `github.repository_owner` preserves account casing and registry names must be lowercase. Fixed with `${GITHUB_REPOSITORY_OWNER,,}`
+- Actions were three majors behind, not one — `checkout` and `setup-node` were at v7. Checked the actual releases rather than assuming
+
+The pattern worth keeping: **verify the effect, not the action.** `sshd -T` rather than reading the file, `wc -l` rather than trusting `>>`, a planted sentinel rather than a row count.
+
+**New docs:** `09-deployment-record.md` (as-built record) and `10-remaining-work.md` (outstanding work, prioritised with owners). `00-INDEX.md` and `02-phases.md` updated.
+
+**Still open:** off-server backup copy (awaiting Steven's B2/R2 choice) — until then backups protect against bad migrations but not disk loss. Backup passphrase still needs a password-manager copy. And liaison **A2** remains `[OPEN — WE ARE THE BLOCKER]`: Ian is waiting on our clarification before granting Sandbox checkout access, which gates Phase 7 and therefore launch.
+
+---
+
 ## 2026-08-21 — Host changed: GoDaddy → Hostinger (D1 rewritten)
 
 The GoDaddy VPS is being cancelled before anything was deployed to it. Two problems, and the second is the one that decided it.

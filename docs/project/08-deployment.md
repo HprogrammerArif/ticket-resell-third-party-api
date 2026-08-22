@@ -1067,35 +1067,20 @@ Generate a **separate** keypair for CI (`ssh-keygen -t ed25519 -f deploy_ci`) an
 
 **F2. Nightly encrypted backups.** This is the non-negotiable half of Decision D6.
 
-Create `/opt/ticketlove/backup.sh`:
+The script lives in the repo at `infra/backup.sh` and is deployed to `/opt/ticketlove/backup.sh`. Four safeguards in it are not obvious and are the reason it is not a three-line pipeline:
+
+- **`PIPESTATUS` is checked on every stage.** In `pg_dump | gzip | gpg`, the pipeline's exit status comes from `gpg` — which will happily encrypt an empty stream and write a perfectly valid `.gpg` file. Without this check, a failing `pg_dump` produces a directory full of healthy-looking backups containing nothing, and you find out during a restore.
+- **A minimum size check** (1 KB) as a second line of defence against the same failure.
+- **`cd` into the project directory rather than `docker compose -f`.** Compose resolves `${POSTGRES_PASSWORD}` from `./.env` in the project directory, and cron runs from a different working directory. This is the same interpolation trap documented in Phase E2.
+- **A loud warning when no rclone remote is configured**, so a local-only backup cannot be silently mistaken for a real one.
+
+Deploy it:
 
 ```bash
-#!/usr/bin/env bash
-set -euo pipefail
-
-STAMP=$(date +%Y%m%d-%H%M%S)
-DIR=/opt/ticketlove/backups
-mkdir -p "$DIR"
-
-# Dump from inside the container; compress; encrypt with a passphrase
-docker compose -f /opt/ticketlove/docker-compose.yml exec -T db \
-  pg_dump -U ticketlove -d ticketlove --format=custom \
-  | gzip \
-  | gpg --batch --yes --symmetric --cipher-algo AES256 \
-        --passphrase-file /opt/ticketlove/.backup-passphrase \
-        -o "$DIR/ticketlove-$STAMP.dump.gz.gpg"
-
-# Ship off-server (Backblaze B2 / Cloudflare R2 via rclone)
-rclone copy "$DIR/ticketlove-$STAMP.dump.gz.gpg" remote:ticketlove-backups/
-
-# Retain 7 days locally; the remote holds the long tail
-find "$DIR" -name '*.gpg' -mtime +7 -delete
-```
-
-```bash
-chmod +x /opt/ticketlove/backup.sh
-openssl rand -hex 32 > /opt/ticketlove/.backup-passphrase
-chmod 600 /opt/ticketlove/.backup-passphrase
+scp infra/backup.sh deploy@<NEW_IP>:/opt/ticketlove/backup.sh
+ssh deploy@<NEW_IP> 'chmod +x /opt/ticketlove/backup.sh'
+ssh deploy@<NEW_IP> 'openssl rand -hex 32 > /opt/ticketlove/.backup-passphrase && chmod 600 /opt/ticketlove/.backup-passphrase'
+sudo apt-get install -y gnupg rclone
 ```
 
 > **Store the backup passphrase somewhere other than this server.** A password manager. An encrypted backup you cannot decrypt because the key burned with the server is worth exactly nothing.
@@ -1112,24 +1097,50 @@ chmod 600 /opt/ticketlove/.backup-passphrase
 
 A backup you have never restored is a hypothesis, not a backup. Restoring is also the step where you discover the passphrase was wrong, or the dump was empty, or `pg_dump` was silently failing because the container name changed. Find that out on a Tuesday afternoon, not during an outage.
 
-```bash
-# Decrypt and restore into a scratch database
-gpg --batch --decrypt --passphrase-file /opt/ticketlove/.backup-passphrase \
-    backups/ticketlove-YYYYMMDD-HHMMSS.dump.gz.gpg | gunzip > /tmp/restore.dump
+**Don't just restore and count rows — plant a sentinel, delete it from the live database, and prove it comes back.** Counting rows in a restored copy while the same rows still exist in production proves very little; it is satisfied by a restore that silently did nothing.
 
+```bash
+cd /opt/ticketlove
+
+# 1. Plant a known financial record
+docker compose exec -T db psql -U ticketlove -d ticketlove -c \
+  "INSERT INTO \"GiftCard\" (id,code,balance,\"initialBalance\",status,\"createdAt\",\"updatedAt\")
+   VALUES ('drill-001','RESTORE-DRILL-CODE',123.45,200.00,'ACTIVE',now(),now());"
+
+# 2. Back it up
+./backup.sh
+
+# 3. Delete it from the LIVE database — simulating the loss
+docker compose exec -T db psql -U ticketlove -d ticketlove -c \
+  "DELETE FROM \"GiftCard\" WHERE id='drill-001';"
+
+# 4. Restore the backup into a scratch database
+LATEST=$(ls -t backups/*.gpg | head -1)
+gpg --batch --quiet --decrypt --passphrase-file .backup-passphrase "$LATEST" | gunzip > /tmp/restore.dump
+docker compose exec -T db dropdb -U ticketlove --if-exists restore_test
 docker compose exec -T db createdb -U ticketlove restore_test
 docker compose exec -T db pg_restore -U ticketlove -d restore_test < /tmp/restore.dump
 
-# Verify real rows came back
-docker compose exec -T db psql -U ticketlove -d restore_test \
-  -c 'SELECT count(*) FROM "User";' \
-  -c 'SELECT count(*) FROM "GiftCard";'
+# 5. Prove the record came back from the backup, not from production
+docker compose exec -T db psql -U ticketlove -d restore_test -c \
+  "SELECT id, code, balance, status FROM \"GiftCard\" WHERE id='drill-001';"
 
+# 6. Clean up
 docker compose exec -T db dropdb -U ticketlove restore_test
-rm /tmp/restore.dump
+rm -f /tmp/restore.dump
 ```
 
-Record the date of each successful drill in `CHANGELOG.md`.
+**Drill log** — record every successful run here and in `CHANGELOG.md`:
+
+| Date | Result | Notes |
+|---|---|---|
+| 2026-08-22 | ✅ PASS | Sentinel `drill-001` (balance 123.45) recovered after deletion from live DB. 9 tables restored. |
+
+**F6. Save the passphrase off-server.** `/opt/ticketlove/.backup-passphrase` protects every dump. If the server is lost and the passphrase went with it, **every backup is permanently undecryptable** — which converts a recoverable incident into total data loss. Copy it into a password manager:
+
+```bash
+ssh deploy@<NEW_IP> 'cat /opt/ticketlove/.backup-passphrase'
+```
 
 ---
 

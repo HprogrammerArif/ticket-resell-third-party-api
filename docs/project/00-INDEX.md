@@ -28,6 +28,8 @@ Both you (as developer/business owner) and AI agents (Claude Code) should read t
 | `06-frontend-spec.md` | Next.js page structure, Figma-to-route mapping, component patterns | Building or modifying the frontend |
 | `07-ticketnetwork-liaison.md` | What TicketNetwork has confirmed, what we verified ourselves, what's still open, and who is blocked on what | Before emailing TicketNetwork, or when an integration question turns on "did they ever answer this?" |
 | `08-deployment.md` | Production deployment: architecture decisions, pre-flight code changes, step-by-step VPS setup, CI/CD, backups, runbook | Deploying, or changing anything about hosting/infrastructure |
+| `09-deployment-record.md` | As-built record of production: architecture, what was built, and the fifteen problems hit along the way | Answering "how does production actually work?" or debugging the live site |
+| `10-remaining-work.md` | Everything still outstanding, prioritised, with owners and blockers | Planning the week; deciding what to chase Steven or TicketNetwork about |
 | `CHANGELOG.md` | Running log of doc and decision changes | After updating any doc |
 
 ---

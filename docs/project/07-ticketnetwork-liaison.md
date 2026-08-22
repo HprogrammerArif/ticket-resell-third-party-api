@@ -1,6 +1,6 @@
 # TicketNetwork Liaison — Correspondence, Answers & Open Questions
 
-**Last Updated:** 2026-08-20
+**Last Updated:** 2026-08-22
 **Owner:** Mohammed Arif
 **Counterparties:** TicketNetwork Integration Support
 
@@ -117,6 +117,32 @@ Ian's answers make gift cards *possible* against real ticket purchases, which re
 
 ---
 
+## How Commission Attribution Works
+
+**Status: inferred, not confirmed by TicketNetwork.** Assembled from R5, R7, R18, R23 and the MapWidget3 guide. Raised with Integration Support 2026-08-22 for explicit confirmation. This is the mechanism Steven's entire income depends on, so it is written down rather than left as shared assumption.
+
+Attribution appears to be **structural, not behavioural** — TicketNetwork does not track a visitor and work out where they came from. Our identity is carried by the plumbing:
+
+1. Every CatalogAPI request must carry `websiteConfigId=12498` (query param or `x-listing-context` header)
+2. MapWidget3 is loaded with the same config ID
+3. Markup is configured in TN Portal **against that config** (R23) — which is why the widget can display a retail price at all. A $120 ticket exists because the request identified as WCID 12498 and TN applied our markup to the $100 wholesale
+4. `c3CheckoutDomain` (V2) points at a checkout instance provisioned for that config
+5. Any order completing on that checkout is ours by definition. TN retains 7.5% of wholesale (R7); the remaining markup is our commission
+6. Reported in the TN Portal sales dashboard (R23), paid bi-weekly with clawback on cancellations and lost chargebacks (R25)
+
+**There is no affiliate or reseller ID parameter.** We asked directly on 2026-08-11; Ian answered with UTM params and GTM tags and never named one. There isn't one, and under this model there doesn't need to be.
+
+**UTM parameters are sub-attribution, not the payment mechanism.** They identify *which campaign* within our traffic produced a sale (R18). If they are broken or absent, commission still pays — we simply cannot attribute it to a marketing channel. Do not conflate the two.
+
+### Consequences
+
+- **The load-bearing assumption is step 4** — that `c3CheckoutDomain` is provisioned per-partner. We have not seen that value yet (Q6). If the checkout domain were shared across partners, something else must carry identity, and we would need to know what
+- **Anything reaching TN checkout outside our widget is likely unattributed.** There is no fallback identifier to recover the sale
+- **None of this is testable before launch.** Attribution is Production-only (R18) and no order data flows back (R13). The first proof that commission works is real money appearing in TN Portal after real customers have paid
+- **Therefore: soft-launch deliberately.** Put a small number of real transactions through, confirm they appear in TN Portal with correct commission, and only then commit marketing spend. Ian's own go-live gate — "we need to ensure that the ticket group is passing correctly from maps → checkout" (R24) — is the same concern stated from TicketNetwork's side
+
+---
+
 ## Verified By Us (not from TN)
 
 Findings from reading TN's own artifacts — reliable, but not statements TN has made to us directly.
@@ -148,7 +174,7 @@ Status as of 2026-08-20, after Ian's reply. Q1–Q13 numbering matches the 2026-
 
 | # | Question | Status | Blocks |
 |---|----------|--------|--------|
-| A1 | Which email address to open the TN Portal account under — **he is waiting on us** | `[OPEN — WE ARE THE BLOCKER]` | Maps config tool, promo codes, markup configuration, sales reporting. The single highest-value unblock available |
+| A1 | Which email address to open the TN Portal account under — **he is waiting on us** | `[ANSWERED 2026-08-22 — work.mohammedarif@gmail.com]` | Decision: dev team holds the account through build and testing; **ownership transfers to Steven after go-live**, since markup, promo codes and sales reporting are his to run. Asked Ian what the handover involves. **Post-launch action — do not lose this.** Unblocks Maps config tool, promo codes, markup configuration, sales reporting |
 | A2 | Clarify what we meant by "checkout information" — he asked "Are you referring to integration with our hosted checkout?" and answered the access request with one word: "Checkout" | `[OPEN — WE ARE THE BLOCKER]` | Sandbox checkout access. He has not granted it; the thread is waiting on our clarification |
 | A3 | NDA scope — does Steven's signature cover us as his development contractor? | `[OPEN]` | Not answered. May be moot if access is granted regardless |
 | A4 | Gift card economics — what happens when a code's value exceeds the order's margin? Capped, negative commission, or rejected? | `[OPEN]` | **Gift card viability.** No denomination can be priced until answered |
@@ -164,6 +190,7 @@ Status as of 2026-08-20, after Ian's reply. Q1–Q13 numbering matches the 2026-
 | 6 | Correct values for `Seatics.config.useC3` and `c3CheckoutDomain`, and where in DevPortal the checkout documentation lives | `[OPEN]` | **Hard blocker** — checkout handoff |
 | 10 | Supported integration path for a React/Next.js SPA given `document.write`, since TN does not recommend iframes (R22). Plus: (a) does the checkout hand-off navigate the top window or only the iframe? (b) the script pulls some sub-resources over plain `http://` — mixed-content behaviour under HTTPS is untested | `[OPEN — RISK]` | Promoting MapWidget3 to production. May force re-architecture, see D4 |
 | — | Sandbox access to the Private Label checkout flow for ZX7910-STORE | `[OPEN]` | Phase 7 entirely |
+| 6 | Confirm the attribution mechanism — is a sale credited to us structurally, via the website config and its provisioned checkout instance, or is an additional parameter required at handoff? | `[OPEN]` | **Steven's entire commission.** Currently inferred, not confirmed — see How Commission Attribution Works |
 
 ### Resolved since last revision
 
