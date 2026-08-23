@@ -18,10 +18,17 @@ const MAPWIDGET_HOST = Env.NEXT_PUBLIC_MAPWIDGET_ENV === 'production'
 
 export function MapWidgetEmbed(props: MapWidgetEmbedProps) {
   const t = useTranslations('EventDetailPage');
-  // includeBootstrap/includeJQuery default to true and would inject Bootstrap
-  // 3.4.1 and jQuery 3.6.0. This project uses neither, and Bootstrap's reset
-  // collides with Tailwind. Suppressed per the MapWidget3 guide (V10).
-  const src = `${MAPWIDGET_HOST}/js?eventId=${props.eventId}&websiteConfigId=${Env.NEXT_PUBLIC_MAPWIDGET_WEBSITE_CONFIG_ID}&useDarkTheme=true&includeBootstrap=false&includeJQuery=false`;
+  // Do NOT add includeBootstrap=false / includeJQuery=false here.
+  //
+  // The guide offers them for in-page embeds where the widget's Bootstrap 3.4.1
+  // and jQuery 3.6.0 would collide with the host page. That cannot happen here:
+  // the widget runs inside an iframe, so its libraries live in a separate
+  // document and never meet our Tailwind styles. There is no conflict to avoid.
+  //
+  // Suppressing them was tried on 2026-08-22 and broke the map outright —
+  // the widget's own code calls jQuery, so it fails with
+  // "Uncaught ReferenceError: jQuery is not defined" and nothing renders.
+  const src = `${MAPWIDGET_HOST}/js?eventId=${props.eventId}&websiteConfigId=${Env.NEXT_PUBLIC_MAPWIDGET_WEBSITE_CONFIG_ID}&useDarkTheme=true`;
 
   // upgrade-insecure-requests is load-bearing, not hardening.
   //
