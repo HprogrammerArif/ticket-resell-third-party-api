@@ -92,6 +92,14 @@ Genuine improvements, none urgent. Roughly in value order.
 
 **1. Staging domain (Phase H2).** If Hostinger bundled a free domain, point it at the same server and add it to the `Caddyfile`. Today the first live test of anything — certificates included — happens on `ticketlove.net` itself. A throwaway name lets the whole stack be rehearsed first, and keeps failed Let's Encrypt attempts off the real domain's issuance rate limit.
 
+**1a. Switching to TicketNetwork production — the exact steps.** Recorded here because several of these are build-time and a restart will not pick them up:
+
+- Set the repo variable **`MAPWIDGET_ENV=production`** (Settings → Secrets and variables → Actions → Variables). This changes the Seatics host from `mapwidget3-sandbox.seatics.com` to `mapwidget3.seatics.com`. Production Seatics does not recognise sandbox event IDs, so a mismatch here yields an empty map with no error.
+- Update `TN_BASE_URL`, `TN_CONSUMER_KEY`, `TN_CONSUMER_SECRET` in `/opt/ticketlove/.env`, then `docker compose up -d api`.
+- Confirm the production `websiteConfigId` and update the `NEXT_PUBLIC_MAPWIDGET_WEBSITE_CONFIG_ID` secret.
+- **Push a commit to rebuild the web image.** `NEXT_PUBLIC_*` values are baked in at build time — changing the secret or variable alone does nothing until a rebuild.
+- Lower nothing else: `RATE_LIMIT_MAX_REQUESTS` is already 45, under TN Production's 50/min ceiling.
+
 **2. Make GHCR packages private.** They're public, so anyone can pull and inspect the compiled server code. No secrets are in the images (build secrets were mounted, and `NEXT_PUBLIC_*` values are public by definition), but for a client project the source shouldn't be freely pullable. Requires a `read:packages` PAT on the server — `docker login ghcr.io`.
 
 **3. Uptime monitoring.** UptimeRobot or Better Stack against `https://ticketlove.net/` every 5 minutes, alerting to email. Consider exposing `/health/ready` through Caddy via a dedicated `handle` block so monitoring can see database health, not just that the page loads.

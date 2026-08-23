@@ -90,6 +90,7 @@ jobs:
           build-args: |
             NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}
             NEXT_PUBLIC_MAPWIDGET_WEBSITE_CONFIG_ID=${{ secrets.NEXT_PUBLIC_MAPWIDGET_WEBSITE_CONFIG_ID }}
+            NEXT_PUBLIC_MAPWIDGET_ENV=${{ vars.MAPWIDGET_ENV }}
           secrets: |
             jwt_secret=${{ secrets.JWT_SECRET }}
           cache-from: type=gha

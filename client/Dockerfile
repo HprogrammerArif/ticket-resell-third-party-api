@@ -15,16 +15,21 @@ COPY . .
 # silently shipping a wrong websiteConfigId or app URL to production.
 ARG NEXT_PUBLIC_APP_URL
 ARG NEXT_PUBLIC_MAPWIDGET_WEBSITE_CONFIG_ID
-# Which Seatics deployment serves the maps. Defaulted rather than required:
-# it must track the TN catalog we point at, NOT NODE_ENV, and sandbox is the
-# safe default while TN's production map path is unconfirmed (liaison D4/Q10).
-ARG NEXT_PUBLIC_MAPWIDGET_ENV=sandbox
+# Which Seatics deployment serves the maps. It must track the TN catalog we
+# point at, NOT NODE_ENV — production Seatics does not know sandbox event IDs
+# and returns an empty map.
+#
+# Deliberately has NO default. A default of "sandbox" is the dangerous one:
+# on the day we switch to TN production, every other setting would flip while
+# the map silently kept loading sandbox — no error, just an empty map. Better
+# to state it explicitly on every build.
+ARG NEXT_PUBLIC_MAPWIDGET_ENV
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL \
     NEXT_PUBLIC_MAPWIDGET_WEBSITE_CONFIG_ID=$NEXT_PUBLIC_MAPWIDGET_WEBSITE_CONFIG_ID \
     NEXT_PUBLIC_MAPWIDGET_ENV=$NEXT_PUBLIC_MAPWIDGET_ENV \
     NODE_ENV=production
 
-RUN for v in NEXT_PUBLIC_APP_URL NEXT_PUBLIC_MAPWIDGET_WEBSITE_CONFIG_ID; do \
+RUN for v in NEXT_PUBLIC_APP_URL NEXT_PUBLIC_MAPWIDGET_WEBSITE_CONFIG_ID NEXT_PUBLIC_MAPWIDGET_ENV; do \
       eval "val=\$$v"; \
       if [ -z "$val" ]; then echo "ERROR: required build-arg $v is empty" >&2; exit 1; fi; \
     done
