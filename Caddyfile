@@ -5,6 +5,14 @@ ticketlove.net, www.ticketlove.net {
 		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
 		X-Content-Type-Options "nosniff"
 		Referrer-Policy "strict-origin-when-cross-origin"
+
+		# Load-bearing, not hardening. The Seatics MapWidget3 script builds its
+		# stylesheet URL with a hardcoded http:// scheme, which the browser blocks
+		# as mixed content on an HTTPS page — the map then fails to render. The
+		# same file is served fine over https, so upgrade rather than block.
+		# srcdoc iframes inherit this from the parent document. See liaison Q10(b).
+		Content-Security-Policy "upgrade-insecure-requests"
+
 		-Server
 	}
 

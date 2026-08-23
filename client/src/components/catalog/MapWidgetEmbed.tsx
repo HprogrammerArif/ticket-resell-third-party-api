@@ -23,9 +23,22 @@ export function MapWidgetEmbed(props: MapWidgetEmbedProps) {
   // collides with Tailwind. Suppressed per the MapWidget3 guide (V10).
   const src = `${MAPWIDGET_HOST}/js?eventId=${props.eventId}&websiteConfigId=${Env.NEXT_PUBLIC_MAPWIDGET_WEBSITE_CONFIG_ID}&useDarkTheme=true&includeBootstrap=false&includeJQuery=false`;
 
+  // upgrade-insecure-requests is load-bearing, not hardening.
+  //
+  // The Seatics script builds its stylesheet URL with a hardcoded http:// scheme
+  // (e.g. http://mapwidget3-sandbox.seatics.com/Css/dark-mobile?v=...). On an
+  // HTTPS page the browser blocks that as mixed content and the map renders
+  // unstyled or not at all. The same file is served fine over https, so this
+  // directive tells the browser to upgrade the scheme rather than block it.
+  //
+  // This never reproduces on http://localhost — same scheme, so nothing is
+  // "mixed". It only appears once the site is on HTTPS. See liaison Q10(b).
   const srcDoc = `<!DOCTYPE html>
 <html>
-<head><style>html,body{margin:0;padding:0;background:#0f0f0f;}</style></head>
+<head>
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+<style>html,body{margin:0;padding:0;background:#0f0f0f;}</style>
+</head>
 <body>
 <div id="tn-mapwidget-container"></div>
 <script src="${src}"><\/script>
