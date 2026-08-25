@@ -26,8 +26,11 @@ services:
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_APP_URL: http://localhost:3000
-        # Sandbox value. The production websiteConfigId is still [OPEN] with TN.
-        NEXT_PUBLIC_MAPWIDGET_WEBSITE_CONFIG_ID: "690"
+        # Our Maps WCID, confirmed by TN Integration Support 2026-08-23. Same in
+        # Sandbox and Production. NOT 12498 — that is the CatalogAPI WCID; Maps
+        # uses a different one. Do not revert to 690: it renders a map, but it is
+        # not our config, so markup and attribution would not be ours.
+        NEXT_PUBLIC_MAPWIDGET_WEBSITE_CONFIG_ID: "26809"
         # Seatics deployment must match the TN catalog in TN_BASE_URL.
         # TN_BASE_URL is the sandbox, so maps must be sandbox too: production
         # Seatics does not know sandbox event IDs and renders an empty map.
