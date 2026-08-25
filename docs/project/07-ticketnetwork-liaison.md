@@ -155,7 +155,28 @@ First technical reply from Integration Support. Four answers, two of which inval
 | **R30** | *"As I know, checkout cannot be iframed, but let me confirm that."* — unconfirmed | **Direct risk to our architecture.** Our widget runs in an iframe. Q4(a) — top-window vs frame navigation — is now urgent, not academic |
 | **R31** | `salesRank` is the intended signal for trending/popular. Documentation attached | Answers Q3. Closes homepage curation |
 
-### D7 — The attribution assumption is disproven
+### D7 — RESOLVED 2026-08-25: attribution rides on a POSTed `WebsiteConfigId`
+
+**Answered by reading TN's own widget source rather than waiting**, in `libsNoBootstrapDesktopCore`. The checkout hand-off is a form POST:
+
+```js
+tt = r(a ? '<form target="_blank"></form>' : '<form></form>')
+     .attr({ method: "POST", action: "https://" + u.c3CheckoutDomain + "/Checkout/Order" })
+
+v("WebsiteConfigId", u.websiteConfigId)   // hidden input
+v(p + "Quantity", …)
+v(p + "EventId",  w.eventID)
+```
+
+`v` appends a hidden input. **Our identity is carried as a `WebsiteConfigId` field in the POST body** — which is exactly the "something else must carry identity" the attribution section said we would need to find. A shared checkout domain is therefore fine: the domain does not identify us, the posted field does.
+
+**This makes the 690 → 26809 correction a commission fix, not a cosmetic one.** That field is literally what credits the sale. Every click of Buy while we were sending 690 would have posted someone else's config ID.
+
+Still worth confirming with TN in writing, since this is read from minified client code rather than stated by them — but the mechanism is no longer unknown.
+
+**Also confirmed:** UTM values are appended to the action URL as query params (`utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term`) from the `c3Utm*` config, matching V4.
+
+### D7 (original) — The attribution assumption was disproven
 
 `How Commission Attribution Works` above rests on step 4: *"`c3CheckoutDomain` points at a checkout instance provisioned for that config."* It states plainly: *"If the checkout domain were shared across partners, something else must carry identity, and we would need to know what."*
 

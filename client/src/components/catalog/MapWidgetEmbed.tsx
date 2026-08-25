@@ -30,6 +30,24 @@ export function MapWidgetEmbed(props: MapWidgetEmbedProps) {
   // "Uncaught ReferenceError: jQuery is not defined" and nothing renders.
   const src = `${MAPWIDGET_HOST}/js?eventId=${props.eventId}&websiteConfigId=${Env.NEXT_PUBLIC_MAPWIDGET_WEBSITE_CONFIG_ID}&useDarkTheme=true`;
 
+  // <base target="_top"> is what keeps checkout working from inside the iframe.
+  //
+  // checkout.tickettransaction.com sends `X-Frame-Options: SAMEORIGIN` (verified
+  // 2026-08-25), so it refuses to render in an iframe on our domain. The widget
+  // hands off with a form POST whose target is conditional in their minified
+  // code — `<form target="_blank">` on one branch, an untargeted `<form>` on the
+  // other. The untargeted branch would submit inside this iframe and the customer
+  // would get a blank box instead of a checkout.
+  //
+  // A base target of _top makes any untargeted form submit against the whole
+  // window; an explicit target="_blank" still wins and opens a tab. Either way
+  // checkout escapes the iframe, without us needing to know which branch runs.
+  //
+  // UNVERIFIED against a real checkout: TN has no Sandbox checkout (liaison R29),
+  // so this cannot be tested until Production. Watch for in-widget links
+  // unexpectedly navigating the whole page — the widget is JS-driven so this is
+  // unlikely, but it is the failure mode this introduces.
+  //
   // upgrade-insecure-requests is load-bearing, not hardening.
   //
   // The Seatics script builds its stylesheet URL with a hardcoded http:// scheme
@@ -44,6 +62,7 @@ export function MapWidgetEmbed(props: MapWidgetEmbedProps) {
 <html>
 <head>
 <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+<base target="_top">
 <style>html,body{margin:0;padding:0;background:#0f0f0f;}</style>
 </head>
 <body>
