@@ -143,6 +143,39 @@ Attribution appears to be **structural, not behavioural** — TicketNetwork does
 
 ---
 
+## 2026-08-23 — Integration Support (Yuliya Biziuk) answered Q3, Q4, Q6
+
+First technical reply from Integration Support. Four answers, two of which invalidate assumptions recorded above.
+
+| # | Answer | Consequence |
+|---|---|---|
+| **R27** | **Our Maps WCID is 26809** — same in Sandbox and Production, already active for Production, no extra activation step | **We were sending 690.** It renders a map, so it was never caught — but it is not our config. Markup is configured per-config in Portal, so 690 shows prices that are not ours and a sale from it is unlikely to credit us. Fixed 2026-08-25. **Maps and CatalogAPI use different WCIDs** — Maps 26809, Catalog 12498. Nothing in the docs implied that |
+| **R28** | Checkout config: `c3CheckoutDomain = "checkout.tickettransaction.com"`, `c3CurrencyCode = "USD"`, `useC3 = true`. Her comment: *"can be SSL - checkout.domain.com"* | **Answers Q6.** But see D7 — the domain is generic, not per-partner |
+| **R29** | **"We don't have checkout in Sandbox. C3 checkout exists only in Production."** | **Answers Q-checkout-access, and voids A2.** The Sandbox checkout access we asked Ian for does not exist to grant |
+| **R30** | *"As I know, checkout cannot be iframed, but let me confirm that."* — unconfirmed | **Direct risk to our architecture.** Our widget runs in an iframe. Q4(a) — top-window vs frame navigation — is now urgent, not academic |
+| **R31** | `salesRank` is the intended signal for trending/popular. Documentation attached | Answers Q3. Closes homepage curation |
+
+### D7 — The attribution assumption is disproven
+
+`How Commission Attribution Works` above rests on step 4: *"`c3CheckoutDomain` points at a checkout instance provisioned for that config."* It states plainly: *"If the checkout domain were shared across partners, something else must carry identity, and we would need to know what."*
+
+**R28 gives `checkout.tickettransaction.com` — a generic TicketNetwork domain, not a per-partner instance.** The load-bearing assumption is therefore false as written, and we do not know what carries our identity into checkout.
+
+This is Steven's entire commission. It must be answered explicitly before launch, not inferred.
+
+One thread worth pulling: Yuliya's inline comment reads *"can be SSL - checkout.domain.com"*, which may mean partners can be provisioned a branded checkout host such as `checkout.ticketlove.net`. If so, that would restore per-partner identity and resolve this cleanly. Asked as a follow-up.
+
+### D8 — Checkout cannot be verified before Production
+
+R29 means Ian's own go-live gate (R24 — *"ensure the ticket group is passing correctly from maps → checkout"*) **cannot be satisfied in Sandbox**, because there is no Sandbox checkout to pass anything to.
+
+Consequences:
+- **A2 is void.** We were blocking on clarifying a Sandbox checkout access request for something that does not exist. Ian could never have granted it
+- Phase 7 cannot be built-and-verified in the usual order. The first real test of checkout is in Production, with real money
+- **This makes the deliberate soft-launch mandatory, not advisory** — a small number of real transactions, confirmed in Portal with correct commission, before any marketing spend
+
+---
+
 ## Verified By Us (not from TN)
 
 Findings from reading TN's own artifacts — reliable, but not statements TN has made to us directly.
