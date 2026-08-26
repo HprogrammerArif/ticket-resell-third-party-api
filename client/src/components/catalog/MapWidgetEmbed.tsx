@@ -63,7 +63,17 @@ export function MapWidgetEmbed(props: MapWidgetEmbedProps) {
 <head>
 <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
 <base target="_top">
-<style>html,body{margin:0;padding:0;background:#0f0f0f;}</style>
+<style>
+/* The widget's desktop stylesheet sizes the map with height:100% on
+   .map-list-ctn, .map-ctn and .venue-map. A percentage height only resolves
+   if every ancestor has an explicit height, so html, body and the mount
+   point must all declare it. Without this the chain breaks at the root, the
+   map falls back to the intrinsic height of the seat-map graphic, and it
+   runs far below the fold. The mobile layout sizes differently, which is why
+   this only surfaced once the desktop layout started rendering. */
+html,body{margin:0;padding:0;height:100%;background:#0f0f0f;}
+#tn-mapwidget-container{height:100%;}
+</style>
 </head>
 <body>
 <div id="tn-mapwidget-container"></div>
