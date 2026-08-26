@@ -455,7 +455,7 @@ export default async function EventDetailPage(props: EventDetailPageProps) {
       </div>
 
       {/* ── Main Layout ───────────────────────────────────────────────── */}
-      <div className="flex gap-10 max-lg:flex-col">
+      <div className="flex gap-10 max-lg:flex-col lg:[&:has([data-active=tickets])>[data-event-sidebar]]:hidden">
 
         {/* Left: Tabs */}
         <div className="flex-1 min-w-0">
@@ -475,7 +475,7 @@ export default async function EventDetailPage(props: EventDetailPageProps) {
         </div>
 
         {/* Right: Sticky sidebar */}
-        <div className="w-80 shrink-0 max-lg:w-full">
+        <div data-event-sidebar className="w-80 shrink-0 max-lg:w-full">
           <div className="sticky top-24 rounded-2xl border border-[var(--color-surface-border)] bg-[var(--color-surface-raised)] p-6">
 
             {/* Quick facts */}

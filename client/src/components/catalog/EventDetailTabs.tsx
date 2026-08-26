@@ -19,7 +19,11 @@ export function EventDetailTabs({ tabs, children }: EventDetailTabsProps) {
   const [active, setActive] = useState<TabId>(tabs[0]?.id ?? 'tickets');
 
   return (
-    <div>
+    // data-active is read by the event page via :has() so the Tickets tab can
+    // reclaim the sidebar's width. The map widget drops to its mobile layout
+    // below 992px, and a 320px sidebar keeps it under that on every common
+    // laptop width.
+    <div data-active={active}>
       {/* Tab bar */}
       <div className="relative mb-8 flex gap-0 border-b border-[var(--color-surface-border)]">
         {tabs.map((tab) => {
