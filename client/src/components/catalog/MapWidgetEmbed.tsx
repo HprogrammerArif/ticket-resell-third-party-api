@@ -66,17 +66,21 @@ export function MapWidgetEmbed(props: MapWidgetEmbedProps) {
 <style>
 /* The widget's desktop stylesheet sizes the map with height:100% on
    .map-list-ctn, .map-ctn and .venue-map. A percentage height only resolves
-   if every ancestor has an explicit height, so html, body and the mount
-   point must all declare it. Without this the chain breaks at the root, the
+   if every ancestor has an explicit height, so html and body
+   must both declare it. Without this the chain breaks at the root, the
    map falls back to the intrinsic height of the seat-map graphic, and it
    runs far below the fold. The mobile layout sizes differently, which is why
-   this only surfaced once the desktop layout started rendering. */
+   this only surfaced once the desktop layout started rendering.
+
+   There is deliberately no mount <div>: the widget renders with
+   document.write, which injects at the script's position rather than into a
+   container, and it never looks up an element id. An empty div here inherits
+   the height rule above and becomes a full-height spacer pushing the map
+   below the fold. */
 html,body{margin:0;padding:0;height:100%;background:#0f0f0f;}
-#tn-mapwidget-container{height:100%;}
 </style>
 </head>
 <body>
-<div id="tn-mapwidget-container"></div>
 <script src="${src}"><\/script>
 </body>
 </html>`;
