@@ -56,7 +56,7 @@ export async function getUser(): Promise<UserSession | null> {
 
   try {
     const secret = await getJwtSecret();
-    const { payload } = await jwtVerify(token, secret);
+    const { payload } = await jwtVerify(token, secret, { audience: 'user' });
     const { id, email, role, displayName } = payload as {
       id: string;
       email: string;

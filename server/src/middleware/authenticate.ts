@@ -17,7 +17,7 @@ export function authenticate(req: Request, _res: Response, next: NextFunction): 
   }
 
   try {
-    const payload = jwt.verify(token, env.JWT_SECRET) as {
+    const payload = jwt.verify(token, env.JWT_SECRET, { audience: 'user' }) as {
       id: string;
       email: string;
       role: string;
