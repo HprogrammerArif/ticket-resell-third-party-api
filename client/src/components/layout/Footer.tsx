@@ -72,8 +72,11 @@ export function Footer(_props?: { locale?: string }) {
             </p>
             <ul className="space-y-3">
               {[
-                { label: t('resources_privacy'), href: '/' },
-                { label: t('resources_terms'), href: '/' },
+                // Both point at /policies: TicketNetwork hosts the privacy
+                // and purchase terms as one document, and requires the page
+                // to exist and be reachable.
+                { label: t('resources_privacy'), href: '/policies' },
+                { label: t('resources_terms'), href: '/policies' },
                 { label: t('resources_work_with_us'), href: '/' },
               ].map((item) => (
                 <li key={item.label}>
