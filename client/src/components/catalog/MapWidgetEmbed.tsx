@@ -82,6 +82,20 @@ html,body{margin:0;padding:0;height:100%;background:#0f0f0f;}
 </head>
 <body>
 <script src="${src}"><\/script>
+<script>
+/* Branded checkout host, provisioned by TicketNetwork against WCID 26809
+   (Integration Support, 2026-08-26). checkout.ticketlove.net is a CNAME to
+   c3.ticketnetwork.com and now serves a certificate for our own hostname, so
+   customers stay on our domain through payment.
+
+   Assigned after the widget script rather than passed as a query parameter —
+   the /js endpoint does not accept c3CheckoutDomain as a param (verified). The
+   widget reads this value when Buy is clicked, not at start-up, so setting it
+   here is in time. */
+if (window.Seatics && Seatics.config) {
+  Seatics.config.c3CheckoutDomain = "checkout.ticketlove.net";
+}
+<\/script>
 </body>
 </html>`;
 

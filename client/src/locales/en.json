@@ -4,7 +4,6 @@
     "sign_in_link": "Sign in",
     "sign_up_link": "Sign up"
   },
-
   "Index": {
     "meta_title": "MyApp — Production-Ready Next.js Starter",
     "meta_description": "A flexible, production-ready Next.js starter kit for landing pages, custom backends, and full-stack applications.",
@@ -431,6 +430,12 @@
     "password_mismatch": "Passwords do not match.",
     "password_success": "Password updated successfully.",
     "password_error": "Failed to update password. Please try again."
+  },
+  "PoliciesPage": {
+    "meta_title": "Policies",
+    "meta_description": "Purchase, delivery, refund and privacy policies for tickets bought through Ticket Love.",
+    "heading": "Policies",
+    "intro": "Purchase, delivery, refund and privacy terms for orders placed through Ticket Love. Orders are fulfilled by TicketNetwork, who act as the merchant of record.",
+    "embed_title": "Ticket purchase and privacy policies"
   }
 }
-

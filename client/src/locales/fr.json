@@ -4,7 +4,6 @@
     "sign_in_link": "Se connecter",
     "sign_up_link": "S'inscrire"
   },
-
   "Index": {
     "meta_title": "MyApp — Kit de démarrage Next.js",
     "meta_description": "Un kit de démarrage Next.js flexible et prêt pour la production.",
@@ -431,6 +430,12 @@
     "password_mismatch": "Les mots de passe ne correspondent pas.",
     "password_success": "Mot de passe mis à jour avec succès.",
     "password_error": "Échec de la mise à jour du mot de passe. Veuillez réessayer."
+  },
+  "PoliciesPage": {
+    "meta_title": "Politiques",
+    "meta_description": "Politiques d'achat, de livraison, de remboursement et de confidentialité pour les billets achetés via Ticket Love.",
+    "heading": "Politiques",
+    "intro": "Conditions d'achat, de livraison, de remboursement et de confidentialité pour les commandes passées via Ticket Love. Les commandes sont traitées par TicketNetwork, qui agit en tant que marchand officiel.",
+    "embed_title": "Politiques d'achat de billets et de confidentialité"
   }
 }
-
