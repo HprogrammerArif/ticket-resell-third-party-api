@@ -24,6 +24,10 @@ out/
 build/
 *.tsbuildinfo
 
+# tsc output that lands beside test sources
+server/tests/**/*.js
+server/tests/**/*.js.map
+
 # Coverage & Tests
 coverage/
 .nyc_output/
