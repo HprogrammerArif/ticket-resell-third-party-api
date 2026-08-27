@@ -98,3 +98,106 @@ export async function changePassword(
   const passwordHash = await bcrypt.hash(newPassword, 10);
   await db.adminUser.update({ where: { id: adminId }, data: { passwordHash } });
 }
+
+const DEFAULT_PAGE_SIZE = 25;
+const MAX_PAGE_SIZE = 100;
+
+export type CustomerListItem = {
+  id: string;
+  email: string;
+  displayName: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  createdAt: Date;
+};
+
+/** Fields safe to expose in the back office. Never includes passwordHash. */
+const CUSTOMER_SELECT = {
+  id: true,
+  email: true,
+  displayName: true,
+  firstName: true,
+  lastName: true,
+  createdAt: true,
+} as const;
+
+/**
+ * Platform counts for the dashboard home.
+ * @returns Total customers, and how many signed up in the last seven days.
+ */
+export async function getStats(): Promise<{
+  totalCustomers: number;
+  signupsLast7Days: number;
+}> {
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+  const totalCustomers = await db.user.count();
+  const signupsLast7Days = await db.user.count({
+    where: { createdAt: { gte: sevenDaysAgo } },
+  });
+
+  return { totalCustomers, signupsLast7Days };
+}
+
+/**
+ * Lists customers for the back office, newest first.
+ *
+ * pageSize is capped server-side so a crafted query parameter cannot pull the
+ * whole table in one request.
+ * @param options - Optional search term and pagination.
+ * @returns One page of customers plus the total matching count.
+ */
+export async function listCustomers(options: {
+  q?: string;
+  page?: number;
+  pageSize?: number;
+}): Promise<{
+  results: CustomerListItem[];
+  page: number;
+  pageSize: number;
+  totalCount: number;
+}> {
+  const page = Math.max(1, Math.floor(options.page ?? 1));
+  const pageSize = Math.min(
+    MAX_PAGE_SIZE,
+    Math.max(1, Math.floor(options.pageSize ?? DEFAULT_PAGE_SIZE)),
+  );
+  const term = options.q?.trim();
+
+  const where = term
+    ? {
+        OR: [
+          { email: { contains: term, mode: 'insensitive' as const } },
+          { firstName: { contains: term, mode: 'insensitive' as const } },
+          { lastName: { contains: term, mode: 'insensitive' as const } },
+          { displayName: { contains: term, mode: 'insensitive' as const } },
+        ],
+      }
+    : {};
+
+  const results = await db.user.findMany({
+    where,
+    select: CUSTOMER_SELECT,
+    orderBy: { createdAt: 'desc' },
+    skip: (page - 1) * pageSize,
+    take: pageSize,
+  });
+
+  const totalCount = await db.user.count({ where });
+
+  return { results, page, pageSize, totalCount };
+}
+
+/**
+ * Loads one customer for the back office.
+ * @param id - Customer id.
+ * @returns The customer's safe fields.
+ * @throws ApiError 404 when no such customer exists.
+ */
+export async function getCustomer(id: string): Promise<CustomerListItem> {
+  const customer = await db.user.findUnique({ where: { id }, select: CUSTOMER_SELECT });
+  if (!customer) {
+    throw new ApiError(404, 'CUSTOMER_NOT_FOUND', 'Customer not found');
+  }
+  return customer;
+}
