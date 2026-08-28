@@ -197,6 +197,32 @@ Consequences:
 
 ---
 
+### V15 — The DevPortal "Business Plan" does not reflect the enforced rate limit
+
+**Measured 2026-08-27 against Production.** DevPortal shows our application on a Business Plan of `10000PerMin 10000 Per Min`, Workflow Status APPROVED, on the Production environment. That is 200x what R24 records from Ian ("Production starts at 50 calls/min").
+
+Tested directly rather than trusting either source:
+
+| Probe | Result |
+|---|---|
+| 60 requests spread evenly over 60s | 60x HTTP 200, no throttling |
+| 80 requests, 20 concurrent, over 5s | **58x HTTP 200, 22x HTTP 429** |
+
+**Throttling begins at roughly 58 requests in a burst — nowhere near 10,000.** Ian's figure is close to reality; the DevPortal figure is not.
+
+The likely explanation is that the "Business Plan" shown is an application-level tier while a tighter subscription or resource policy is what actually enforces. In WSO2 the most restrictive tier wins, and the portal surfaces the wrong one.
+
+**Consequences:**
+
+- **`RATE_LIMIT_MAX_REQUESTS = 45` is correct and should not be raised** on the strength of the DevPortal figure. Raising it toward 10,000 would produce 429s under real traffic, which on a live ticketing site means customers seeing empty event pages
+- The gateway returns **no rate-limit headers at all** on a successful request — no `X-RateLimit-Limit`, no remaining count — so the effective limit cannot be read from a response and has to be measured or asked for
+- Steady traffic fares better than bursts: 60 requests spread over a minute passed entirely, while 80 in five seconds did not. Real browsing is steady, which works in our favour
+- The exact number is **not** pinned down. ~58 was enough to distinguish the two hypotheses; probing further would mean deliberately generating more throttled requests against a live partner API, which is not worth the noise
+
+Raised with Integration Support for written confirmation.
+
+---
+
 ## Verified By Us (not from TN)
 
 Findings from reading TN's own artifacts — reliable, but not statements TN has made to us directly.
