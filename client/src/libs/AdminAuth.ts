@@ -14,7 +14,7 @@ const ADMIN_COOKIE_NAME = 'admin_token';
 /** Matches ADMIN_TOKEN_EXPIRY in the server's admin service. */
 const ADMIN_COOKIE_MAX_AGE = 60 * 60 * 8;
 
-async function getJwtSecret(): Promise<Uint8Array> {
+function getJwtSecret(): Uint8Array {
   return new TextEncoder().encode(Env.JWT_SECRET);
 }
 
@@ -66,7 +66,7 @@ export async function getAdmin(): Promise<AdminSession | null> {
   }
 
   try {
-    const secret = await getJwtSecret();
+    const secret = getJwtSecret();
     const { payload } = await jwtVerify(token, secret, { audience: 'admin' });
     const { id, email } = payload as { id: string; email: string };
     return { id, email, name: (payload as { name?: string }).name ?? email };
