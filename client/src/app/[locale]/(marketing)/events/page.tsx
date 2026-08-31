@@ -160,7 +160,6 @@ export default async function EventsPage(props: EventsPageProps) {
   let cities: { id: number; name: string; eventCount: number }[] = [];
   try {
     const citiesResult = await getCities({ hasEvents: true, pageSize: 20 });
-    console.log({citiesResult})
     cities = citiesResult.results.map(c => ({
       id: c.id,
       name: c.text.name,
@@ -181,7 +180,6 @@ export default async function EventsPage(props: EventsPageProps) {
     // Non-critical — sort bar will show 0
   }
 
-  console.log({totalCount , view, cities})
 
   return (
     <div className="mx-auto max-w-[1440px] px-[107px] py-10 max-md:px-4">

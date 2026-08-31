@@ -32,7 +32,6 @@ export async function HeroSection(props: { locale: string }) {
   const t = await getTranslations({ locale: props.locale, namespace: 'HomePage' });
   const format = await getFormatter({ locale: props.locale });
   const { results: events } = await getEvents({ pageSize: 5 });
-  console.log({events})
   const featured = events[0];
 
   return (
@@ -123,7 +122,6 @@ export async function SponsorSection() {
 export async function CategoriesSection(props: { locale: string }) {
   const t = await getTranslations({ locale: props.locale, namespace: 'HomePage' });
   const { results: categories } = await getCategories({ pageSize: 50, hasEvents: true });
-  console.log({categories})
 
   return (
     <section className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
@@ -179,7 +177,6 @@ export async function WeekendEventsSection(props: { locale: string }) {
   sunday.setDate(sunday.getDate() + (7 - sunday.getDay()));
   const dateToStr = sunday.toISOString().split('T')[0]!;
   const { results: events } = await getEvents({ dateFrom: today, dateTo: dateToStr, pageSize: 12 });
-  console.log({events})
   const eventImages = await getEventImages(events);
 
   return (
@@ -264,7 +261,6 @@ export async function CityEventsSection(props: { locale: string }) {
   const t = await getTranslations({ locale: props.locale, namespace: 'HomePage' });
   const { results: cities } = await getCities({ pageSize: 8, hasEvents: true });
   if (cities.length === 0) return null;
-  console.log({cities})
 
   const cityGroups = await Promise.all(
     cities.slice(0, 6).map(async (city) => {
@@ -281,7 +277,6 @@ export async function CityEventsSection(props: { locale: string }) {
   const validGroups = cityGroups.filter((g) => g.events.length > 0);
   if (validGroups.length === 0) return null;
 
-  console.log({cityGroups})
 
   return (
     <section className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
