@@ -437,5 +437,9 @@
     "heading": "Politiques",
     "intro": "Conditions d'achat, de livraison, de remboursement et de confidentialité pour les commandes passées via Ticket Love. Les commandes sont traitées par TicketNetwork, qui agit en tant que marchand officiel.",
     "embed_title": "Politiques d'achat de billets et de confidentialité"
+  },
+  "PerformerImage": {
+    "attribution": "Photo via Wikimedia Commons",
+    "alt": "Photographie de {name}"
   }
 }

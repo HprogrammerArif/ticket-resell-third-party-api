@@ -6,6 +6,13 @@ import createNextIntlPlugin from 'next-intl/plugin';
 // Define the base Next.js configuration
 const baseConfig: NextConfig = {
   output: 'standalone',
+  // Serving Wikimedia images through next/image rather than hot-linking means
+  // their servers are hit once per image instead of once per visitor. Their
+  // User-Agent policy is explicit that clients causing excessive load may be
+  // blocked, so this is politeness as well as performance.
+  images: {
+    remotePatterns: [{ protocol: 'https', hostname: 'upload.wikimedia.org' }],
+  },
   devIndicators: {
     position: 'bottom-right',
   },
