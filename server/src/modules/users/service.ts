@@ -28,7 +28,10 @@ function signToken(user: { id: string; email: string; role: string; displayName:
   return jwt.sign(
     { id: user.id, email: user.email, role: user.role, displayName: user.displayName },
     env.JWT_SECRET,
-    { expiresIn: env.JWT_EXPIRES_IN } as jwt.SignOptions,
+    // aud separates customer tokens from admin ones. Both are signed with the
+    // same secret and are otherwise identical in shape, so without this an
+    // admin token would verify as a customer session.
+    { expiresIn: env.JWT_EXPIRES_IN, audience: 'user' } as jwt.SignOptions,
   );
 }
 
