@@ -10,7 +10,8 @@ import { clearCache } from '../../src/libs/cache';
 const SUMMARY_WITH_IMAGE = {
   type: 'standard',
   title: '3 Doors Down',
-  originalimage: { source: 'https://upload.wikimedia.org/a.jpg', width: 800, height: 600 },
+  originalimage: { source: 'https://upload.wikimedia.org/full.jpg', width: 3648, height: 1996 },
+  thumbnail: { source: 'https://upload.wikimedia.org/thumb.jpg', width: 330, height: 181 },
   content_urls: { desktop: { page: 'https://en.wikipedia.org/wiki/3_Doors_Down' } },
 };
 
@@ -60,10 +61,12 @@ describe('getPerformerImage', () => {
 
     const result = await getPerformerImage('3 Doors Down', 'Concerts');
 
+    // The thumbnail, not the original: the original is the full uploaded file
+    // and runs to several megabytes for an avatar rendered at 80px.
     expect(result).toEqual({
-      url: 'https://upload.wikimedia.org/a.jpg',
-      width: 800,
-      height: 600,
+      url: 'https://upload.wikimedia.org/thumb.jpg',
+      width: 330,
+      height: 181,
       sourcePage: 'https://en.wikipedia.org/wiki/3_Doors_Down',
       title: '3 Doors Down',
     });
@@ -90,6 +93,7 @@ describe('getPerformerImage', () => {
     const result = await getPerformerImage('AFI', 'Concerts');
 
     expect(result?.title).toBe('AFI (band)');
+    expect(result?.url).toBe('https://upload.wikimedia.org/thumb.jpg');
     expect(spy).toHaveBeenCalledTimes(3);
   });
 

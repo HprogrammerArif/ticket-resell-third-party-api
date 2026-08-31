@@ -74,7 +74,12 @@ async function wikiFetch(url: string): Promise<unknown | null> {
 function toImage(summary: WikiSummary): PerformerImage | null {
   if (summary.type !== 'standard') return null;
 
-  const img = summary.originalimage ?? summary.thumbnail;
+  // Thumbnail first, deliberately. originalimage is the full uploaded file —
+  // measured at 3648x1996 and 5 MB for one performer, against 330x181 and 19 KB
+  // for the thumbnail. These render at 80px and 120px in the avatars, so the
+  // original is 260x the bytes for no visible gain. The event hero sits behind a
+  // gradient at 25% opacity, where 330px is also sufficient.
+  const img = summary.thumbnail ?? summary.originalimage;
   if (!img?.source) return null;
 
   return {

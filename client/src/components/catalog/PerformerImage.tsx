@@ -5,6 +5,11 @@ import type { TnPerformerImage } from '@/types/Catalog';
 /**
  * Renders a performer photograph with its Creative Commons attribution.
  *
+ * The file is fetched through /api/images/proxy rather than directly: Wikimedia
+ * answers 403 to requests with no User-Agent and 429 to a generic browser one,
+ * and next/image uses its own agent when fetching a remote host. The proxy
+ * supplies the descriptive agent their policy requires.
+ *
  * Returns null when there is no image so the caller can render its own
  * placeholder — roughly one performer in ten has no photograph on Wikipedia,
  * and that must look deliberate rather than broken.
@@ -26,7 +31,7 @@ export function PerformerImage(props: {
   return (
     <figure className={props.className}>
       <Image
-        src={props.image.url}
+        src={`/api/images/proxy?url=${encodeURIComponent(props.image.url)}`}
         alt={t('alt', { name: props.name })}
         fill
         sizes={props.sizes ?? '(max-width: 768px) 100vw, 400px'}
