@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { getPerformerById, getPerformers, searchEvents } from '@/libs/CachedCatalogApi';
+import { getPerformerById, getPerformers, searchEvents, getPerformerImage } from '@/libs/CachedCatalogApi';
+import { PerformerImage } from '@/components/catalog/PerformerImage';
 import { ApiError } from '@/libs/ApiClient';
 import { ArtistCard } from '@/components/catalog/ArtistCard';
 import { ArtistCardSkeleton } from '@/components/catalog/ArtistCardSkeleton';
@@ -110,6 +111,8 @@ export default async function ArtistDetailPage(props: ArtistDetailPageProps) {
   const parentCategory = performer.defaultCategory?.ancestors?.[0]?.text.name;
   const categoryPath = performer.defaultCategory?.path;
 
+  const image = await getPerformerImage(performer.text.name, categoryName);
+
   return (
     <div className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
       {/* Category breadcrumb */}
@@ -128,12 +131,23 @@ export default async function ArtistDetailPage(props: ArtistDetailPageProps) {
       {/* Artist header */}
       <div className="mb-12 flex items-center gap-8 max-md:flex-col max-md:text-center">
         <div className="relative size-[120px] shrink-0 overflow-hidden rounded-full ring-4 ring-[var(--color-surface-border)]">
-          <div
-            className="flex size-full items-center justify-center text-[36px] font-semibold text-white"
-            style={{ backgroundColor: bgColor }}
-          >
-            {initials}
-          </div>
+          {image
+            ? (
+                <PerformerImage
+                  image={image}
+                  name={performer.text.name}
+                  className="absolute inset-0"
+                  sizes="120px"
+                />
+              )
+            : (
+                <div
+                  className="flex size-full items-center justify-center text-[36px] font-semibold text-white"
+                  style={{ backgroundColor: bgColor }}
+                >
+                  {initials}
+                </div>
+              )}
         </div>
 
         <div>
