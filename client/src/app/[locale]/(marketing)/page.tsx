@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 import Image from 'next/image';
 import { getTranslations, getFormatter, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/libs/I18nNavigation';
-import { getEvents, getCategories, getPerformers, getCities } from '@/libs/CachedCatalogApi';
+import { getEvents, getCategories, getPerformers, getPerformerImage, getCities } from '@/libs/CachedCatalogApi';
 import { EventCard } from '@/components/catalog/EventCard';
 import { EventCardSkeleton } from '@/components/catalog/EventCardSkeleton';
 import { ArtistCard } from '@/components/catalog/ArtistCard';
@@ -31,6 +31,7 @@ export async function HeroSection(props: { locale: string }) {
   const t = await getTranslations({ locale: props.locale, namespace: 'HomePage' });
   const format = await getFormatter({ locale: props.locale });
   const { results: events } = await getEvents({ pageSize: 5 });
+  console.log({events})
   const featured = events[0];
 
   return (
@@ -121,6 +122,7 @@ export async function SponsorSection() {
 export async function CategoriesSection(props: { locale: string }) {
   const t = await getTranslations({ locale: props.locale, namespace: 'HomePage' });
   const { results: categories } = await getCategories({ pageSize: 50, hasEvents: true });
+  console.log({categories})
 
   return (
     <section className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
@@ -176,6 +178,7 @@ export async function WeekendEventsSection(props: { locale: string }) {
   sunday.setDate(sunday.getDate() + (7 - sunday.getDay()));
   const dateToStr = sunday.toISOString().split('T')[0]!;
   const { results: events } = await getEvents({ dateFrom: today, dateTo: dateToStr, pageSize: 12 });
+  console.log({events})
 
   return (
     <section className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
@@ -214,6 +217,14 @@ export async function ArtistsSection(props: { locale: string }) {
   const t = await getTranslations({ locale: props.locale, namespace: 'HomePage' });
   const { results: performers } = await getPerformers({ pageSize: 12 });
 
+  // Promise.all rather than a loop: one slow Wikimedia lookup should not
+  // serialise the rest of the row.
+  const images = await Promise.all(
+    performers.map((p) =>
+      getPerformerImage(p.text.name, p.defaultCategory?.text.name),
+    ),
+  );
+
   return (
     <section className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
       <SectionHeading
@@ -222,9 +233,9 @@ export async function ArtistsSection(props: { locale: string }) {
         seeAllLabel={t('see_all_artists')}
       />
       <DragScrollContainer>
-        {performers.map((p) => (
+        {performers.map((p, i) => (
           <div key={p.id} className="w-[180px] shrink-0">
-            <ArtistCard performer={p} locale={props.locale} />
+            <ArtistCard performer={p} locale={props.locale} image={images[i]} />
           </div>
         ))}
       </DragScrollContainer>
@@ -251,6 +262,7 @@ export async function CityEventsSection(props: { locale: string }) {
   const t = await getTranslations({ locale: props.locale, namespace: 'HomePage' });
   const { results: cities } = await getCities({ pageSize: 8, hasEvents: true });
   if (cities.length === 0) return null;
+  console.log({cities})
 
   const cityGroups = await Promise.all(
     cities.slice(0, 6).map(async (city) => {
@@ -265,6 +277,8 @@ export async function CityEventsSection(props: { locale: string }) {
 
   const validGroups = cityGroups.filter((g) => g.events.length > 0);
   if (validGroups.length === 0) return null;
+
+  console.log({cityGroups})
 
   return (
     <section className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">

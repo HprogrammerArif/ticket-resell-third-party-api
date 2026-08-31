@@ -55,13 +55,19 @@ async function SimilarArtists(props: {
   const filtered = results.filter((p) => p.id !== props.currentId).slice(0, 6);
   if (filtered.length === 0) return null;
 
+  // Promise.all rather than a loop: one slow Wikimedia lookup should not
+  // serialise the rest of the row.
+  const images = await Promise.all(
+    filtered.map((p) => getPerformerImage(p.text.name, p.defaultCategory?.text.name)),
+  );
+
   return (
     <section className="mt-12">
       <SectionHeading title={t('similar_artists')} />
       <div className="flex gap-4 overflow-x-auto pb-4">
-        {filtered.map((p) => (
+        {filtered.map((p, i) => (
           <div key={p.id} className="min-w-[160px]">
-            <ArtistCard performer={p} locale={props.locale} />
+            <ArtistCard performer={p} locale={props.locale} image={images[i]} />
           </div>
         ))}
       </div>
