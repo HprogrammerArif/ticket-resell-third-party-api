@@ -45,10 +45,14 @@ export default function proxy(request: NextRequest, _event: NextFetchEvent) {
 export const config = {
   // Match all pathnames except for
   // - … if they start with `/_next`, `/_vercel`, `monitoring`, or `/api`
+  // - … `/admin`, which lives outside the `[locale]` segment. The admin console
+  //   is single-language and its routes are `/admin/*`, not `/en/admin/*`, so
+  //   next-intl's router has no matching route and answers 404 for every one of
+  //   them. Excluding it here is what makes the admin console reachable at all.
   // - … ones ending in a real file extension (e.g. `favicon.ico`, `logo.png`).
   //   Anchored at the end with `\.\w+$` (a dot followed by word characters), not
   //   "contains a dot anywhere" — TicketNetwork category paths look like
   //   `/categories/.1128.1130.` (trailing dot, no extension chars after it) and
   //   must still hit i18n routing.
-  matcher: '/((?!_next|_vercel|monitoring|api|.*\\.\\w+$).*)',
+  matcher: '/((?!_next|_vercel|monitoring|api|admin|.*\\.\\w+$).*)',
 };
