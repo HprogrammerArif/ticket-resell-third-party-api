@@ -56,7 +56,7 @@ async function ArtistsGrid(props: {
     <>
       <div className="grid grid-cols-6 gap-4 max-xl:grid-cols-4 max-md:grid-cols-2">
         {result.results.map((p, i) => (
-          <ArtistCard key={p.id} performer={p} locale={props.locale} image={images[i]} />
+          <ArtistCard key={p.id} performer={p} locale={props.locale} image={images[i] ?? null} />
         ))}
       </div>
       <Pagination

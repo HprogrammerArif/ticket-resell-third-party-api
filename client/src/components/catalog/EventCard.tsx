@@ -1,6 +1,7 @@
 import { useTranslations } from 'next-intl';
 import { Link } from '@/libs/I18nNavigation';
-import type { TnEvent } from '@/types/Catalog';
+import { PerformerImage } from '@/components/catalog/PerformerImage';
+import type { TnEvent, TnPerformerImage } from '@/types/Catalog';
 
 /** Build a readable location string from the nested event objects. */
 function eventLocation(event: TnEvent): string {
@@ -31,7 +32,18 @@ function categoryVisual(name?: string): { gradient: string; emoji: string } {
   return { gradient: 'from-[#1a1a2e] to-[#16213e]', emoji: '🎟️' };
 }
 
-export function EventCard(props: { event: TnEvent; locale?: string }) {
+/**
+ * `image` is deliberately required rather than optional. There are eight call
+ * sites; an optional prop lets one be forgotten, and the card then renders its
+ * gradient with no error and a passing type check — a defect only a human
+ * looking at the page can catch. Required, the compiler catches it instead.
+ * Pass null where there is genuinely no photograph.
+ */
+export function EventCard(props: {
+  event: TnEvent;
+  locale?: string;
+  image: TnPerformerImage | null;
+}) {
   const t = useTranslations('EventCard');
   const { event } = props;
 
@@ -50,6 +62,7 @@ export function EventCard(props: { event: TnEvent; locale?: string }) {
   const lowPrice = event.pricingInfo?.lowPrice?.value;
   const ticketCount = event._metadata?.ticketCount ?? 0;
   const hasTickets = event._metadata?.hasTickets ?? false;
+  const headliner = event.performers?.[0]?.name;
 
   return (
     <Link
@@ -57,11 +70,29 @@ export function EventCard(props: { event: TnEvent; locale?: string }) {
       draggable={false}
       className="group block select-none overflow-hidden rounded-2xl border border-[var(--color-surface-border)] bg-[var(--color-surface-raised)] transition-all hover:border-[var(--color-brand-muted)] hover:shadow-lg hover:shadow-[var(--color-brand-subtle)]"
     >
-      {/* Visual header with category-themed gradient */}
+      {/* Visual header: the headliner's photograph when Wikimedia has one,
+          otherwise the category gradient and emoji it has always used. */}
       <div className={`relative h-44 w-full bg-gradient-to-br ${gradient} flex items-center justify-center overflow-hidden`}>
-        <span className="text-6xl opacity-30 transition-transform group-hover:scale-110">
-          {emoji}
-        </span>
+        {props.image && headliner
+          ? (
+              <>
+                <PerformerImage
+                  image={props.image}
+                  name={headliner}
+                  className="absolute inset-0 transition-transform duration-300 group-hover:scale-105"
+                  imgClassName="object-[50%_20%]"
+                  sizes="(max-width: 768px) 100vw, 340px"
+                />
+                {/* Scrim. The badges below are white on a photograph we do not
+                    control, so they need a guaranteed dark ground beneath. */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-black/45" />
+              </>
+            )
+          : (
+              <span className="text-6xl opacity-30 transition-transform group-hover:scale-110">
+                {emoji}
+              </span>
+            )}
 
         {/* Category badge */}
         {categoryName && (

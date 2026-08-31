@@ -18,6 +18,7 @@ import { CityEventsTabs } from '@/components/catalog/CityEventsTabs';
 import { GiftCardBanner } from '@/components/catalog/GiftCardBanner';
 import { HowItWorksSection } from '@/components/catalog/HowItWorksSection';
 import { StatsSection } from '@/components/catalog/StatsSection';
+import { getEventImages } from '@/libs/EventImage';
 
 type HomePageProps = { params: Promise<{ locale: string }> };
 
@@ -179,6 +180,7 @@ export async function WeekendEventsSection(props: { locale: string }) {
   const dateToStr = sunday.toISOString().split('T')[0]!;
   const { results: events } = await getEvents({ dateFrom: today, dateTo: dateToStr, pageSize: 12 });
   console.log({events})
+  const eventImages = await getEventImages(events);
 
   return (
     <section className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
@@ -188,9 +190,9 @@ export async function WeekendEventsSection(props: { locale: string }) {
         seeAllLabel={t('see_all_events')}
       />
       <DragScrollContainer autoStep={true} stepInterval={3000} stepDistance={346}>
-        {events.map((ev) => (
+        {events.map((ev, i) => (
           <div key={ev.id} className="w-[300px] shrink-0 sm:w-[330px]">
-            <EventCard event={ev} locale={props.locale} />
+            <EventCard event={ev} locale={props.locale} image={eventImages[i] ?? null} />
           </div>
         ))}
       </DragScrollContainer>
@@ -235,7 +237,7 @@ export async function ArtistsSection(props: { locale: string }) {
       <DragScrollContainer>
         {performers.map((p, i) => (
           <div key={p.id} className="w-[180px] shrink-0">
-            <ArtistCard performer={p} locale={props.locale} image={images[i]} />
+            <ArtistCard performer={p} locale={props.locale} image={images[i] ?? null} />
           </div>
         ))}
       </DragScrollContainer>
@@ -271,6 +273,7 @@ export async function CityEventsSection(props: { locale: string }) {
         cityName: city.text.name,
         state: city.stateProvince?.text.abbr ?? '',
         events,
+        images: await getEventImages(events),
       };
     }),
   );

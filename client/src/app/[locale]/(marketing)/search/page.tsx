@@ -6,6 +6,7 @@ import { EventCard } from '@/components/catalog/EventCard';
 import { EventCardSkeleton } from '@/components/catalog/EventCardSkeleton';
 import { SectionHeading } from '@/components/catalog/SectionHeading';
 import { Link } from '@/libs/I18nNavigation';
+import { getEventImages } from '@/libs/EventImage';
 
 type SearchPageProps = {
   params: Promise<{ locale: string }>;
@@ -33,6 +34,7 @@ async function SearchResults(props: { q: string; locale: string }) {
   const cities = suggest.cities.results;
 
   const hasResults = events.length > 0 || performers.length > 0 || venues.length > 0;
+  const images = await getEventImages(events);
 
   if (!hasResults) {
     return (
@@ -49,8 +51,8 @@ async function SearchResults(props: { q: string; locale: string }) {
         <section>
           <SectionHeading title={`${t('events_heading')} (${eventsResult.totalCount})`} />
           <div className="grid grid-cols-3 gap-4 max-lg:grid-cols-2 max-sm:grid-cols-1">
-            {events.map((ev) => (
-              <EventCard key={ev.id} event={ev} locale={props.locale} />
+            {events.map((ev, i) => (
+              <EventCard key={ev.id} event={ev} locale={props.locale} image={images[i] ?? null} />
             ))}
           </div>
           {eventsResult.totalCount > 8 && (

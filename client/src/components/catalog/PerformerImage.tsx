@@ -14,12 +14,16 @@ import type { TnPerformerImage } from '@/types/Catalog';
  * placeholder — roughly one performer in ten has no photograph on Wikipedia,
  * and that must look deliberate rather than broken.
  * @param props - The resolved image, the performer's name, and optional styling.
+ *   imgClassName tunes the crop: Wikimedia portraits cropped into a wide band
+ *   lose the face at the default centre, so callers with landscape frames pass
+ *   an object-position that keeps it.
  * @returns The image with attribution, or null when there is nothing to show.
  */
 export function PerformerImage(props: {
   image: TnPerformerImage | null;
   name: string;
   className?: string;
+  imgClassName?: string;
   sizes?: string;
 }) {
   const t = useTranslations('PerformerImage');
@@ -35,7 +39,7 @@ export function PerformerImage(props: {
         alt={t('alt', { name: props.name })}
         fill
         sizes={props.sizes ?? '(max-width: 768px) 100vw, 400px'}
-        className="object-cover"
+        className={`object-cover ${props.imgClassName ?? ''}`}
       />
       <figcaption className="sr-only">
         <a href={props.image.sourcePage} target="_blank" rel="noopener noreferrer">

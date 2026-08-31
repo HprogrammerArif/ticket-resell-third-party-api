@@ -10,6 +10,7 @@ import { ArtistCardSkeleton } from '@/components/catalog/ArtistCardSkeleton';
 import { EventCard } from '@/components/catalog/EventCard';
 import { EventCardSkeleton } from '@/components/catalog/EventCardSkeleton';
 import { SectionHeading } from '@/components/catalog/SectionHeading';
+import { getEventImages } from '@/libs/EventImage';
 
 type ArtistDetailPageProps = {
   params: Promise<{ locale: string; id: string }>;
@@ -35,10 +36,12 @@ async function ArtistTourDates(props: { performerName: string; locale: string })
     return <p className="text-[var(--color-text-muted)]">{t('no_events')}</p>;
   }
 
+  const images = await getEventImages(results);
+
   return (
     <div className="grid grid-cols-2 gap-4 max-sm:grid-cols-1">
-      {results.map((ev) => (
-        <EventCard key={ev.id} event={ev} locale={props.locale} />
+      {results.map((ev, i) => (
+        <EventCard key={ev.id} event={ev} locale={props.locale} image={images[i] ?? null} />
       ))}
     </div>
   );
@@ -67,7 +70,7 @@ async function SimilarArtists(props: {
       <div className="flex gap-4 overflow-x-auto pb-4">
         {filtered.map((p, i) => (
           <div key={p.id} className="min-w-[160px]">
-            <ArtistCard performer={p} locale={props.locale} image={images[i]} />
+            <ArtistCard performer={p} locale={props.locale} image={images[i] ?? null} />
           </div>
         ))}
       </div>

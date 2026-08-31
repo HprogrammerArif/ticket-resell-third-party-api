@@ -3,12 +3,17 @@
 import { useState } from 'react';
 import { Link } from '@/libs/I18nNavigation';
 import { EventCard } from '@/components/catalog/EventCard';
-import type { TnEvent } from '@/types/Catalog';
+import type { TnEvent, TnPerformerImage } from '@/types/Catalog';
 
 export type CityEventGroup = {
   cityName: string;
   state?: string;
   events: TnEvent[];
+  /**
+   * Positionally aligned with `events`. Resolved by the server parent because
+   * this is a client component and cannot await a Wikimedia lookup itself.
+   */
+  images: (TnPerformerImage | null)[];
 };
 
 interface CityEventsTabsProps {
@@ -68,8 +73,13 @@ export function CityEventsTabs({
       {/* Events Grid for Active City */}
       {currentGroup.events.length > 0 ? (
         <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-sm:grid-cols-1">
-          {currentGroup.events.map((ev) => (
-            <EventCard key={ev.id} event={ev} locale={locale} />
+          {currentGroup.events.map((ev, i) => (
+            <EventCard
+              key={ev.id}
+              event={ev}
+              locale={locale}
+              image={currentGroup.images[i] ?? null}
+            />
           ))}
         </div>
       ) : (

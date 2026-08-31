@@ -8,6 +8,7 @@ import { EventCardSkeleton } from '@/components/catalog/EventCardSkeleton';
 import { Pagination } from '@/components/catalog/Pagination';
 import { EventsPageClient } from '@/components/catalog/EventsPageClient';
 import type { EventFilters } from '@/components/catalog/EventsFilterSidebar';
+import { getEventImages } from '@/libs/EventImage';
 
 type EventsPageProps = {
   params: Promise<{ locale: string }>;
@@ -83,6 +84,8 @@ async function EventsGrid(props: {
 
   const isListView = props.view === 'list';
 
+  const images = await getEventImages(result.results);
+
   return (
     <>
       <div
@@ -98,7 +101,7 @@ async function EventsGrid(props: {
             className="animate-[fadeInUp_0.4s_ease-out_both]"
             style={{ animationDelay: `${i * 50}ms` }}
           >
-            <EventCard event={ev} locale={props.locale} />
+            <EventCard event={ev} locale={props.locale} image={images[i] ?? null} />
           </div>
         ))}
       </div>
@@ -157,6 +160,7 @@ export default async function EventsPage(props: EventsPageProps) {
   let cities: { id: number; name: string; eventCount: number }[] = [];
   try {
     const citiesResult = await getCities({ hasEvents: true, pageSize: 20 });
+    console.log({citiesResult})
     cities = citiesResult.results.map(c => ({
       id: c.id,
       name: c.text.name,
@@ -176,6 +180,8 @@ export default async function EventsPage(props: EventsPageProps) {
   } catch {
     // Non-critical — sort bar will show 0
   }
+
+  console.log({totalCount , view, cities})
 
   return (
     <div className="mx-auto max-w-[1440px] px-[107px] py-10 max-md:px-4">

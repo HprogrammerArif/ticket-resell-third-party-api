@@ -11,6 +11,7 @@ import { MapWidgetEmbed } from '@/components/catalog/MapWidgetEmbed';
 import { PerformerImage } from '@/components/catalog/PerformerImage';
 import { Link } from '@/libs/I18nNavigation';
 import type { TnEvent, TnVenue } from '@/types/Catalog';
+import { getEventImages } from '@/libs/EventImage';
 
 type EventDetailPageProps = {
   params: Promise<{ locale: string; id: string }>;
@@ -37,14 +38,15 @@ async function SimilarEvents(props: { categoryPath?: string; locale: string; cur
   if (filtered.length === 0) return null;
 
   const t = await getTranslations({ locale: props.locale, namespace: 'EventDetailPage' });
+  const images = await getEventImages(filtered);
 
   return (
     <section className="mt-16 border-t border-[var(--color-surface-border)] pt-12">
       <SectionHeading title={t('similar_events')} />
       <div className="flex gap-4 overflow-x-auto pb-4">
-        {filtered.map((ev) => (
+        {filtered.map((ev, i) => (
           <div key={ev.id} className="min-w-[280px]">
-            <EventCard event={ev} locale={props.locale} />
+            <EventCard event={ev} locale={props.locale} image={images[i] ?? null} />
           </div>
         ))}
       </div>

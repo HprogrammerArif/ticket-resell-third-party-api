@@ -10,6 +10,7 @@ import { Pagination } from '@/components/catalog/Pagination';
 import { CategoryHeroBanner } from '@/components/catalog/CategoryHeroBanner';
 import { Link } from '@/libs/I18nNavigation';
 import type { TnCategory, TnPerformer } from '@/types/Catalog';
+import { getEventImages } from '@/libs/EventImage';
 
 type CategoriesPageProps = {
   params: Promise<{ locale: string; path: string[] }>;
@@ -212,6 +213,7 @@ async function CategoryEvents(props: {
   }
 
   const totalPages = Math.ceil(result.totalCount / pageSize);
+  const images = await getEventImages(result.results);
   const searchParamsToForward: Record<string, string> = {};
   if (props.dateFrom) searchParamsToForward.dateFrom = props.dateFrom;
   if (props.dateTo) searchParamsToForward.dateTo = props.dateTo;
@@ -224,8 +226,8 @@ async function CategoryEvents(props: {
         </p>
       </div>
       <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-sm:grid-cols-1">
-        {result.results.map((ev) => (
-          <EventCard key={ev.id} event={ev} locale={props.locale} />
+        {result.results.map((ev, i) => (
+          <EventCard key={ev.id} event={ev} locale={props.locale} image={images[i] ?? null} />
         ))}
       </div>
       <Pagination
