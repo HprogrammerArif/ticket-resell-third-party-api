@@ -437,5 +437,9 @@
     "heading": "Policies",
     "intro": "Purchase, delivery, refund and privacy terms for orders placed through Ticket Love. Orders are fulfilled by TicketNetwork, who act as the merchant of record.",
     "embed_title": "Ticket purchase and privacy policies"
+  },
+  "PerformerImage": {
+    "attribution": "Photo via Wikimedia Commons",
+    "alt": "Photograph of {name}"
   }
 }

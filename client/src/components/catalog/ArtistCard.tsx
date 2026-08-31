@@ -1,6 +1,7 @@
 import { useTranslations } from 'next-intl';
 import { Link } from '@/libs/I18nNavigation';
-import type { TnPerformer } from '@/types/Catalog';
+import { PerformerImage } from '@/components/catalog/PerformerImage';
+import type { TnPerformer, TnPerformerImage } from '@/types/Catalog';
 
 /** Generate a deterministic HSL color from performer name for visual variety. */
 function nameToColor(name: string): string {
@@ -13,7 +14,11 @@ function nameToColor(name: string): string {
   return `hsl(${hue}, 55%, 40%)`;
 }
 
-export function ArtistCard(props: { performer: TnPerformer; locale?: string }) {
+export function ArtistCard(props: {
+  performer: TnPerformer;
+  locale?: string;
+  image?: TnPerformerImage | null;
+}) {
   const t = useTranslations('ArtistCard');
   const { performer } = props;
 
@@ -35,14 +40,27 @@ export function ArtistCard(props: { performer: TnPerformer; locale?: string }) {
       draggable={false}
       className="group flex select-none flex-col items-center gap-3 rounded-2xl border border-[var(--color-surface-border)] bg-[var(--color-surface-raised)] p-5 text-center transition-all hover:border-[var(--color-brand-muted)] hover:shadow-lg hover:shadow-[var(--color-brand-subtle)]"
     >
-      {/* Avatar with unique color */}
+      {/* Avatar — photograph when Wikimedia has one, initials otherwise. The
+          initials fallback already looked deliberate, so it stays as-is for the
+          roughly one performer in ten with no photograph. */}
       <div className="relative size-20 overflow-hidden rounded-full ring-2 ring-transparent transition-all group-hover:ring-[var(--color-brand)]">
-        <div
-          className="flex size-full items-center justify-center text-[22px] font-bold text-white"
-          style={{ backgroundColor: bgColor }}
-        >
-          {initials}
-        </div>
+        {props.image
+          ? (
+              <PerformerImage
+                image={props.image}
+                name={performer.text.name}
+                className="absolute inset-0"
+                sizes="80px"
+              />
+            )
+          : (
+              <div
+                className="flex size-full items-center justify-center text-[22px] font-bold text-white"
+                style={{ backgroundColor: bgColor }}
+              >
+                {initials}
+              </div>
+            )}
       </div>
 
       {/* Name */}

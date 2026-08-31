@@ -205,3 +205,34 @@ When a decision changes, update the entry and add a note in `CHANGELOG.md`. Do n
 - Backend errors go to Pino (`server/src/libs/logger.ts`) and land in `docker compose logs`, capped at 10 MB × 3 files per container.
 - **Open gap:** there is no aggregated error tracking and no alerting. An unhandled exception in production is invisible until someone reads the logs or a user reports it. Uptime monitoring (Phase I3) catches *down*, not *broken*.
 - **Revisit before launch.** Options if error tracking is wanted again: Sentry's free tier, GlitchTip (self-hostable, Sentry-SDK-compatible), Highlight, or shipping Pino output to a log service. If any Sentry-compatible SDK returns, the scrubbing rule applies — passwords, tokens, and gift card codes must never leave the server.
+
+---
+
+## ADR-013 — Performer Imagery: Wikimedia Commons Only
+
+**Date:** 2026-08-31 | **Status:** Active
+
+**Context:** TicketNetwork's CatalogAPI carries no image fields at all — verified across 119 model definitions and 147 live fields on events, performers, venues and categories. Ticketmaster's Discovery API was rejected on licensing. Photographs are therefore resolved from Wikipedia by performer name, which covers roughly 9 in 10 acts.
+
+Wikipedia serves image files from two different roots, and the distinction is a licensing one:
+
+| Root | What lives there |
+|---|---|
+| `/wikipedia/commons/` | Wikimedia Commons — every file carries a free licence |
+| `/wikipedia/en/` | English Wikipedia's local uploads — **where non-free files live** |
+
+Files in the second group are kept under a fair-use rationale written for an encyclopedia. That rationale does not extend to a commercial ticket resale business. A sample of 25 live performers surfaced one such file, named `Fairuse_Gruffalo.jpg`, which was being served to visitors.
+
+**Decision:** Accept only files whose URL is on `upload.wikimedia.org` under `/wikipedia/commons/`. Everything else resolves to null and the card falls back to its category gradient.
+
+The rule is enforced in two independent places:
+
+1. `server/src/modules/images/service.ts` — rejects a non-free file *before* the search stage, so a performer whose main article carries a non-free image can still resolve through search.
+2. `client/src/app/api/images/proxy/route.ts` — the last point before bytes reach a browser. It does not assume the resolver is correct.
+
+**Consequences:**
+- Coverage is unaffected. Over the same 25 performers, 22 resolve to a Commons photograph both before and after the filter.
+- The caption "Photo via Wikimedia Commons" is now true by construction; it was false for local uploads.
+- A performer with only a non-free photograph gets a gradient. That is the intended outcome — a plain visual is worth more than a licence we do not hold.
+- Commons files still carry attribution requirements. The source page is linked from an `sr-only` caption where the markup allows it (see the nested-anchor constraint in `PerformerImage`).
+- **Not covered:** this filters by hosting root, which is a reliable proxy for licence but not a reading of the licence itself. A Commons file may still be CC BY-SA and require specific attribution wording. If Steven wants belt-and-braces, the Commons API can return per-file licence metadata; that is extra requests per image and was judged not worth it at this coverage level.

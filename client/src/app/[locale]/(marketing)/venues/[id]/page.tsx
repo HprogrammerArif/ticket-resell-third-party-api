@@ -7,6 +7,7 @@ import { ApiError } from '@/libs/ApiClient';
 import { EventCard } from '@/components/catalog/EventCard';
 import { EventCardSkeleton } from '@/components/catalog/EventCardSkeleton';
 import { SectionHeading } from '@/components/catalog/SectionHeading';
+import { getEventImages } from '@/libs/EventImage';
 
 type VenueDetailPageProps = {
   params: Promise<{ locale: string; id: string }>;
@@ -32,10 +33,12 @@ async function VenueEvents(props: { city: string; locale: string }) {
     return <p className="text-[var(--color-text-muted)]">{t('no_events')}</p>;
   }
 
+  const images = await getEventImages(results);
+
   return (
     <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-sm:grid-cols-1">
-      {results.map((ev) => (
-        <EventCard key={ev.id} event={ev} locale={props.locale} />
+      {results.map((ev, i) => (
+        <EventCard key={ev.id} event={ev} locale={props.locale} image={images[i] ?? null} />
       ))}
     </div>
   );

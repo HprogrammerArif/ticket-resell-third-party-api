@@ -221,3 +221,13 @@ export const globalSuggest = unstable_cache(
   ['catalog-global-suggest'],
   { revalidate: TTL.SUGGEST, tags: ['catalog', 'suggest'] },
 );
+
+// ─── Performer imagery ────────────────────────────────────────────────────────
+
+// A performer's photograph is far more stable than a ticket price, so this TTL
+// is deliberately much longer than every other entry in this file.
+export const getPerformerImage = unstable_cache(
+  (name: string, category?: string) => CatalogApi.getPerformerImage(name, category),
+  ['performer-image'],
+  { revalidate: 7 * 24 * 60 * 60, tags: ['performer-image'] },
+);

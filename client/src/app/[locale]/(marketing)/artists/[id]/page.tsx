@@ -2,13 +2,15 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { getPerformerById, getPerformers, searchEvents } from '@/libs/CachedCatalogApi';
+import { getPerformerById, getPerformers, searchEvents, getPerformerImage } from '@/libs/CachedCatalogApi';
+import { PerformerImage } from '@/components/catalog/PerformerImage';
 import { ApiError } from '@/libs/ApiClient';
 import { ArtistCard } from '@/components/catalog/ArtistCard';
 import { ArtistCardSkeleton } from '@/components/catalog/ArtistCardSkeleton';
 import { EventCard } from '@/components/catalog/EventCard';
 import { EventCardSkeleton } from '@/components/catalog/EventCardSkeleton';
 import { SectionHeading } from '@/components/catalog/SectionHeading';
+import { getEventImages } from '@/libs/EventImage';
 
 type ArtistDetailPageProps = {
   params: Promise<{ locale: string; id: string }>;
@@ -34,10 +36,12 @@ async function ArtistTourDates(props: { performerName: string; locale: string })
     return <p className="text-[var(--color-text-muted)]">{t('no_events')}</p>;
   }
 
+  const images = await getEventImages(results);
+
   return (
     <div className="grid grid-cols-2 gap-4 max-sm:grid-cols-1">
-      {results.map((ev) => (
-        <EventCard key={ev.id} event={ev} locale={props.locale} />
+      {results.map((ev, i) => (
+        <EventCard key={ev.id} event={ev} locale={props.locale} image={images[i] ?? null} />
       ))}
     </div>
   );
@@ -54,13 +58,19 @@ async function SimilarArtists(props: {
   const filtered = results.filter((p) => p.id !== props.currentId).slice(0, 6);
   if (filtered.length === 0) return null;
 
+  // Promise.all rather than a loop: one slow Wikimedia lookup should not
+  // serialise the rest of the row.
+  const images = await Promise.all(
+    filtered.map((p) => getPerformerImage(p.text.name, p.defaultCategory?.text.name)),
+  );
+
   return (
     <section className="mt-12">
       <SectionHeading title={t('similar_artists')} />
       <div className="flex gap-4 overflow-x-auto pb-4">
-        {filtered.map((p) => (
+        {filtered.map((p, i) => (
           <div key={p.id} className="min-w-[160px]">
-            <ArtistCard performer={p} locale={props.locale} />
+            <ArtistCard performer={p} locale={props.locale} image={images[i] ?? null} />
           </div>
         ))}
       </div>
@@ -110,6 +120,8 @@ export default async function ArtistDetailPage(props: ArtistDetailPageProps) {
   const parentCategory = performer.defaultCategory?.ancestors?.[0]?.text.name;
   const categoryPath = performer.defaultCategory?.path;
 
+  const image = await getPerformerImage(performer.text.name, categoryName);
+
   return (
     <div className="mx-auto max-w-[1440px] px-[107px] py-16 max-md:px-4">
       {/* Category breadcrumb */}
@@ -128,12 +140,24 @@ export default async function ArtistDetailPage(props: ArtistDetailPageProps) {
       {/* Artist header */}
       <div className="mb-12 flex items-center gap-8 max-md:flex-col max-md:text-center">
         <div className="relative size-[120px] shrink-0 overflow-hidden rounded-full ring-4 ring-[var(--color-surface-border)]">
-          <div
-            className="flex size-full items-center justify-center text-[36px] font-semibold text-white"
-            style={{ backgroundColor: bgColor }}
-          >
-            {initials}
-          </div>
+          {image
+            ? (
+                <PerformerImage
+                  image={image}
+                  name={performer.text.name}
+                  className="absolute inset-0"
+                  sizes="120px"
+                  linkAttribution
+                />
+              )
+            : (
+                <div
+                  className="flex size-full items-center justify-center text-[36px] font-semibold text-white"
+                  style={{ backgroundColor: bgColor }}
+                >
+                  {initials}
+                </div>
+              )}
         </div>
 
         <div>

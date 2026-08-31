@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { getPerformers } from '@/libs/CachedCatalogApi';
+import { getPerformers, getPerformerImage } from '@/libs/CachedCatalogApi';
 import { ArtistCard } from '@/components/catalog/ArtistCard';
 import { ArtistCardSkeleton } from '@/components/catalog/ArtistCardSkeleton';
 import { SectionHeading } from '@/components/catalog/SectionHeading';
@@ -33,6 +33,14 @@ async function ArtistsGrid(props: {
     pageSize,
   });
 
+  // Promise.all rather than a loop: one slow Wikimedia lookup should not
+  // serialise the rest of the grid.
+  const images = await Promise.all(
+    result.results.map((p) =>
+      getPerformerImage(p.text.name, p.defaultCategory?.text.name),
+    ),
+  );
+
   if (result.results.length === 0) {
     return (
       <p className="py-12 text-center text-[var(--color-text-muted)]">{t('no_artists')}</p>
@@ -47,8 +55,8 @@ async function ArtistsGrid(props: {
   return (
     <>
       <div className="grid grid-cols-6 gap-4 max-xl:grid-cols-4 max-md:grid-cols-2">
-        {result.results.map((p) => (
-          <ArtistCard key={p.id} performer={p} locale={props.locale} />
+        {result.results.map((p, i) => (
+          <ArtistCard key={p.id} performer={p} locale={props.locale} image={images[i] ?? null} />
         ))}
       </div>
       <Pagination
