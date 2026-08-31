@@ -147,6 +147,7 @@ export default async function ArtistDetailPage(props: ArtistDetailPageProps) {
                   name={performer.text.name}
                   className="absolute inset-0"
                   sizes="120px"
+                  linkAttribution
                 />
               )
             : (
