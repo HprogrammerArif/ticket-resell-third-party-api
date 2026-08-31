@@ -11,6 +11,17 @@ const USER_AGENT = 'TicketLove/1.0 (https://ticketlove.net; work.mohammedarif@gm
 /** The only host this proxy will fetch. Without it this is an open proxy. */
 const ALLOWED_HOST = 'upload.wikimedia.org';
 
+/**
+ * The only path root this proxy will fetch.
+ *
+ * Commons files are freely licensed. Everything under /wikipedia/en/ is
+ * English Wikipedia's local upload area, which holds non-free material kept
+ * under a fair-use rationale that does not extend to a commercial site. The
+ * resolver already filters these out; this is the second gate, because this
+ * route is the last point before the bytes reach a visitor's browser.
+ */
+const ALLOWED_PATH_PREFIX = '/wikipedia/commons/';
+
 const CACHE_SECONDS = 7 * 24 * 60 * 60;
 
 export async function GET(request: Request) {
@@ -31,6 +42,10 @@ export async function GET(request: Request) {
   // internal services this server can see and the caller cannot.
   if (target.protocol !== 'https:' || target.hostname !== ALLOWED_HOST) {
     return NextResponse.json({ error: 'host is not allowed' }, { status: 400 });
+  }
+
+  if (!target.pathname.startsWith(ALLOWED_PATH_PREFIX)) {
+    return NextResponse.json({ error: 'file is not freely licensed' }, { status: 400 });
   }
 
   const upstream = await fetch(target, {

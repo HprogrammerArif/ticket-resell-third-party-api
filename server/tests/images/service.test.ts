@@ -10,8 +10,8 @@ import { clearCache } from '../../src/libs/cache';
 const SUMMARY_WITH_IMAGE = {
   type: 'standard',
   title: '3 Doors Down',
-  originalimage: { source: 'https://upload.wikimedia.org/full.jpg', width: 3648, height: 1996 },
-  thumbnail: { source: 'https://upload.wikimedia.org/thumb.jpg', width: 330, height: 181 },
+  originalimage: { source: 'https://upload.wikimedia.org/wikipedia/commons/a/ab/3_Doors_Down.jpg', width: 3648, height: 1996 },
+  thumbnail: { source: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/3_Doors_Down.jpg/330px-3_Doors_Down.jpg', width: 330, height: 181 },
   content_urls: { desktop: { page: 'https://en.wikipedia.org/wiki/3_Doors_Down' } },
 };
 
@@ -19,6 +19,23 @@ const SUMMARY_DISAMBIGUATION = {
   type: 'disambiguation',
   title: 'AFI',
   content_urls: { desktop: { page: 'https://en.wikipedia.org/wiki/AFI' } },
+};
+
+/**
+ * English Wikipedia's local upload area — the /wikipedia/en/ root, where
+ * non-free files kept under a fair-use rationale are stored. Modelled on a
+ * real result: The Gruffalo resolved to a file literally named
+ * Fairuse_Gruffalo.jpg.
+ */
+const SUMMARY_NON_FREE_IMAGE = {
+  type: 'standard',
+  title: 'The Gruffalo',
+  thumbnail: {
+    source: 'https://upload.wikimedia.org/wikipedia/en/3/34/Fairuse_Gruffalo.jpg',
+    width: 230,
+    height: 286,
+  },
+  content_urls: { desktop: { page: 'https://en.wikipedia.org/wiki/The_Gruffalo' } },
 };
 
 const SUMMARY_NO_IMAGE = {
@@ -64,7 +81,7 @@ describe('getPerformerImage', () => {
     // The thumbnail, not the original: the original is the full uploaded file
     // and runs to several megabytes for an avatar rendered at 80px.
     expect(result).toEqual({
-      url: 'https://upload.wikimedia.org/thumb.jpg',
+      url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/3_Doors_Down.jpg/330px-3_Doors_Down.jpg',
       width: 330,
       height: 181,
       sourcePage: 'https://en.wikipedia.org/wiki/3_Doors_Down',
@@ -93,7 +110,9 @@ describe('getPerformerImage', () => {
     const result = await getPerformerImage('AFI', 'Concerts');
 
     expect(result?.title).toBe('AFI (band)');
-    expect(result?.url).toBe('https://upload.wikimedia.org/thumb.jpg');
+    expect(result?.url).toBe(
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/3_Doors_Down.jpg/330px-3_Doors_Down.jpg',
+    );
     expect(spy).toHaveBeenCalledTimes(3);
   });
 
@@ -131,6 +150,50 @@ describe('getPerformerImage', () => {
     ));
 
     await expect(getPerformerImage('Anyone', 'Concerts')).resolves.toBeNull();
+  });
+
+  it('rejects a non-free image hosted outside Wikimedia Commons', async () => {
+    // Files under /wikipedia/en/ are English Wikipedia's local uploads, which
+    // is where fair-use material lives. That rationale covers an encyclopedia,
+    // not a commercial ticket site, so the card falls back to its gradient.
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(jsonResponse(SUMMARY_NON_FREE_IMAGE))
+      .mockResolvedValueOnce(jsonResponse({ query: { search: [] } }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    expect(await getPerformerImage('The Gruffalo', 'Theatre')).toBeNull();
+  });
+
+  it('falls through to search when the direct hit is non-free', async () => {
+    // Rejecting the non-free file must not end the resolution: the search
+    // stage may still reach a different article carrying a Commons photo.
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(jsonResponse(SUMMARY_NON_FREE_IMAGE))
+      .mockResolvedValueOnce(jsonResponse({ query: { search: [{ title: '3 Doors Down' }] } }))
+      .mockResolvedValueOnce(jsonResponse(SUMMARY_WITH_IMAGE));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await getPerformerImage('The Gruffalo', 'Theatre');
+
+    expect(result?.url).toContain('/wikipedia/commons/');
+  });
+
+  it('rejects an image served from a host other than upload.wikimedia.org', async () => {
+    const impostor = {
+      ...SUMMARY_WITH_IMAGE,
+      thumbnail: {
+        source: 'https://evil.example.com/wikipedia/commons/thumb/x.jpg',
+        width: 330,
+        height: 181,
+      },
+      originalimage: undefined,
+    };
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(jsonResponse(impostor))
+      .mockResolvedValueOnce(jsonResponse({ query: { search: [] } }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    expect(await getPerformerImage('Impostor', 'Concerts')).toBeNull();
   });
 
   it('caches a miss so it is not re-queried on every call', async () => {

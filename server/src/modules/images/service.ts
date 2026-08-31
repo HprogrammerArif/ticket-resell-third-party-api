@@ -71,6 +71,36 @@ async function wikiFetch(url: string): Promise<unknown | null> {
   }
 }
 
+/**
+ * Whether a file is safe for a commercial site to display.
+ *
+ * Wikipedia serves images from two roots and only one carries a free licence.
+ * /wikipedia/commons/ is Wikimedia Commons, where every file is freely
+ * licensed. /wikipedia/en/ is English Wikipedia's local upload area, which is
+ * precisely where non-free files live: material kept under a fair-use
+ * rationale written for Wikipedia's own encyclopedic use, which does not
+ * extend to a ticket resale business. A sample of live performers turned up
+ * one such file, named Fairuse_Gruffalo.jpg.
+ *
+ * Roughly one performer in twenty-five resolves to a local upload. Rejecting
+ * it here lets the caller fall through to the search stage, and failing that
+ * to the category gradient — a plain visual is worth more than a licence we
+ * do not hold.
+ * @param url - The image file URL from a Wikipedia summary.
+ * @returns True when the file is hosted on Wikimedia Commons.
+ */
+function isFreelyLicensed(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return (
+      parsed.hostname === 'upload.wikimedia.org'
+      && parsed.pathname.startsWith('/wikipedia/commons/')
+    );
+  } catch {
+    return false;
+  }
+}
+
 function toImage(summary: WikiSummary): PerformerImage | null {
   if (summary.type !== 'standard') return null;
 
@@ -81,6 +111,7 @@ function toImage(summary: WikiSummary): PerformerImage | null {
   // gradient at 25% opacity, where 330px is also sufficient.
   const img = summary.thumbnail ?? summary.originalimage;
   if (!img?.source) return null;
+  if (!isFreelyLicensed(img.source)) return null;
 
   return {
     url: img.source,
@@ -111,7 +142,9 @@ async function searchTitle(name: string, hint: string): Promise<string | null> {
 }
 
 async function resolve(name: string, category?: string): Promise<PerformerImage | null> {
-  // Stage 1 — the exact name. A disambiguation page counts as a miss, not a hit.
+  // Stage 1 — the exact name. A disambiguation page counts as a miss, not a
+  // hit, and so does an article whose only image is non-free: in both cases
+  // stage 2 gets a chance to find something usable.
   const direct = await summaryFor(name);
   if (direct) {
     const image = toImage(direct);
