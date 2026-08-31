@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import { catalogRateLimiter } from '../../middleware/rateLimiter';
+import { imageRateLimiter } from '../../middleware/rateLimiter';
 import { ApiError } from '../../middleware/errorHandler';
 import { getPerformerImage } from './service';
 
 const router = Router();
 
-router.get('/performer', catalogRateLimiter, async (req, res, next) => {
+router.get('/performer', imageRateLimiter, async (req, res, next) => {
   try {
     const name = typeof req.query.name === 'string' ? req.query.name.trim() : '';
     if (!name) {
