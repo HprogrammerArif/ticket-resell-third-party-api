@@ -1,8 +1,17 @@
 /**
  * Creates the first administrator.
  *
- * Run over SSH on the server:
- *   npm run admin:create -- --email steven@example.com --name "Steven Imes III"
+ * Locally:
+ *   npm run admin:create -- --email you@example.com --name "Your Name"
+ *
+ * On the server, against the running container:
+ *   docker compose exec api node dist/scripts/create-admin.js  *     --email steven@example.com --name "Steven Imes III"
+ *
+ * It lives under src/ rather than a top-level scripts/ directory so that it is
+ * compiled into dist/ by the ordinary build and ships inside the runtime image.
+ * The image installs production dependencies only and never copied a top-level
+ * scripts/ folder, so tsx and the original file were both absent from it and
+ * `npm run admin:create` could not run there at all.
  *
  * The password is prompted rather than passed as an argument so it does not
  * land in shell history or the process list.
@@ -10,7 +19,7 @@
 import { createInterface } from 'node:readline';
 import { stdin, stdout, argv, exit } from 'node:process';
 import bcrypt from 'bcryptjs';
-import { db } from '../src/libs/db';
+import { db } from '../libs/db';
 
 function arg(flag: string): string | undefined {
   const index = argv.indexOf(flag);
@@ -32,7 +41,9 @@ async function main(): Promise<void> {
   const name = arg('--name');
 
   if (!email || !name) {
-    console.error('Usage: npm run admin:create -- --email <email> --name "<name>"');
+    console.error('Usage: --email <email> --name "<name>"');
+    console.error('  local:  npm run admin:create -- --email you@example.com --name "Your Name"');
+    console.error('  server: docker compose exec api node dist/scripts/create-admin.js --email you@example.com --name "Your Name"');
     exit(1);
   }
 

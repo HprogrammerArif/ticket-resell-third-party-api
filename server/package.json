@@ -11,7 +11,7 @@
     "db:generate": "prisma migrate dev",
     "db:migrate": "prisma migrate deploy",
     "db:studio": "prisma studio",
-    "admin:create": "tsx --env-file=.env scripts/create-admin.ts"
+    "admin:create": "tsx --env-file=.env src/scripts/create-admin.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.0.0",
