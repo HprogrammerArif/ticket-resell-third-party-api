@@ -6,6 +6,17 @@ import createNextIntlPlugin from 'next-intl/plugin';
 // Define the base Next.js configuration
 const baseConfig: NextConfig = {
   output: 'standalone',
+  // next/image rejects a local src carrying a query string unless the path is
+  // listed here. Performer photographs are served by /api/images/proxy, which
+  // takes the Wikimedia URL as ?url=… — Wikimedia answers 403 to requests with
+  // no User-Agent and 429 to a generic one, so the bytes cannot be fetched
+  // directly by the optimiser.
+  //
+  // `search` is deliberately omitted: specifying it requires an exact match on
+  // the whole query string, and ours differs per image.
+  images: {
+    localPatterns: [{ pathname: '/api/images/**' }],
+  },
   devIndicators: {
     position: 'bottom-right',
   },
