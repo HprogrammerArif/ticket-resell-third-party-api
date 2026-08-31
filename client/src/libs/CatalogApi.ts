@@ -28,6 +28,7 @@ import type {
   EventSuggestParams,
   EventBulkParams,
   GlobalSuggestParams,
+  TnPerformerImage,
 } from '@/types/Catalog';
 
 function toParams(obj: Record<string, string | number | boolean | undefined>): Record<string, string> {
@@ -291,4 +292,31 @@ export async function globalSuggest(q: string, params?: GlobalSuggestParams): Pr
       filter: params?.filter,
     }),
   });
+}
+
+/**
+ * Resolves a performer image from the backend's Wikimedia lookup.
+ * @param name - Performer name.
+ * @param category - Category name, used to disambiguate the lookup.
+ * @returns The image, or null when none exists or the lookup failed.
+ */
+export async function getPerformerImage(
+  name: string,
+  category?: string,
+): Promise<TnPerformerImage | null> {
+  const params: Record<string, string> = { name };
+  if (category) {
+    params.category = category;
+  }
+
+  // Imagery is decorative: a failure here must never break the page it is on.
+  try {
+    const res = await ApiClient.get<{ image: TnPerformerImage | null }>(
+      '/api/images/performer',
+      { params },
+    );
+    return res.image;
+  } catch {
+    return null;
+  }
 }

@@ -368,3 +368,11 @@ export type GlobalSuggestParams = {
   citiesRequested?: number;
   filter?: string;
 };
+
+export type TnPerformerImage = {
+  url: string;
+  width: number;
+  height: number;
+  sourcePage: string;
+  title: string;
+};
