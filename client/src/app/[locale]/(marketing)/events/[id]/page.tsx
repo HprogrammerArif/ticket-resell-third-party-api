@@ -2,12 +2,13 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { getEventById, getEvents, getVenueById } from '@/libs/CachedCatalogApi';
+import { getEventById, getEvents, getVenueById, getPerformerImage } from '@/libs/CachedCatalogApi';
 import { ApiError } from '@/libs/ApiClient';
 import { EventCard } from '@/components/catalog/EventCard';
 import { SectionHeading } from '@/components/catalog/SectionHeading';
 import { EventDetailTabs } from '@/components/catalog/EventDetailTabs';
 import { MapWidgetEmbed } from '@/components/catalog/MapWidgetEmbed';
+import { PerformerImage } from '@/components/catalog/PerformerImage';
 import { Link } from '@/libs/I18nNavigation';
 import type { TnEvent, TnVenue } from '@/types/Catalog';
 
@@ -366,11 +367,36 @@ export default async function EventDetailPage(props: EventDetailPageProps) {
   }
   const heroEmoji = categoryEmoji(categoryName);
 
+  // An event has no photograph of its own, so the first billed performer stands
+  // in for it. Null when there is none, or none resolves — the gradient below is
+  // the design either way, so nothing is missing when this is absent.
+  // isPerformance !== false marks a headliner rather than a support act — the
+  // same distinction the Lineup tab already draws further down this file.
+  const headliner = (event.performers ?? []).find((p) => p.isPerformance !== false)?.name
+    ?? event.performers?.[0]?.name;
+  const heroImage = headliner
+    ? await getPerformerImage(headliner, categoryName)
+    : null;
+
   return (
     <div className="mx-auto max-w-[1440px] px-[107px] py-10 max-md:px-4">
 
       {/* ── Hero Section ──────────────────────────────────────────────── */}
       <div className={`relative mb-10 overflow-hidden rounded-3xl bg-gradient-to-br ${heroGradient}`}>
+        {/* Performer photograph, dimmed behind the gradient. The heading sits
+            above it at z-10, so legibility does not depend on the image. */}
+        {heroImage && (
+          <>
+            <PerformerImage
+              image={heroImage}
+              name={headliner ?? ''}
+              className="pointer-events-none absolute inset-0 opacity-25"
+              sizes="100vw"
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+          </>
+        )}
+
         {/* Decorative background emoji */}
         <div className="pointer-events-none absolute -right-6 -top-6 text-[200px] opacity-[0.07] select-none" aria-hidden="true">
           {heroEmoji}
