@@ -9,18 +9,18 @@ datasource db {
 
 // Regular customers. role=ADMIN grants admin-panel access to a customer account.
 model User {
-  id                  String    @id @default(cuid())
-  email               String    @unique
-  passwordHash        String
-  displayName         String?
-  firstName           String?
-  lastName            String?
-  gender              Gender?
-  dateOfBirth         DateTime?
-  marketingConsent    Boolean   @default(false)
-  role                Role      @default(USER)
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  id               String    @id @default(cuid())
+  email            String    @unique
+  passwordHash     String
+  displayName      String?
+  firstName        String?
+  lastName         String?
+  gender           Gender?
+  dateOfBirth      DateTime?
+  marketingConsent Boolean   @default(false)
+  role             Role      @default(USER)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   giftCardRedemptions GiftCardRedemption[]
 }
@@ -67,6 +67,29 @@ model GiftCardRedemption {
 
   giftCard GiftCard @relation(fields: [giftCardId], references: [id])
   user     User?    @relation(fields: [userId], references: [id])
+}
+
+/// Resolved performer photographs, surviving a container restart.
+///
+/// node-cache is in memory, so a deploy empties it and every performer viewed
+/// afterwards is fetched again. Against Ticketmaster's 5,000 calls/day that is
+/// a real risk: two deploys on a busy day could exhaust the quota and degrade
+/// the whole site to category gradients.
+///
+/// Hits only. A miss stays in memory on its 24-hour TTL, so a performer who
+/// acquires a photograph next week is retried rather than written off for a
+/// month.
+model PerformerImageCache {
+  name       String   @id
+  source     String
+  url        String
+  width      Int
+  height     Int
+  sourcePage String
+  title      String
+  cachedAt   DateTime @default(now())
+
+  @@index([cachedAt])
 }
 
 model CachedCategory {

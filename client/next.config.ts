@@ -16,6 +16,11 @@ const baseConfig: NextConfig = {
   // the whole query string, and ours differs per image.
   images: {
     localPatterns: [{ pathname: '/api/images/**' }],
+    // Ticketmaster's image CDN. Unlike Wikimedia it sets no User-Agent
+    // requirement, so these are fetched directly rather than through
+    // /api/images/proxy — one hop fewer, and the proxy's Commons licence gate
+    // would reject them anyway.
+    remotePatterns: [{ protocol: 'https', hostname: 's1.ticketm.net' }],
   },
   devIndicators: {
     position: 'bottom-right',

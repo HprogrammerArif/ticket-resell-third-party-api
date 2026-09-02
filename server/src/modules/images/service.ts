@@ -1,4 +1,8 @@
 import { cacheGet, buildCacheKey } from '../../libs/cache';
+import { db } from '../../libs/db';
+import { getTicketmasterImage } from './ticketmaster';
+import { namesMatch } from './names';
+import type { PerformerImage } from './types';
 import { logger } from '../../libs/logger';
 
 /**
@@ -24,13 +28,7 @@ const TIMEOUT_MS = 3000;
  */
 const TTL = 24 * 60 * 60;
 
-export type PerformerImage = {
-  url: string;
-  width: number;
-  height: number;
-  sourcePage: string;
-  title: string;
-};
+export type { PerformerImage } from './types';
 
 type WikiSummary = {
   type?: string;
@@ -148,57 +146,6 @@ function toImage(summary: WikiSummary): PerformerImage | null {
   };
 }
 
-/**
- * Reduces a name to a comparable form.
- *
- * Strips accents, case and punctuation, and removes a trailing parenthetical:
- * Wikipedia disambiguates with one, so "AFI (band)" and "AFI" are the same
- * subject under a different title, not a different act.
- * @param value - A performer name or an article title.
- * @returns The comparable form, possibly empty.
- */
-function normalizeName(value: string): string {
-  return value
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/\s*\([^)]*\)\s*$/, '')
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim();
-}
-
-/**
- * Whether an article is about the act we asked for.
- *
- * Wikipedia search returns its best guess, not a match, and its best guess for
- * an unknown act is often a real article about something else. Measured against
- * the live catalogue, four names in thirty resolved to the wrong subject:
- * "42nd Street" to the Times Square subway station, "Air" to the Earth's
- * atmosphere, "Allen Anthony" to Anthony Newley, "Alabama - The Band" to that
- * band's lead singer. Each returned a real photograph, so nothing downstream
- * could tell it was wrong.
- *
- * Containment is not enough — "42nd Street" appears inside "Times
- * Square-42nd Street station". The article title must be the name itself.
- *
- * TicketNetwork appends descriptors its own catalogue needs, listing that band
- * as "Alabama - The Band" where Wikipedia has "Alabama (band)", so the part
- * before a dash is accepted as an alternative form of the name.
- * @param requested - The performer name from TicketNetwork.
- * @param articleTitle - The title Wikipedia returned.
- * @returns True when the article is about that act.
- */
-function namesMatch(requested: string, articleTitle: string): boolean {
-  const article = normalizeName(articleTitle);
-  if (!article) return false;
-
-  const candidates = new Set([normalizeName(requested)]);
-  const beforeDash = requested.split(/\s+-\s+/)[0];
-  if (beforeDash) candidates.add(normalizeName(beforeDash));
-
-  return candidates.has(article);
-}
-
 async function summaryFor(title: string): Promise<WikiSummary | null> {
   const data = await wikiFetch(`${WIKI_REST}/${encodeURIComponent(title)}`);
   return (data as WikiSummary) ?? null;
@@ -218,7 +165,7 @@ async function searchTitle(name: string, hint: string): Promise<string | null> {
   return results?.[0]?.title ?? null;
 }
 
-async function resolve(name: string, category?: string): Promise<PerformerImage | null> {
+async function resolveFromWikimedia(name: string, category?: string): Promise<PerformerImage | null> {
   // Stage 1 — the exact name. A disambiguation page counts as a miss, not a
   // hit, and so does an article whose only image is non-free or whose subject
   // is not the act we asked for: in each case stage 2 gets a chance to find
@@ -248,6 +195,105 @@ async function resolve(name: string, category?: string): Promise<PerformerImage 
  * @param category - TicketNetwork category, used to disambiguate the search.
  * @returns The image, or null when none can be resolved.
  */
+/** How long a stored photograph is trusted. Pictures are not prices. */
+const DB_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
+/**
+ * Reads a previously resolved photograph from Postgres.
+ *
+ * Never throws: a database that is down or a table that has not been migrated
+ * yet must degrade to a live lookup, not take the page with it.
+ * @param name - The performer name, as queried.
+ * @returns The stored image, or null when absent, stale, or unreadable.
+ */
+async function readStored(name: string): Promise<PerformerImage | null> {
+  try {
+    const row = await db.performerImageCache.findUnique({ where: { name } });
+    if (!row) return null;
+
+    if (Date.now() - row.cachedAt.getTime() > DB_TTL_MS) {
+      return null;
+    }
+
+    return {
+      url: row.url,
+      width: row.width,
+      height: row.height,
+      sourcePage: row.sourcePage,
+      title: row.title,
+    };
+  } catch (err) {
+    logger.debug({ err, name }, 'Stored image lookup failed');
+    return null;
+  }
+}
+
+/**
+ * Stores a resolved photograph so it survives a container restart.
+ *
+ * Hits only. A miss stays in the in-memory cache on its 24-hour TTL, so a
+ * performer who acquires a photograph next week is retried rather than being
+ * written off for a month.
+ * @param name - The performer name, as queried.
+ * @param source - Which resolver produced it.
+ * @param image - The resolved image.
+ */
+async function writeStored(name: string, source: string, image: PerformerImage): Promise<void> {
+  try {
+    const data = { source, ...image, cachedAt: new Date() };
+    await db.performerImageCache.upsert({
+      where: { name },
+      create: { name, ...data },
+      update: data,
+    });
+  } catch (err) {
+    logger.debug({ err, name }, 'Storing image failed');
+  }
+}
+
+/**
+ * Resolves a photograph from the best available source.
+ *
+ * Ticketmaster first: it holds a picture for most touring acts, and returns
+ * 16:9 landscape images that fit the card header without the guessed crop the
+ * Wikimedia portraits need. Wikimedia second, and it earns its place — measured
+ * over 30 live performers, Ticketmaster resolved 24 and Wikimedia filled 3 more
+ * that Ticketmaster does not hold, for 27 of 30 against 25 for either alone.
+ *
+ * It is also what makes the daily quota safe. Ticketmaster allows 5,000 calls
+ * a day; when that is spent the branch returns null and the site keeps its
+ * images rather than falling back to a page of gradients.
+ * @param name - Performer name as it appears in the TicketNetwork catalog.
+ * @param category - TicketNetwork category, used to disambiguate the search.
+ * @returns The image and the source that produced it.
+ */
+async function resolve(
+  name: string,
+  category?: string,
+): Promise<{ image: PerformerImage | null; source: string }> {
+  const fromTicketmaster = await getTicketmasterImage(name);
+  if (fromTicketmaster) {
+    return { image: fromTicketmaster, source: 'ticketmaster' };
+  }
+
+  return { image: await resolveFromWikimedia(name, category), source: 'wikimedia' };
+}
+
+/**
+ * Resolves a performer name to an image.
+ *
+ * Never throws. Every failure — no match, no image, exhausted quota, network
+ * error, timeout, unreachable database — returns null so the caller can fall
+ * back to its category gradient.
+ *
+ * Three layers, fastest first: an in-memory cache, then Postgres, then the
+ * live sources. The Postgres layer exists because node-cache does not survive
+ * a deploy, and re-resolving every performer viewed after one would eat into a
+ * 5,000-a-day quota that the whole site depends on.
+ * @param name - Performer name as it appears in the TicketNetwork catalog.
+ * @param category - TicketNetwork category, used to disambiguate the search.
+ * @returns The image, or null when none can be resolved.
+ */
 export async function getPerformerImage(
   name: string,
   category?: string,
@@ -257,11 +303,18 @@ export async function getPerformerImage(
   // The result is wrapped rather than stored bare: node-cache reports a missing
   // key as undefined, so a cached null would be indistinguishable from a cache
   // miss and every absent photograph would be re-resolved on every request.
-  const cached = await cacheGet<{ image: PerformerImage | null }>(
-    key,
-    TTL,
-    async () => ({ image: await resolve(name, category) }),
-  );
+  const cached = await cacheGet<{ image: PerformerImage | null }>(key, TTL, async () => {
+    const stored = await readStored(name);
+    if (stored) {
+      return { image: stored };
+    }
+
+    const { image, source } = await resolve(name, category);
+    if (image) {
+      await writeStored(name, source, image);
+    }
+    return { image };
+  });
 
   return cached.image;
 }

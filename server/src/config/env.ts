@@ -12,6 +12,11 @@ const envSchema = z.object({
   TN_BASE_URL: z.string().default('https://sandbox.tn-apis.com/catalog/v2'),
   TN_TOKEN_URL: z.string().default('https://key-manager.tn-apis.com/oauth2/token'),
   TN_REVOKE_URL: z.string().default('https://key-manager.tn-apis.com/oauth2/revoke'),
+
+  // Optional on purpose. Without it the Ticketmaster branch is skipped and
+  // imagery resolves through Wikimedia exactly as it did before, which is both
+  // the local default and the automatic degradation if the key is withdrawn.
+  TICKETMASTER_API_KEY: z.string().optional(),
 });
 
 const result = envSchema.safeParse(process.env);

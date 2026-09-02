@@ -19,6 +19,31 @@ import type { TnPerformerImage } from '@/types/Catalog';
  *   an object-position that keeps it.
  * @returns The image with attribution, or null when there is nothing to show.
  */
+const WIKIMEDIA_HOST = 'upload.wikimedia.org';
+
+/**
+ * Chooses how the file is fetched.
+ *
+ * Wikimedia answers 403 to a request with no descriptive User-Agent and 429 to
+ * a generic one, and next/image uses its own agent, so those files go through
+ * our proxy. Ticketmaster's CDN sets no such requirement and is fetched
+ * directly — and would be refused by the proxy in any case, since it only
+ * serves freely licensed files from Wikimedia Commons.
+ * @param url - The resolved image URL, from either source.
+ * @returns The src to hand to next/image.
+ */
+function imageSrc(url: string): string {
+  try {
+    if (new URL(url).hostname === WIKIMEDIA_HOST) {
+      return `/api/images/proxy?url=${encodeURIComponent(url)}`;
+    }
+  } catch {
+    // A malformed URL is handed over unchanged; next/image will refuse it,
+    // which is the correct outcome and better than guessing at a repair.
+  }
+  return url;
+}
+
 export function PerformerImage(props: {
   image: TnPerformerImage | null;
   name: string;
@@ -49,7 +74,7 @@ export function PerformerImage(props: {
   return (
     <figure className={props.className}>
       <Image
-        src={`/api/images/proxy?url=${encodeURIComponent(props.image.url)}`}
+        src={imageSrc(props.image.url)}
         alt={t('alt', { name: props.name })}
         fill
         sizes={props.sizes ?? '(max-width: 768px) 100vw, 400px'}
