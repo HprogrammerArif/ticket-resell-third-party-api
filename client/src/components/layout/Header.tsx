@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { useLocale, useTranslations } from 'next-intl';
-import { Link, usePathname, useRouter } from '@/libs/I18nNavigation';
+import { useTranslations } from 'next-intl';
+import { Link, usePathname } from '@/libs/I18nNavigation';
+import { LanguageMenu } from '@/components/layout/LanguageMenu';
 
 type AuthUser = {
   id?: string;
@@ -15,8 +16,6 @@ type AuthUser = {
 export function Header(_props?: { locale?: string }) {
   const t = useTranslations('Header');
   const pathname = usePathname();
-  const currentLocale = useLocale();
-  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
 
@@ -56,12 +55,6 @@ export function Header(_props?: { locale?: string }) {
     { label: t('theatre'), href: '/categories/theater' },
     { label: t('comedy'), href: '/categories/comedy' },
   ] as const;
-
-  const toggleLanguage = () => {
-    const nextLocale = currentLocale === 'en' ? 'fr' : 'en';
-    const { search } = window.location;
-    router.push(`${pathname}${search}`, { locale: nextLocale, scroll: false });
-  };
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
@@ -110,15 +103,7 @@ export function Header(_props?: { locale?: string }) {
         {/* Desktop Header Actions (Language Switcher + Auth) */}
         <div className="hidden items-center gap-4 md:flex">
           {/* Language Toggle Pill */}
-          <button
-            type="button"
-            onClick={toggleLanguage}
-            title={currentLocale === 'en' ? 'Passer en Français' : 'Switch to English'}
-            className="flex h-8 items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 text-[12px] font-semibold text-[#cfcfcf] transition hover:border-white/30 hover:bg-white/10 hover:text-white cursor-pointer"
-          >
-            <span className="text-[14px]">🌐</span>
-            <span>{currentLocale.toUpperCase()}</span>
-          </button>
+          <LanguageMenu />
 
           {user ? (
             /* Authenticated: View Dashboard */
@@ -155,13 +140,9 @@ export function Header(_props?: { locale?: string }) {
         {/* Mobile Hamburger Button */}
         <div className="flex items-center gap-3 lg:hidden">
           {/* Quick Mobile Language Switcher */}
-          <button
-            type="button"
-            onClick={toggleLanguage}
-            className="flex h-8 items-center rounded-full border border-white/15 bg-white/5 px-2.5 text-[11px] font-semibold text-[#cfcfcf] md:hidden"
-          >
-            {currentLocale.toUpperCase()}
-          </button>
+          <div className="md:hidden">
+            <LanguageMenu compact />
+          </div>
 
           <button
             type="button"

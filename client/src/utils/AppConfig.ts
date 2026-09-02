@@ -6,7 +6,7 @@ const localePrefix: LocalePrefixMode = 'as-needed';
 export const AppConfig = {
   name: 'TicketLove.net',
   i18n: {
-    locales: ['en', 'fr'],
+    locales: ['en', 'fr', 'es'],
     defaultLocale: 'en',
     localePrefix,
   },
