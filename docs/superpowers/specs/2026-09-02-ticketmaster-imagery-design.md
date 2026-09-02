@@ -160,6 +160,46 @@ Absent or empty, the Ticketmaster branch is skipped entirely and the resolver be
 
 ## Tasks
 
+### Task 1 result — measured 2026-09-02, proceed
+
+Against the same 30 performers, with the guards from D2 and D5 applied:
+
+| Source | Correct | Wrong | Gradient |
+|---|---:|---:|---:|
+| Wikimedia alone (current production) | 25 | 0 | 5 |
+| Ticketmaster alone | 24 | 0 | 6 |
+| **Both, as designed in D1** | **27** | **0** | **3** |
+
+Ticketmaster supplies 24 and Wikimedia fills 3 more that Ticketmaster
+cannot — *Air Force Falcons*, *Alabama - The Band*, *Alabama Crimson
+Tide*. The fallback is not merely insurance against the quota; it is
+worth two net images on a sample of thirty.
+
+Three findings from the live data:
+
+- **D5 is load-bearing.** Discovery's keyword search has exactly the same
+  flaw as Wikipedia's. "Aerosmith" returns *In The Attic - Tribute to
+  Aerosmith* as its first result, "Air" returns *Air Supply*, and
+  "Alabama - The Band" returns *Alabama Sunset Band*. Without the name
+  check, three wrong photographs would have shipped.
+- **D2 is load-bearing.** That tribute act carried ten images and every
+  one was `fallback: true`. Abra Moore likewise — an attraction record
+  exists, but only placeholders behind it.
+- **The images are better shaped than Wikimedia's.** Discovery returns
+  640x360 at `16_9`, which is the event card header's aspect ratio.
+  Wikimedia returns portraits that we crop at `object-[50%_20%]` and hope
+  the face survives. For the 24 that resolve through Ticketmaster, that
+  guesswork disappears.
+
+**Known refinement, not yet built.** Two sports names failed the match
+because Discovery uses a longer official form: *Alabama Crimson Tide* is
+listed as *Alabama Crimson Tide Football*. Allowing a trailing sport
+qualifier would recover those. Plain prefix matching would not be safe —
+*Alabama Sunset Band* also begins with "Alabama" — so any such rule needs
+an explicit suffix list rather than a loose comparison.
+
+---
+
 **Task 1 — Measure before building.** A throwaway script against the same 30 performers, reporting correct / wrong / absent for Ticketmaster alone. **The result decides whether to continue.** If it does not beat 25 correct with 0 wrong, that finding is the deliverable and the rest of this document is not built.
 
 **Task 2** — `ticketmaster.ts`: client, image selection, `fallback` rejection, name matching. Tests first.
