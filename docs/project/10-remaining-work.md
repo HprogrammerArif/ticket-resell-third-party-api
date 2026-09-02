@@ -15,6 +15,63 @@
 
 ## 🔴 Do These This Week
 
+> **Deferred by Arif on 2026-09-02, to be done around 2026-09-04/05.**
+> Items 1–3 below are the credential and infrastructure work; nothing is
+> blocked on them, but item 1 is the one that turns a survivable incident
+> into total loss if left.
+
+### 0a. Rotate the backup passphrase
+
+**Owner:** Arif · **Takes:** ten minutes · **Risk:** exposure, low but real
+
+The passphrase was read out over chat on 2026-09-02, so treat it as exposed.
+Backups are `gpg --symmetric --cipher-algo AES256` and `RETAIN_DAYS=7`, which
+makes rotation clean: anything encrypted with the old passphrase ages out
+within a week.
+
+```bash
+ssh deploy@31.220.54.150
+cd /opt/ticketlove
+cp .backup-passphrase .backup-passphrase.old   # old backups still need this
+openssl rand -hex 32 > .backup-passphrase
+chmod 600 .backup-passphrase
+```
+
+Save **both** to a password manager — the new one permanently, the old one
+labelled *"retired 2026-09-02, needed for backups before this date"*. Delete
+the old one and `.backup-passphrase.old` after 7 days.
+
+Then prove it, because an untested backup is a hypothesis:
+
+```bash
+sudo /opt/ticketlove/infra/backup.sh
+LATEST=$(ls -t /opt/ticketlove/backups/*.gpg | head -1)
+gpg --batch --quiet --decrypt --passphrase-file /opt/ticketlove/.backup-passphrase "$LATEST" | gunzip | head -c 200
+```
+
+### 0b. Rotate the TicketNetwork production credentials
+
+**Owner:** Arif
+
+`TN_CONSUMER_KEY` and `TN_CONSUMER_SECRET` were passed through chat during the
+production cutover. Regenerate in the TN DevPortal, update
+`/opt/ticketlove/.env`, and recreate the `api` container so `env_file` is
+re-read. Append with `printf '
+...'` rather than `echo`, per the newline
+hazard that fused two keys in `authorized_keys` during setup.
+
+### 0c. Reboot the VPS
+
+**Owner:** Arif · **Takes:** two minutes
+
+`*** System restart required ***` has shown on every login since at least
+2026-09-01, with 9 pending updates including a kernel one. Containers return
+on their own via `restart: unless-stopped`. Do it at a quiet hour and confirm
+the site afterwards.
+
+---
+
+
 ### 1. Reply to Ian at TicketNetwork — we are the blocker
 
 **Owner:** Arif · **Blocks:** Phase 7, and therefore launch
