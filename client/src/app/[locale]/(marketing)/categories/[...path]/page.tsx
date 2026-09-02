@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { getCategoryByPath, getEvents, searchEvents, getPerformers, getCategories } from '@/libs/CachedCatalogApi';
+import { isMusicCategory } from '@/libs/PerformerIcon';
 import { ApiError } from '@/libs/ApiClient';
 import { EventCard } from '@/components/catalog/EventCard';
 import { EventCardSkeleton } from '@/components/catalog/EventCardSkeleton';
@@ -15,6 +16,26 @@ import { getEventImages } from '@/libs/EventImage';
 type CategoriesPageProps = {
   params: Promise<{ locale: string; path: string[] }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+/**
+ * The sections reachable from the top navigation.
+ *
+ * The catalogue resolver matches a slug against every category with events, and
+ * for "sports" it lands on a specific league — the banner then reads BASEBALL
+ * when the visitor asked for Sports. Steven asked for the section name, so the
+ * heading is taken from here when the visitor arrived through the navigation.
+ *
+ * This corrects the heading only. The landing page still shows one league's
+ * events rather than all sports; that is the larger navigation change and is
+ * being designed separately.
+ */
+const NAV_SECTIONS: Record<string, string> = {
+  sports: 'Sports',
+  concerts: 'Concerts',
+  theater: 'Theatre',
+  theatre: 'Theatre',
+  comedy: 'Comedy',
 };
 
 async function resolveCategory(categoryPath: string): Promise<{ category: TnCategory; resolvedPath: string }> {
@@ -81,7 +102,7 @@ export async function generateMetadata(props: CategoriesPageProps): Promise<Meta
 
 // ─── Top Performers Section ───────────────────────────────────────────────────
 
-async function TopPerformers(props: { categoryPath: string; locale: string }) {
+async function TopPerformers(props: { categoryPath: string; categoryName: string; locale: string }) {
   let performers: TnPerformer[] = [];
   try {
     const result = await getPerformers({ categoryPath: props.categoryPath, pageSize: 8 });
@@ -103,7 +124,7 @@ async function TopPerformers(props: { categoryPath: string; locale: string }) {
             href={`/artists/${p.id}`}
             className="group flex items-center gap-2 rounded-full border border-[var(--color-surface-border)] bg-[var(--color-surface-raised)] px-4 py-2 text-[13px] transition-all hover:border-[var(--color-brand-muted)] hover:bg-[var(--color-brand-subtle)] hover:text-white"
           >
-            <span className="text-base">🎤</span>
+            {isMusicCategory(props.categoryName) && <span className="text-base">🎤</span>}
             <span className="text-[var(--color-text-secondary)] group-hover:text-white transition-colors">
               {p.text.name}
             </span>
@@ -268,7 +289,7 @@ export default async function CategoryBrowsePage(props: CategoriesPageProps) {
   return (
     <div className="mx-auto max-w-[1440px] px-[107px] py-10 max-md:px-4">
       {/* Hero banner */}
-      <CategoryHeroBanner category={category} />
+      <CategoryHeroBanner category={category} displayName={NAV_SECTIONS[categoryPath.toLowerCase()]} />
 
       {/* Subcategories */}
       <Suspense fallback={null}>
@@ -277,7 +298,7 @@ export default async function CategoryBrowsePage(props: CategoriesPageProps) {
 
       {/* Top Performers */}
       <Suspense fallback={null}>
-        <TopPerformers categoryPath={resolvedPath} locale={locale} />
+        <TopPerformers categoryPath={resolvedPath} categoryName={category.text.name} locale={locale} />
       </Suspense>
 
       {/* Filter bar */}

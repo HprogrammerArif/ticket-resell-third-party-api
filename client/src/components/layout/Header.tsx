@@ -54,7 +54,7 @@ export function Header(_props?: { locale?: string }) {
     { label: t('concerts'), href: '/categories/concerts' },
     { label: t('sports'), href: '/categories/sports' },
     { label: t('theatre'), href: '/categories/theater' },
-    { label: t('categories'), href: '/categories' },
+    { label: t('comedy'), href: '/categories/comedy' },
   ] as const;
 
   const toggleLanguage = () => {
@@ -146,7 +146,7 @@ export function Header(_props?: { locale?: string }) {
                 className="inline-flex items-center rounded-full bg-[var(--color-brand)] px-5 py-2 text-[13px] font-semibold text-white shadow-md transition-all hover:scale-105 hover:bg-[#d41e37] hover:shadow-[0_0_15px_rgba(234,42,67,0.4)] active:scale-95"
                 style={{ fontFamily: 'var(--font-poppins)' }}
               >
-                {t('get_started')}
+                {t('sign_up')}
               </Link>
             </>
           )}
@@ -233,7 +233,7 @@ export function Header(_props?: { locale?: string }) {
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center justify-center rounded-xl bg-[var(--color-brand)] py-2.5 text-[14px] font-semibold text-white shadow-md transition hover:bg-[#d41e37]"
                   >
-                    {t('get_started')}
+                    {t('sign_up')}
                   </Link>
                 </>
               )}

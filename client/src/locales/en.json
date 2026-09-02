@@ -132,12 +132,12 @@
     "sports": "Sports",
     "concerts": "Concerts",
     "theatre": "Theatre",
-    "categories": "Categories",
     "sign_in": "Sign In",
-    "get_started": "Get Started",
+    "sign_up": "Sign Up",
     "dashboard": "Dashboard",
     "open_menu": "Open menu",
-    "close_menu": "Close menu"
+    "close_menu": "Close menu",
+    "comedy": "Comedy"
   },
   "Footer": {
     "company_heading": "Company",
@@ -195,7 +195,7 @@
     "step_1_title": "Search any show",
     "step_1_description": "Browse 3,000+ events by artist, city, date, or category. Our AI surfaces the best matches for your taste.",
     "step_2_title": "Choose your seats",
-    "step_2_description": "Pick your section on the interactive seat map. See real-time pricing, fees, and how many are left.",
+    "step_2_description": "Pick your section on the interactive seat map. See real-time pricing and how many are left.",
     "step_3_title": "Instant mobile ticket",
     "step_3_description": "Secure checkout in under 2 minutes. Your QR ticket lands in your inbox — and in our app. It just works.",
     "stat_1_value": "10M+",
@@ -301,7 +301,7 @@
   "ArtistDetailPage": {
     "meta_title": "{name} — TicketLove.net",
     "meta_title_fallback": "Artist — TicketLove.net",
-    "tab_tour_dates": "Tour Dates",
+    "tab_tour_dates": "Dates",
     "tab_about": "About",
     "tab_media": "Media",
     "upcoming_events": "{count, plural, one {# upcoming event} other {# upcoming events}}",
@@ -367,8 +367,8 @@
     "try_again": "Try again"
   },
   "DashboardOverview": {
-    "greeting": "Hey, {name}! 👋",
-    "greeting_fallback": "Hey there! 👋",
+    "greeting": "Hey, {name}",
+    "greeting_fallback": "Hey there",
     "best_show": "Your best show",
     "best_show_empty": "No upcoming shows yet",
     "upcoming_shows": "Upcoming shows",

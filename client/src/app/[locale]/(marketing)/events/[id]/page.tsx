@@ -62,7 +62,7 @@ function LineupTab(props: { event: TnEvent }) {
   if (performers.length === 0) {
     return (
       <div className="py-12 text-center text-[var(--color-text-muted)]">
-        <p className="text-4xl mb-3">🎤</p>
+        <p className="text-4xl mb-3">🎟️</p>
         <p className="text-[15px]">Lineup not announced yet.</p>
       </div>
     );
@@ -83,7 +83,7 @@ function LineupTab(props: { event: TnEvent }) {
           >
             {/* Avatar placeholder */}
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[var(--color-brand)] to-[#ff6b6b] text-[18px]">
-              {i === 0 ? '⭐' : '🎤'}
+              {i === 0 ? '⭐' : '•'}
             </div>
             <div className="flex-1">
               <p className="font-semibold text-white transition-colors group-hover:text-[var(--color-brand)]">

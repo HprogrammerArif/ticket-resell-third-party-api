@@ -132,12 +132,12 @@
     "sports": "Sports",
     "concerts": "Concerts",
     "theatre": "Théâtre",
-    "categories": "Catégories",
     "sign_in": "Connexion",
-    "get_started": "Commencer",
+    "sign_up": "S'inscrire",
     "dashboard": "Tableau de bord",
     "open_menu": "Ouvrir le menu",
-    "close_menu": "Fermer le menu"
+    "close_menu": "Fermer le menu",
+    "comedy": "Comédie"
   },
   "Footer": {
     "company_heading": "Entreprise",
@@ -195,7 +195,7 @@
     "step_1_title": "Recherchez n'importe quel spectacle",
     "step_1_description": "Parcourez plus de 3 000 événements par artiste, ville, date ou catégorie. Notre IA trouve les meilleures correspondances.",
     "step_2_title": "Choisissez vos sièges",
-    "step_2_description": "Sélectionnez votre zone sur le plan interactif. Consultez les prix en temps réel, les frais et les places restantes.",
+    "step_2_description": "Sélectionnez votre zone sur le plan interactif. Consultez les prix en temps réel et les places restantes.",
     "step_3_title": "Billet mobile instantané",
     "step_3_description": "Paiement sécurisé en moins de 2 minutes. Votre e-billet arrive dans votre boîte de réception et dans l'appli.",
     "stat_1_value": "10M+",
@@ -301,7 +301,7 @@
   "ArtistDetailPage": {
     "meta_title": "{name} — TicketLove.net",
     "meta_title_fallback": "Artiste — TicketLove.net",
-    "tab_tour_dates": "Dates de tournée",
+    "tab_tour_dates": "Dates",
     "tab_about": "À propos",
     "tab_media": "Médias",
     "upcoming_events": "{count, plural, one {# événement à venir} other {# événements à venir}}",
@@ -367,8 +367,8 @@
     "try_again": "Réessayer"
   },
   "DashboardOverview": {
-    "greeting": "Salut, {name} ! 👋",
-    "greeting_fallback": "Bonjour ! 👋",
+    "greeting": "Salut, {name}",
+    "greeting_fallback": "Salut",
     "best_show": "Votre meilleur spectacle",
     "best_show_empty": "Aucun spectacle à venir",
     "upcoming_shows": "Spectacles à venir",

@@ -65,9 +65,17 @@ export function CategoryHeroBanner(props: {
   category: TnCategory;
   eventCount?: number;
   ticketCount?: number;
+  /**
+   * Overrides the heading and the breadcrumb.
+   *
+   * Arriving from the navigation at /categories/sports must read "Sports",
+   * not whichever league the catalogue resolver happened to match first.
+   */
+  displayName?: string;
 }) {
   const { category } = props;
-  const { icon, gradient, accentColor } = categoryVisual(category.text.name);
+  const title = props.displayName ?? category.text.name;
+  const { icon, gradient, accentColor } = categoryVisual(title);
   const eventCount = props.eventCount ?? category._metadata?.eventCount;
   const ticketCount = props.ticketCount ?? category._metadata?.ticketCount;
 
@@ -93,7 +101,7 @@ export function CategoryHeroBanner(props: {
       {/* Content */}
       <div className="relative z-10 flex flex-col justify-end p-8 max-sm:p-5" style={{ minHeight: '200px' }}>
         {/* Breadcrumb */}
-        {category.parentCategory && (
+        {!props.displayName && category.parentCategory && (
           <p className="mb-2 text-[12px] font-medium uppercase tracking-widest text-white/50">
             {category.parentCategory.text.name} /
           </p>
@@ -106,7 +114,7 @@ export function CategoryHeroBanner(props: {
             className="text-[36px] font-bold text-white max-md:text-[28px] max-sm:text-[22px]"
             style={{ fontFamily: 'var(--font-poppins)' }}
           >
-            {category.text.name}
+            {title}
           </h1>
         </div>
 
