@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface GiftCardBannerProps {
   heading?: string;
@@ -17,6 +18,7 @@ export function GiftCardBanner({
   cta = 'Send a gift card →',
   cardLabel = 'Gift Card',
 }: GiftCardBannerProps) {
+  const t = useTranslations('GiftCardBanner');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
@@ -129,7 +131,7 @@ export function GiftCardBanner({
                       •••• •••• •••• 8472
                     </span>
                     <span className="tracking-wider uppercase">
-                      VALID 1 YEAR
+                      {t('valid_one_year')}
                     </span>
                   </div>
                 </div>
@@ -178,7 +180,7 @@ export function GiftCardBanner({
                     className="text-[26px] font-bold text-white sm:text-[30px]"
                     style={{ fontFamily: 'var(--font-poppins)' }}
                   >
-                    Gift Cards Launching Soon!
+                    {t('launching_soon')}
                   </h3>
                   <p className="mt-2 text-[14px] leading-relaxed text-[#a1a1a1]">
                     We're putting the finishing touches on our instant E-Gift Card delivery system. Choose your favorite value below and join the VIP waitlist for a <strong>10% bonus credit</strong> on launch day!
@@ -188,7 +190,7 @@ export function GiftCardBanner({
                 {/* Amount selector preview */}
                 <div className="mb-6">
                   <label className="mb-2 block text-center text-[12px] font-semibold tracking-wider text-[var(--color-brand)] uppercase">
-                    Select Gift Card Value
+                    {t('select_value')}
                   </label>
                   <div className="flex justify-center gap-2">
                     {[25, 50, 100, 250, 500].map((val) => (
@@ -223,12 +225,12 @@ export function GiftCardBanner({
                     type="submit"
                     className="w-full rounded-full bg-[var(--color-brand)] py-3 text-[14px] font-semibold text-white transition-all hover:bg-[#d41e37] hover:shadow-[0_0_20px_rgba(234,42,67,0.4)] active:scale-95"
                   >
-                    Notify Me & Claim 10% Bonus
+                    {t('notify_cta')}
                   </button>
                 </form>
 
                 <p className="mt-4 text-center text-[11px] text-[#737373]">
-                  No spam. We'll only email you when gift cards become available.
+                  {t('no_spam')}
                 </p>
               </div>
             ) : (
@@ -241,17 +243,21 @@ export function GiftCardBanner({
                   className="text-[26px] font-bold text-white"
                   style={{ fontFamily: 'var(--font-poppins)' }}
                 >
-                  You're on the list! 🎉
+                  {t('on_the_list')}
                 </h3>
                 <p className="mt-3 text-[14px] leading-relaxed text-[#b0a0a5]">
-                  We've reserved your <strong>10% bonus credit</strong> on your <strong>${amount}</strong> gift card. We'll send an exclusive early access link to <strong>{email}</strong> the moment we launch!
+                  {t.rich('reserved_message', {
+                    amount,
+                    email,
+                    strong: (chunks) => <strong>{chunks}</strong>,
+                  })}
                 </p>
                 <button
                   type="button"
                   onClick={closeModal}
                   className="mt-6 rounded-full bg-white/10 px-8 py-2.5 text-[14px] font-medium text-white transition hover:bg-white/20"
                 >
-                  Got it, thanks!
+                  {t('got_it')}
                 </button>
               </div>
             )}

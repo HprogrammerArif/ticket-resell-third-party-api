@@ -149,7 +149,7 @@ export async function CategoriesSection(props: { locale: string }) {
             {t('see_all_categories')}
           </p>
           <span className="text-[12px] text-[var(--color-text-muted)]">
-            Explore directory
+            {t('explore_directory')}
           </span>
         </Link>
       </DragScrollContainer>

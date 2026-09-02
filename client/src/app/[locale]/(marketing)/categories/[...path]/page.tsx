@@ -103,6 +103,7 @@ export async function generateMetadata(props: CategoriesPageProps): Promise<Meta
 // ─── Top Performers Section ───────────────────────────────────────────────────
 
 async function TopPerformers(props: { categoryPath: string; categoryName: string; locale: string }) {
+  const t = await getTranslations({ locale: props.locale, namespace: 'CategoriesPage' });
   let performers: TnPerformer[] = [];
   try {
     const result = await getPerformers({ categoryPath: props.categoryPath, pageSize: 8 });
@@ -115,7 +116,7 @@ async function TopPerformers(props: { categoryPath: string; categoryName: string
   return (
     <div className="mb-10">
       <p className="mb-4 text-[12px] font-semibold uppercase tracking-widest text-[var(--color-text-muted)]">
-        Top Performers
+        {t('top_performers')}
       </p>
       <div className="flex flex-wrap gap-2">
         {performers.map((p) => (
@@ -142,7 +143,8 @@ async function TopPerformers(props: { categoryPath: string; categoryName: string
 
 // ─── Subcategory Chips ────────────────────────────────────────────────────────
 
-async function SubcategoryChips(props: { parentPath: string; currentPath: string }) {
+async function SubcategoryChips(props: { parentPath: string; currentPath: string; locale: string }) {
+  const t = await getTranslations({ locale: props.locale, namespace: 'CategoriesPage' });
   let subcategories: TnCategory[] = [];
   try {
     const result = await getCategories({ pageSize: 50, hasEvents: true });
@@ -161,7 +163,7 @@ async function SubcategoryChips(props: { parentPath: string; currentPath: string
   return (
     <div className="mb-8">
       <p className="mb-3 text-[12px] font-semibold uppercase tracking-widest text-[var(--color-text-muted)]">
-        Browse Subcategories
+        {t('browse_subcategories')}
       </p>
       <div className="flex flex-wrap gap-2">
         {subcategories.map((c) => (
@@ -293,7 +295,7 @@ export default async function CategoryBrowsePage(props: CategoriesPageProps) {
 
       {/* Subcategories */}
       <Suspense fallback={null}>
-        <SubcategoryChips parentPath={parentPath} currentPath={resolvedPath} />
+        <SubcategoryChips parentPath={parentPath} currentPath={resolvedPath} locale={locale} />
       </Suspense>
 
       {/* Top Performers */}

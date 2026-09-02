@@ -39,7 +39,8 @@
     "no_account": "¿No tienes una cuenta?",
     "sign_up_link": "Crear cuenta",
     "error_invalid_credentials": "Correo electrónico o contraseña incorrectos.",
-    "error_generic": "Algo salió mal. Inténtalo de nuevo."
+    "error_generic": "Algo salió mal. Inténtalo de nuevo.",
+    "submitting": "Iniciando sesión..."
   },
   "SignUp": {
     "meta_title": "Crear cuenta — TicketLove.net",
@@ -75,7 +76,8 @@
     "already_have_account": "¿Ya tienes una cuenta?",
     "sign_in_link": "Iniciar sesión",
     "error_email_in_use": "Ya existe una cuenta con este correo electrónico.",
-    "error_generic": "Algo salió mal. Inténtalo de nuevo."
+    "error_generic": "Algo salió mal. Inténtalo de nuevo.",
+    "submitting": "Creando cuenta..."
   },
   "ForgotPasswordPage": {
     "meta_title": "Restablecer tu contraseña — TicketLove.net",
@@ -205,7 +207,9 @@
     "stat_3_value": "98%",
     "stat_3_label": "Satisfacción del cliente",
     "stat_4_value": "150+",
-    "stat_4_label": "Ciudades cubiertas"
+    "stat_4_label": "Ciudades cubiertas",
+    "explore_directory": "Explorar el directorio",
+    "explore_all_cities": "Explorar todas las ciudades"
   },
   "EventsPage": {
     "meta_title": "Eventos — TicketLove.net",
@@ -284,7 +288,12 @@
     "faq_accessible_a": "Sí. Contáctanos y te ayudamos con los asientos accesibles.",
     "error_message": "No se pudo cargar este evento.",
     "try_again": "Reintentar",
-    "ticket_map_title": "Selección de boletos"
+    "ticket_map_title": "Selección de boletos",
+    "lineup_empty": "El cartel aún no se ha anunciado.",
+    "supporting_acts": "Artistas invitados",
+    "venue_empty": "No hay información del recinto.",
+    "venue_size": "Capacidad del recinto",
+    "view_on_maps": "Ver en Google Maps"
   },
   "ArtistsPage": {
     "meta_title": "Artistas e intérpretes — TicketLove.net",
@@ -327,7 +336,9 @@
     "no_categories": "No se encontraron categorías.",
     "loading": "Cargando...",
     "error_message": "Algo salió mal al cargar esta categoría.",
-    "try_again": "Reintentar"
+    "try_again": "Reintentar",
+    "top_performers": "Artistas destacados",
+    "browse_subcategories": "Explorar subcategorías"
   },
   "VenuesPage": {
     "meta_title": "Recintos — TicketLove.net",
@@ -441,5 +452,43 @@
   "PerformerImage": {
     "attribution": "Foto vía Wikimedia Commons",
     "alt": "Fotografía de {name}"
+  },
+  "StatsSection": {
+    "eyebrow": "La confianza de los fans en todas partes",
+    "heading": "El mercado de las experiencias en vivo",
+    "subheading": "Desde conciertos en clubes locales hasta giras mundiales con estadios llenos, conectamos a millones de fans con momentos en vivo inolvidables, de forma segura y sencilla.",
+    "stat_1_description": "Boletos 100% verificados y auténticos, con protección al comprador",
+    "stat_2_description": "Conciertos, deportes, teatro y giras exclusivas en vivo",
+    "stat_3_description": "Más de 4,9 de 5 estrellas según los fans que ya asistieron",
+    "stat_4_description": "Grandes arenas, estadios y recintos íntimos en todo el país",
+    "guarantee_1_title": "Garantía total para el comprador",
+    "guarantee_1_description": "Entrada válida o te devolvemos el 100%",
+    "guarantee_2_title": "Entrega móvil inmediata",
+    "guarantee_2_description": "Directo a tu correo y a Apple Wallet",
+    "guarantee_3_title": "Seguridad de nivel bancario",
+    "guarantee_3_description": "Pago cifrado de 256 bits",
+    "guarantee_4_title": "Atención al fan 24/7",
+    "guarantee_4_description": "Ayuda en vivo siempre que la necesites"
+  },
+  "AuthLayout": {
+    "back_to_home": "Volver al inicio",
+    "ssl_notice": "Cifrado SSL de 256 bits de nivel bancario"
+  },
+  "UserProfilePage": {
+    "heading": "Perfil de usuario",
+    "subheading": "Administra los datos y credenciales de tu cuenta",
+    "account_id": "ID de cuenta",
+    "email_label": "Correo electrónico"
+  },
+  "GiftCardBanner": {
+    "valid_one_year": "VÁLIDA 1 AÑO",
+    "launching_soon": "¡Las tarjetas de regalo llegan pronto!",
+    "select_value": "Elige el valor de la tarjeta",
+    "notify_cta": "Avísame y consigue un 10% extra",
+    "no_spam": "Sin spam. Solo te escribiremos cuando las tarjetas estén disponibles.",
+    "reserved_prefix": "Hemos reservado tu",
+    "got_it": "Entendido, gracias",
+    "on_the_list": "¡Ya estás en la lista! 🎉",
+    "reserved_message": "Hemos reservado tu <strong>10% de crédito extra</strong> en tu tarjeta de regalo de <strong>${amount}</strong>. Enviaremos un enlace de acceso anticipado a <strong>{email}</strong> en cuanto lancemos."
   }
 }

@@ -56,14 +56,15 @@ async function SimilarEvents(props: { categoryPath?: string; locale: string; cur
 
 // ─── Tab: Lineup ──────────────────────────────────────────────────────────────
 
-function LineupTab(props: { event: TnEvent }) {
+async function LineupTab(props: { event: TnEvent; locale: string }) {
+  const t = await getTranslations({ locale: props.locale, namespace: 'EventDetailPage' });
   const performers = props.event.performers ?? [];
 
   if (performers.length === 0) {
     return (
       <div className="py-12 text-center text-[var(--color-text-muted)]">
         <p className="text-4xl mb-3">🎟️</p>
-        <p className="text-[15px]">Lineup not announced yet.</p>
+        <p className="text-[15px]">{t('lineup_empty')}</p>
       </div>
     );
   }
@@ -103,7 +104,7 @@ function LineupTab(props: { event: TnEvent }) {
       {support.length > 0 && (
         <>
           <p className="text-[12px] font-medium uppercase tracking-widest text-[var(--color-text-muted)]">
-            Supporting Acts
+            {t('supporting_acts')}
           </p>
           <div className="flex flex-wrap gap-2">
             {support.map((p) => (
@@ -124,7 +125,8 @@ function LineupTab(props: { event: TnEvent }) {
 
 // ─── Tab: Venue ───────────────────────────────────────────────────────────────
 
-function VenueTab(props: { event: TnEvent; venue?: TnVenue | null }) {
+async function VenueTab(props: { event: TnEvent; venue?: TnVenue | null; locale: string }) {
+  const t = await getTranslations({ locale: props.locale, namespace: 'EventDetailPage' });
   const ev = props.event;
   const venue = props.venue;
   const venueName = venue?.text.name ?? ev.venue?.text.name;
@@ -148,7 +150,7 @@ function VenueTab(props: { event: TnEvent; venue?: TnVenue | null }) {
     return (
       <div className="py-12 text-center text-[var(--color-text-muted)]">
         <p className="text-4xl mb-3">🏟️</p>
-        <p className="text-[15px]">Venue information not available.</p>
+        <p className="text-[15px]">{t('venue_empty')}</p>
       </div>
     );
   }
@@ -213,7 +215,7 @@ function VenueTab(props: { event: TnEvent; venue?: TnVenue | null }) {
         {capacity && capacity > 0 && (
           <div className="mt-5">
             <div className="mb-1.5 flex justify-between text-[11px] text-[var(--color-text-muted)]">
-              <span>Venue Size</span>
+              <span>{t('venue_size')}</span>
               <span>
                 {capacity >= 50000 ? 'Stadium' : capacity >= 20000 ? 'Arena' : capacity >= 5000 ? 'Theatre' : 'Club'}
               </span>
@@ -240,7 +242,7 @@ function VenueTab(props: { event: TnEvent; venue?: TnVenue | null }) {
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
             <circle cx="12" cy="10" r="3" />
           </svg>
-          View on Google Maps
+          {t('view_on_maps')}
         </a>
       )}
     </div>
@@ -496,8 +498,8 @@ export default async function EventDetailPage(props: EventDetailPageProps) {
             ]}
           >
             <MapWidgetEmbed eventId={event.id} />
-            <LineupTab event={event} />
-            <VenueTab event={event} venue={fullVenue} />
+            <LineupTab event={event} locale={locale} />
+            <VenueTab event={event} venue={fullVenue} locale={locale} />
             <FaqTab faqs={faqs} />
           </EventDetailTabs>
         </div>

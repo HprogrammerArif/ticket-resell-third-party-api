@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Link } from '@/libs/I18nNavigation';
 import { EventCard } from '@/components/catalog/EventCard';
 import type { TnEvent, TnPerformerImage } from '@/types/Catalog';
@@ -27,6 +28,7 @@ export function CityEventsTabs({
   locale,
   seeAllLabel = 'See All Events →',
 }: CityEventsTabsProps) {
+  const t = useTranslations('HomePage');
   const [activeIndex, setActiveIndex] = useState(0);
 
   if (!cityGroups.length) return null;
@@ -91,7 +93,7 @@ export function CityEventsTabs({
             href="/events"
             className="mt-4 inline-block rounded-full bg-[var(--color-brand-muted)] px-6 py-2 text-[14px] font-medium text-white hover:bg-[var(--color-brand)]"
           >
-            Explore all cities
+            {t('explore_all_cities')}
           </Link>
         </div>
       )}

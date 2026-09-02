@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useEffect, useRef, useState } from 'react';
 
 interface StatItem {
@@ -32,6 +34,7 @@ export function StatsSection({
   stat4Value = '150+',
   stat4Label = 'Cities Covered',
 }: StatsSectionProps) {
+  const t = useTranslations('StatsSection');
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
 
@@ -41,7 +44,7 @@ export function StatsSection({
       number: 10,
       suffix: 'M+',
       label: stat1Label,
-      description: '100% verified authentic tickets with buyer protection',
+      description: t('stat_1_description'),
       icon: '🎟️',
     },
     {
@@ -49,7 +52,7 @@ export function StatsSection({
       number: 50,
       suffix: 'K+',
       label: stat2Label,
-      description: 'Concerts, sports, theatre & exclusive live tours',
+      description: t('stat_2_description'),
       icon: '🏟️',
     },
     {
@@ -57,7 +60,7 @@ export function StatsSection({
       number: 98,
       suffix: '%',
       label: stat3Label,
-      description: 'Over 4.9/5 star ratings from happy event fans',
+      description: t('stat_3_description'),
       icon: '⭐',
     },
     {
@@ -65,16 +68,16 @@ export function StatsSection({
       number: 150,
       suffix: '+',
       label: stat4Label,
-      description: 'Major arenas, stadiums & intimate venues nationwide',
+      description: t('stat_4_description'),
       icon: '📍',
     },
   ];
 
   const guarantees = [
-    { icon: '🛡️', title: '100% Buyer Guarantee', desc: 'Valid entry or 100% money back' },
-    { icon: '⚡', title: 'Instant Mobile Delivery', desc: 'Direct to your inbox & Apple Wallet' },
-    { icon: '🔒', title: 'Bank-Grade Security', desc: '256-bit encrypted checkout' },
-    { icon: '🎧', title: '24/7 Fan Support', desc: 'Live help whenever you need it' },
+    { icon: '🛡️', title: t('guarantee_1_title'), desc: t('guarantee_1_description') },
+    { icon: '⚡', title: t('guarantee_2_title'), desc: t('guarantee_2_description') },
+    { icon: '🔒', title: t('guarantee_3_title'), desc: t('guarantee_3_description') },
+    { icon: '🎧', title: t('guarantee_4_title'), desc: t('guarantee_4_description') },
   ];
 
   useEffect(() => {
@@ -108,16 +111,16 @@ export function StatsSection({
             className="mb-3 text-[12px] font-bold tracking-[0.25em] text-[var(--color-brand)] uppercase"
             style={{ fontFamily: 'var(--font-jakarta)' }}
           >
-            TRUSTED BY FANS EVERYWHERE
+            {t('eyebrow')}
           </p>
           <h2
             className="text-[32px] font-bold text-white sm:text-[40px]"
             style={{ fontFamily: 'var(--font-poppins)' }}
           >
-            The Marketplace for Live Experiences
+            {t('heading')}
           </h2>
           <p className="mx-auto mt-2 max-w-2xl text-[15px] text-[#a1a1a1]">
-            From local club gigs to sold-out stadium world tours, we connect millions of fans with unforgettable live moments safely and seamlessly.
+            {t('subheading')}
           </p>
         </div>
 

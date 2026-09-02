@@ -39,7 +39,8 @@
     "no_account": "Vous n'avez pas de compte ?",
     "sign_up_link": "Sign up",
     "error_invalid_credentials": "Email ou mot de passe invalide.",
-    "error_generic": "Une erreur est survenue. Veuillez réessayer."
+    "error_generic": "Une erreur est survenue. Veuillez réessayer.",
+    "submitting": "Connexion..."
   },
   "SignUp": {
     "meta_title": "Créer un compte — TicketLove.net",
@@ -75,7 +76,8 @@
     "already_have_account": "Vous avez déjà un compte ?",
     "sign_in_link": "Se connecter",
     "error_email_in_use": "Un compte avec cet e-mail existe déjà.",
-    "error_generic": "Une erreur est survenue. Veuillez réessayer."
+    "error_generic": "Une erreur est survenue. Veuillez réessayer.",
+    "submitting": "Création du compte..."
   },
   "ForgotPasswordPage": {
     "meta_title": "Réinitialiser le mot de passe — TicketLove.net",
@@ -205,7 +207,9 @@
     "stat_3_value": "98%",
     "stat_3_label": "Satisfaction client",
     "stat_4_value": "150+",
-    "stat_4_label": "Villes couvertes"
+    "stat_4_label": "Villes couvertes",
+    "explore_directory": "Explorer le répertoire",
+    "explore_all_cities": "Explorer toutes les villes"
   },
   "EventsPage": {
     "meta_title": "Événements — TicketLove.net",
@@ -284,7 +288,12 @@
     "faq_accessible_a": "Oui. Veuillez nous contacter pour une assistance aux sièges accessibles.",
     "error_message": "Impossible de charger cet événement.",
     "try_again": "Réessayer",
-    "ticket_map_title": "Sélection des billets"
+    "ticket_map_title": "Sélection des billets",
+    "lineup_empty": "L'affiche n'est pas encore annoncée.",
+    "supporting_acts": "Premières parties",
+    "venue_empty": "Informations sur le lieu indisponibles.",
+    "venue_size": "Capacité du lieu",
+    "view_on_maps": "Voir sur Google Maps"
   },
   "ArtistsPage": {
     "meta_title": "Artistes et interprètes — TicketLove.net",
@@ -327,7 +336,9 @@
     "no_categories": "Aucune catégorie trouvée.",
     "loading": "Chargement...",
     "error_message": "Une erreur s'est produite lors du chargement de cette catégorie.",
-    "try_again": "Réessayer"
+    "try_again": "Réessayer",
+    "top_performers": "Artistes en vedette",
+    "browse_subcategories": "Parcourir les sous-catégories"
   },
   "VenuesPage": {
     "meta_title": "Salles — TicketLove.net",
@@ -441,5 +452,43 @@
   "PerformerImage": {
     "attribution": "Photo via Wikimedia Commons",
     "alt": "Photographie de {name}"
+  },
+  "StatsSection": {
+    "eyebrow": "La confiance des fans partout",
+    "heading": "La marketplace des expériences live",
+    "subheading": "Des concerts en petite salle aux tournées mondiales à guichets fermés, nous mettons en relation des millions de fans avec des moments live inoubliables, en toute sécurité et simplicité.",
+    "stat_1_description": "Billets 100 % vérifiés et authentiques, avec protection de l'acheteur",
+    "stat_2_description": "Concerts, sport, théâtre et tournées live exclusives",
+    "stat_3_description": "Plus de 4,9/5 étoiles attribuées par les fans",
+    "stat_4_description": "Grandes arènes, stades et salles intimistes dans tout le pays",
+    "guarantee_1_title": "Garantie acheteur à 100 %",
+    "guarantee_1_description": "Entrée valable ou remboursement intégral",
+    "guarantee_2_title": "Livraison mobile immédiate",
+    "guarantee_2_description": "Directement dans votre boîte mail et Apple Wallet",
+    "guarantee_3_title": "Sécurité de niveau bancaire",
+    "guarantee_3_description": "Paiement chiffré en 256 bits",
+    "guarantee_4_title": "Assistance fans 24/7",
+    "guarantee_4_description": "Une aide en direct dès que vous en avez besoin"
+  },
+  "AuthLayout": {
+    "back_to_home": "Retour à l'accueil",
+    "ssl_notice": "Chiffrement SSL 256 bits de niveau bancaire"
+  },
+  "UserProfilePage": {
+    "heading": "Profil utilisateur",
+    "subheading": "Gérez les identifiants et les informations de votre compte",
+    "account_id": "Identifiant du compte",
+    "email_label": "Adresse e-mail"
+  },
+  "GiftCardBanner": {
+    "valid_one_year": "VALABLE 1 AN",
+    "launching_soon": "Les cartes cadeaux arrivent bientôt !",
+    "select_value": "Choisissez le montant de la carte",
+    "notify_cta": "Prévenez-moi et obtenez 10 % en plus",
+    "no_spam": "Pas de spam. Nous vous écrirons uniquement à la sortie des cartes cadeaux.",
+    "reserved_prefix": "Nous avons réservé votre",
+    "got_it": "C'est noté, merci",
+    "on_the_list": "Vous êtes sur la liste ! 🎉",
+    "reserved_message": "Nous avons réservé votre <strong>crédit bonus de 10 %</strong> sur votre carte cadeau de <strong>{amount} $</strong>. Nous enverrons un lien d'accès anticipé à <strong>{email}</strong> dès le lancement."
   }
 }

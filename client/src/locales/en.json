@@ -39,7 +39,8 @@
     "no_account": "Don’t have an acount?",
     "sign_up_link": "Sign up",
     "error_invalid_credentials": "Invalid email or password.",
-    "error_generic": "Something went wrong. Please try again."
+    "error_generic": "Something went wrong. Please try again.",
+    "submitting": "Logging in..."
   },
   "SignUp": {
     "meta_title": "Sign up — TicketLove.net",
@@ -75,7 +76,8 @@
     "already_have_account": "Already have an account?",
     "sign_in_link": "Sign in",
     "error_email_in_use": "An account with this email already exists.",
-    "error_generic": "Something went wrong. Please try again."
+    "error_generic": "Something went wrong. Please try again.",
+    "submitting": "Creating account..."
   },
   "ForgotPasswordPage": {
     "meta_title": "Reset Your Password — TicketLove.net",
@@ -205,7 +207,9 @@
     "stat_3_value": "98%",
     "stat_3_label": "Customer Satisfaction",
     "stat_4_value": "150+",
-    "stat_4_label": "Cities Covered"
+    "stat_4_label": "Cities Covered",
+    "explore_directory": "Explore directory",
+    "explore_all_cities": "Explore all cities"
   },
   "EventsPage": {
     "meta_title": "Events — TicketLove.net",
@@ -284,7 +288,12 @@
     "faq_accessible_a": "Yes. Please contact us for accessible seating assistance.",
     "error_message": "Could not load this event.",
     "try_again": "Try again",
-    "ticket_map_title": "Ticket selection"
+    "ticket_map_title": "Ticket selection",
+    "lineup_empty": "Lineup not announced yet.",
+    "supporting_acts": "Supporting Acts",
+    "venue_empty": "Venue information not available.",
+    "venue_size": "Venue Size",
+    "view_on_maps": "View on Google Maps"
   },
   "ArtistsPage": {
     "meta_title": "Artists & Performers — TicketLove.net",
@@ -327,7 +336,9 @@
     "no_categories": "No categories found.",
     "loading": "Loading...",
     "error_message": "Something went wrong loading this category.",
-    "try_again": "Try again"
+    "try_again": "Try again",
+    "top_performers": "Top Performers",
+    "browse_subcategories": "Browse Subcategories"
   },
   "VenuesPage": {
     "meta_title": "Venues — TicketLove.net",
@@ -441,5 +452,43 @@
   "PerformerImage": {
     "attribution": "Photo via Wikimedia Commons",
     "alt": "Photograph of {name}"
+  },
+  "StatsSection": {
+    "eyebrow": "Trusted by fans everywhere",
+    "heading": "The Marketplace for Live Experiences",
+    "subheading": "From local club gigs to sold-out stadium world tours, we connect millions of fans with unforgettable live moments safely and seamlessly.",
+    "stat_1_description": "100% verified authentic tickets with buyer protection",
+    "stat_2_description": "Concerts, sports, theatre & exclusive live tours",
+    "stat_3_description": "Over 4.9/5 star ratings from happy event fans",
+    "stat_4_description": "Major arenas, stadiums & intimate venues nationwide",
+    "guarantee_1_title": "100% Buyer Guarantee",
+    "guarantee_1_description": "Valid entry or 100% money back",
+    "guarantee_2_title": "Instant Mobile Delivery",
+    "guarantee_2_description": "Direct to your inbox & Apple Wallet",
+    "guarantee_3_title": "Bank-Grade Security",
+    "guarantee_3_description": "256-bit encrypted checkout",
+    "guarantee_4_title": "24/7 Fan Support",
+    "guarantee_4_description": "Live help whenever you need it"
+  },
+  "AuthLayout": {
+    "back_to_home": "Back to Home",
+    "ssl_notice": "256-Bit Bank-Grade SSL Encryption"
+  },
+  "UserProfilePage": {
+    "heading": "User Profile",
+    "subheading": "Manage your account credentials and details",
+    "account_id": "Account ID",
+    "email_label": "Email Address"
+  },
+  "GiftCardBanner": {
+    "valid_one_year": "VALID 1 YEAR",
+    "launching_soon": "Gift Cards Launching Soon!",
+    "select_value": "Select Gift Card Value",
+    "notify_cta": "Notify Me & Claim 10% Bonus",
+    "no_spam": "No spam. We'll only email you when gift cards become available.",
+    "reserved_prefix": "We've reserved your",
+    "got_it": "Got it, thanks!",
+    "on_the_list": "You're on the list! 🎉",
+    "reserved_message": "We've reserved your <strong>10% bonus credit</strong> on your <strong>${amount}</strong> gift card. We'll send an exclusive early access link to <strong>{email}</strong> the moment we launch!"
   }
 }

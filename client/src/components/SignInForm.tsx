@@ -209,7 +209,7 @@ export const SignInForm = () => {
           {isLoading ? (
             <span className="flex items-center justify-center gap-2">
               <span className="block size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-              <span>Logging in...</span>
+              <span>{t('submitting')}</span>
             </span>
           ) : (
             t('submit')
