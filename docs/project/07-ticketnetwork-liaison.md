@@ -101,6 +101,23 @@ All answers from Ian Schultz unless noted.
 
 ---
 
+## 2026-09-01 — Ian answered payment methods, attribution, rate limit, imagery and gift cards
+
+| # | Answer | Consequence |
+|---|--------|-------------|
+| **R32** | **Google Pay, Amazon Pay and Apple Pay can be set up now. Affirm requires the site to generate over $60K of revenue first.** | Affirm is a milestone, not a switch. The other three are available for the asking and should be requested — the checkout currently offers only Credit Card, PayPal and PayPal Credit |
+| **R33** | *"The order is attributed via the WCID."* | **Confirms D7.** The mechanism we reverse-engineered from their widget source is the real one, now stated by TN. Steven's commission rests on a confirmed mechanism rather than an inference |
+| **R34** | *"If you begin to receive errors we can increase to 100 calls/min."* | Doubles the ceiling on request, but only once we hit errors. Note our own limiter is set to **45/min**, so we throttle ourselves before ever reaching theirs. Raise ours when theirs is raised |
+| **R35** | **"We do not provide any performer or event images."** | **Closes the imagery question permanently.** V1 assumed this from the schema; it is now explicit. Wikimedia is not a stopgap, it is the answer unless we license a third-party source |
+| **R36** | If the discount exceeds the margin the commission goes negative and **the partner owes TicketNetwork**. His worked example: wholesale $100, 20% markup, $50 code → customer pays $70; $70 − $100 − $7.50 = **−$37.50 owed to TN** | **Answers A4.** See the corrected analysis below — the figure is real but is not the whole transaction |
+
+**Not answered, and still needed:**
+
+- **Which report shows a sale credited to ZX7910-STORE, and how long after purchase it appears.** Asked, not addressed. This is what the first live test purchase depends on — without it we cannot tell a successful attribution from a silent failure.
+- **Partial redemption.** If a $50 code is used against a $30 order, does the remaining $20 survive? This decides whether a gift card is stored value or a one-shot code, and therefore what we build.
+
+---
+
 ## Gift Cards — What R19/R20 Actually Permit
 
 Ian's answers make gift cards *possible* against real ticket purchases, which reverses the earlier working assumption. But they constrain the design sharply, and one unanswered question decides whether the feature is viable at all.
@@ -109,7 +126,27 @@ Ian's answers make gift cards *possible* against real ticket purchases, which re
 - Codes live in TN Portal and must be created ahead of time (R20). No API for programmatic issuance has been confirmed — assume manual creation until told otherwise.
 - The discount hits retail price and is deducted from our margin (R19).
 
-**The unresolved economics.** Margin on a ticket is the markup minus TicketNetwork's 7.5% of wholesale. On Ian's own example — wholesale $100, 20% markup, customer pays $120 — the margin is $12.50. A $50 gift card redeemed against that order exceeds the entire margin. Nobody has said what happens: whether TN caps the discount at available margin, allows commission to go negative, or rejects the code. **Until that is answered, no gift card denomination can be safely priced.**
+**The economics — ANSWERED 2026-09-01 (R36), and the feature is viable.**
+
+TicketNetwork does not cap the discount. Commission goes negative and the balance is owed to them. Ian's example: wholesale $100, 20% markup, $50 code → customer pays $70, and $70 − $100 − $7.50 = **−$37.50 owed to TN**.
+
+That figure is real, but it describes the redemption in isolation. It omits the $50 already collected when the card was sold. Modelled across denominations:
+
+| Wholesale | Markup | Retail | Card | Margin without a card | On redemption | **Net** |
+|---:|---:|---:|---:|---:|---:|---:|
+| $100 | 20% | $120 | $50 | $12.50 | −$37.50 | **$12.50** |
+| $100 | 20% | $120 | — | $12.50 | $12.50 | **$12.50** |
+| $50 | 20% | $60 | $50 | $6.25 | −$43.75 | **$6.25** |
+| $200 | 20% | $240 | $50 | $25.00 | −$25.00 | **$25.00** |
+| $100 | 35% | $135 | $50 | $27.50 | −$22.50 | **$27.50** |
+
+**The net column equals the margin on the same order without a gift card, in every case.** A card sold at face value is economically neutral: the money arrived earlier, at the point of sale, rather than at redemption.
+
+Three constraints follow, and they are what make it safe:
+
+1. **Never sell a card below face value.** The neutrality depends on collecting exactly the face amount. A "$50 card for $45" promotion loses $5 of real cash per card.
+2. **Steven needs a cash reserve.** He owes TicketNetwork at redemption, recovered from the next remittance (R25). A large card redeemed in a quiet fortnight is money out of his pocket before it is money back in.
+3. **Keep denominations modest** relative to typical order value, so no single redemption creates a large debit.
 
 **The mechanical unknowns:** whether a code is single-use or multi-use, fixed-amount or percentage, whether an unspent balance survives partial redemption, and whether codes carry expiry. A promo code is not natively stored value — if there is no remaining-balance behaviour, then "gift card" here means a one-shot discount code, not a wallet.
 
@@ -256,9 +293,9 @@ Status as of 2026-08-20, after Ian's reply. Q1–Q13 numbering matches the 2026-
 | # | Question | Status | Blocks |
 |---|----------|--------|--------|
 | A1 | Which email address to open the TN Portal account under — **he is waiting on us** | `[ANSWERED 2026-08-22 — work.mohammedarif@gmail.com]` | Decision: dev team holds the account through build and testing; **ownership transfers to Steven after go-live**, since markup, promo codes and sales reporting are his to run. Asked Ian what the handover involves. **Post-launch action — do not lose this.** Unblocks Maps config tool, promo codes, markup configuration, sales reporting |
-| A2 | Clarify what we meant by "checkout information" — he asked "Are you referring to integration with our hosted checkout?" and answered the access request with one word: "Checkout" | `[OPEN — WE ARE THE BLOCKER]` | Sandbox checkout access. He has not granted it; the thread is waiting on our clarification |
+| A2 | Clarify what we meant by "checkout information" | `[MOOT — voided by R29]` | Sandbox checkout does not exist to grant: *"We don't have checkout in Sandbox. C3 checkout exists only in Production."* No longer a blocker on anything |
 | A3 | NDA scope — does Steven's signature cover us as his development contractor? | `[OPEN]` | Not answered. May be moot if access is granted regardless |
-| A4 | Gift card economics — what happens when a code's value exceeds the order's margin? Capped, negative commission, or rejected? | `[OPEN]` | **Gift card viability.** No denomination can be priced until answered |
+| A4 | Gift card economics — what happens when a code's value exceeds the order's margin? Capped, negative commission, or rejected? | `[ANSWERED 2026-09-01 — R36]` | Negative commission, balance owed to TN. **Feature is viable**: neutral at face value. See the corrected analysis above |
 | A5 | Promo code mechanics — single- or multi-use, fixed amount or percentage, partial redemption with remaining balance, expiry, and any API for issuance | `[OPEN]` | Gift card data model |
 | A6 | Anything else needed from Steven's entity before payouts beyond banking details — reseller agreement, tax forms? | `[OPEN]` | Nothing. Confirmation only, per D5 |
 
