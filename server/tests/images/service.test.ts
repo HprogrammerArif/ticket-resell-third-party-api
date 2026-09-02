@@ -44,6 +44,11 @@ const SUMMARY_NO_IMAGE = {
   content_urls: { desktop: { page: 'https://en.wikipedia.org/wiki/Abra_Moore' } },
 };
 
+/** A well-formed Commons file URL, so fixtures pass the licence check. */
+function COMMONS(file: string): string {
+  return `https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/${file}/330px-${file}`;
+}
+
 function jsonResponse(body: unknown): Response {
   return { ok: true, json: async () => body } as unknown as Response;
 }
@@ -59,6 +64,43 @@ describe('categoryHint', () => {
 
   it('maps sports to team', () => {
     expect(categoryHint('Sports / NBA')).toBe('team');
+  });
+
+  // The categories below are TicketNetwork's actual vocabulary, collected from
+  // 400 live performers. The original mapping was written against invented
+  // names like "Concerts" and matched almost none of them, so nearly every
+  // performer was searched with the generic hint.
+  it('maps the real music genres to band', () => {
+    expect(categoryHint('POP / ROCK')).toBe('band');
+    expect(categoryHint('ALTERNATIVE')).toBe('band');
+    expect(categoryHint('COUNTRY / FOLK')).toBe('band');
+    expect(categoryHint('RAP / HIP HOP')).toBe('band');
+    expect(categoryHint('R&B / SOUL')).toBe('band');
+    expect(categoryHint('HARD ROCK / METAL')).toBe('band');
+    expect(categoryHint('JAZZ / BLUES')).toBe('band');
+    expect(categoryHint('TECHNO / ELECTRONIC')).toBe('band');
+  });
+
+  it('maps stage categories to musical, not band', () => {
+    // "MUSICAL / PLAY" contains the substring "music", so an order that tests
+    // for music first classifies a Broadway show as a rock group.
+    expect(categoryHint('MUSICAL / PLAY')).toBe('musical');
+    expect(categoryHint('BROADWAY')).toBe('musical');
+    expect(categoryHint('OFF-BROADWAY')).toBe('musical');
+    expect(categoryHint('WEST END')).toBe('musical');
+    expect(categoryHint('OPERA')).toBe('musical');
+    expect(categoryHint('LAS VEGAS SHOWS')).toBe('musical');
+  });
+
+  it('maps the real sports categories to team', () => {
+    expect(categoryHint('NFL')).toBe('team');
+    expect(categoryHint('Professional (MLB)')).toBe('team');
+    expect(categoryHint('Professional (NBA)')).toBe('team');
+    expect(categoryHint('College (Div I-A and Div I-AA)')).toBe('team');
+  });
+
+  it('maps comedy to comedian', () => {
+    expect(categoryHint('COMEDY')).toBe('comedian');
   });
 
   it('falls back to performer for anything else', () => {
@@ -167,10 +209,18 @@ describe('getPerformerImage', () => {
   it('falls through to search when the direct hit is non-free', async () => {
     // Rejecting the non-free file must not end the resolution: the search
     // stage may still reach a different article carrying a Commons photo.
+    // The search stage must land on the same act, not merely on something with
+    // a free photograph — the name check applies to both stages.
+    const stageProduction = {
+      type: 'standard',
+      title: 'The Gruffalo (musical)',
+      thumbnail: { source: COMMONS('Gruffalo_stage.jpg'), width: 330, height: 220 },
+      content_urls: { desktop: { page: 'https://en.wikipedia.org/wiki/g' } },
+    };
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(jsonResponse(SUMMARY_NON_FREE_IMAGE))
-      .mockResolvedValueOnce(jsonResponse({ query: { search: [{ title: '3 Doors Down' }] } }))
-      .mockResolvedValueOnce(jsonResponse(SUMMARY_WITH_IMAGE));
+      .mockResolvedValueOnce(jsonResponse({ query: { search: [{ title: 'The Gruffalo (musical)' }] } }))
+      .mockResolvedValueOnce(jsonResponse(stageProduction));
     vi.stubGlobal('fetch', fetchMock);
 
     const result = await getPerformerImage('The Gruffalo', 'Theatre');
@@ -194,6 +244,83 @@ describe('getPerformerImage', () => {
     vi.stubGlobal('fetch', fetchMock);
 
     expect(await getPerformerImage('Impostor', 'Concerts')).toBeNull();
+  });
+
+  it('rejects an article about a different subject with a similar name', async () => {
+    // Measured against the live catalogue: "42nd Street" resolved to the
+    // Times Square subway station. The name appears inside the article title,
+    // so a containment check would have accepted it.
+    const station = {
+      type: 'standard',
+      title: 'Times Square-42nd Street station',
+      thumbnail: { source: COMMONS('Station.jpg'), width: 330, height: 210 },
+      content_urls: { desktop: { page: 'https://en.wikipedia.org/wiki/x' } },
+    };
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(jsonResponse(station))
+      .mockResolvedValueOnce(jsonResponse({ query: { search: [] } }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    expect(await getPerformerImage('42nd Street', 'Theatre')).toBeNull();
+  });
+
+  it('rejects an article about a different person', async () => {
+    // "Allen Anthony" resolved to Anthony Newley — a real performer, so no
+    // description check would catch it. Only the name comparison does.
+    const other = {
+      type: 'standard',
+      title: 'Anthony Newley',
+      thumbnail: { source: COMMONS('Newley.jpg'), width: 330, height: 400 },
+      content_urls: { desktop: { page: 'https://en.wikipedia.org/wiki/y' } },
+    };
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(jsonResponse(other))
+      .mockResolvedValueOnce(jsonResponse({ query: { search: [] } }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    expect(await getPerformerImage('Allen Anthony', 'Concerts')).toBeNull();
+  });
+
+  it("accepts Wikipedia's disambiguated title for the same act", async () => {
+    // "AFI (band)" is the same subject as "AFI"; the parenthetical is
+    // Wikipedia's disambiguator, not a different name.
+    const band = {
+      type: 'standard',
+      title: 'AFI (band)',
+      thumbnail: { source: COMMONS('AFI.jpg'), width: 330, height: 220 },
+      content_urls: { desktop: { page: 'https://en.wikipedia.org/wiki/AFI_(band)' } },
+    };
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(band)));
+
+    const result = await getPerformerImage('AFI', 'Concerts');
+    expect(result?.title).toBe('AFI (band)');
+  });
+
+  it("ignores TicketNetwork's descriptive suffix when comparing names", async () => {
+    // TN lists this act as "Alabama - The Band"; Wikipedia titles it
+    // "Alabama (band)". Same act, and the suffix must not fail the match.
+    const band = {
+      type: 'standard',
+      title: 'Alabama (band)',
+      thumbnail: { source: COMMONS('Alabama.jpg'), width: 330, height: 240 },
+      content_urls: { desktop: { page: 'https://en.wikipedia.org/wiki/Alabama_(band)' } },
+    };
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(band)));
+
+    const result = await getPerformerImage('Alabama - The Band', 'Concerts');
+    expect(result?.title).toBe('Alabama (band)');
+  });
+
+  it('matches names that differ only by accent or punctuation', async () => {
+    const artist = {
+      type: 'standard',
+      title: 'Beyoncé',
+      thumbnail: { source: COMMONS('B.jpg'), width: 330, height: 400 },
+      content_urls: { desktop: { page: 'https://en.wikipedia.org/wiki/z' } },
+    };
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(artist)));
+
+    expect(await getPerformerImage('Beyonce', 'Concerts')).not.toBeNull();
   });
 
   it('caches a miss so it is not re-queried on every call', async () => {

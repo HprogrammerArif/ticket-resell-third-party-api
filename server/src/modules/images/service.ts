@@ -43,17 +43,43 @@ type WikiSummary = {
 /**
  * Derives a disambiguation hint from TicketNetwork's category.
  *
- * Wikipedia titles collide constantly — "AFI" is a film institute before it is a
- * band, "42nd Street" a street before a musical. The hint steers search toward
- * the right article and is what lifts coverage from 7/10 to 9/10.
+ * Wikipedia titles collide constantly — "AFI" is a film institute before it is
+ * a band, "42nd Street" a street before a musical. The hint steers the search
+ * toward the right article, and it only comes into play when the direct title
+ * lookup has already failed, which is exactly the ambiguous case.
+ *
+ * The patterns below are TicketNetwork's own category names, collected from
+ * 400 live performers: POP / ROCK, ALTERNATIVE, COUNTRY / FOLK, RAP / HIP HOP,
+ * R&B / SOUL, HARD ROCK / METAL, JAZZ / BLUES, MUSICAL / PLAY, BROADWAY,
+ * OFF-BROADWAY, WEST END, OPERA, NFL, Professional (NBA), College (Div I-A and
+ * Div I-AA), COMEDY, and so on. An earlier version tested for "concert" and
+ * "music", which matches almost none of them — so nearly every performer was
+ * searched with the generic hint and the hint did no work at all.
+ *
+ * Stage categories are tested first on purpose: "MUSICAL / PLAY" contains the
+ * substring "music", so testing music first files a Broadway show as a band.
  * @param category - TicketNetwork category name, if known.
  * @returns A single word appended to the search query.
  */
 export function categoryHint(category?: string): string {
   const lower = (category ?? '').toLowerCase();
-  if (lower.includes('concert') || lower.includes('music')) return 'band';
-  if (lower.includes('theat')) return 'musical';
-  if (lower.includes('sport')) return 'team';
+  if (!lower) return 'performer';
+
+  if (/musical|play|broadway|west end|opera|cirque|vegas show|theat|ballet|dance/.test(lower)) {
+    return 'musical';
+  }
+  if (/nfl|nba|mlb|nhl|mls|college|professional|sport|football|basketball|baseball|hockey|soccer|racing|rodeo/.test(lower)) {
+    return 'team';
+  }
+  if (/comedy|comedian/.test(lower)) {
+    return 'comedian';
+  }
+  if (/classical|religious|gospel|new age/.test(lower)) {
+    return 'musician';
+  }
+  if (/rock|pop|alternative|country|folk|rap|hip hop|r&b|soul|metal|jazz|blues|latin|reggae|electronic|techno|concert|music|band/.test(lower)) {
+    return 'band';
+  }
   return 'performer';
 }
 
@@ -122,6 +148,57 @@ function toImage(summary: WikiSummary): PerformerImage | null {
   };
 }
 
+/**
+ * Reduces a name to a comparable form.
+ *
+ * Strips accents, case and punctuation, and removes a trailing parenthetical:
+ * Wikipedia disambiguates with one, so "AFI (band)" and "AFI" are the same
+ * subject under a different title, not a different act.
+ * @param value - A performer name or an article title.
+ * @returns The comparable form, possibly empty.
+ */
+function normalizeName(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/\s*\([^)]*\)\s*$/, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+/**
+ * Whether an article is about the act we asked for.
+ *
+ * Wikipedia search returns its best guess, not a match, and its best guess for
+ * an unknown act is often a real article about something else. Measured against
+ * the live catalogue, four names in thirty resolved to the wrong subject:
+ * "42nd Street" to the Times Square subway station, "Air" to the Earth's
+ * atmosphere, "Allen Anthony" to Anthony Newley, "Alabama - The Band" to that
+ * band's lead singer. Each returned a real photograph, so nothing downstream
+ * could tell it was wrong.
+ *
+ * Containment is not enough — "42nd Street" appears inside "Times
+ * Square-42nd Street station". The article title must be the name itself.
+ *
+ * TicketNetwork appends descriptors its own catalogue needs, listing that band
+ * as "Alabama - The Band" where Wikipedia has "Alabama (band)", so the part
+ * before a dash is accepted as an alternative form of the name.
+ * @param requested - The performer name from TicketNetwork.
+ * @param articleTitle - The title Wikipedia returned.
+ * @returns True when the article is about that act.
+ */
+function namesMatch(requested: string, articleTitle: string): boolean {
+  const article = normalizeName(articleTitle);
+  if (!article) return false;
+
+  const candidates = new Set([normalizeName(requested)]);
+  const beforeDash = requested.split(/\s+-\s+/)[0];
+  if (beforeDash) candidates.add(normalizeName(beforeDash));
+
+  return candidates.has(article);
+}
+
 async function summaryFor(title: string): Promise<WikiSummary | null> {
   const data = await wikiFetch(`${WIKI_REST}/${encodeURIComponent(title)}`);
   return (data as WikiSummary) ?? null;
@@ -143,10 +220,11 @@ async function searchTitle(name: string, hint: string): Promise<string | null> {
 
 async function resolve(name: string, category?: string): Promise<PerformerImage | null> {
   // Stage 1 — the exact name. A disambiguation page counts as a miss, not a
-  // hit, and so does an article whose only image is non-free: in both cases
-  // stage 2 gets a chance to find something usable.
+  // hit, and so does an article whose only image is non-free or whose subject
+  // is not the act we asked for: in each case stage 2 gets a chance to find
+  // something usable.
   const direct = await summaryFor(name);
-  if (direct) {
+  if (direct && namesMatch(name, direct.title ?? '')) {
     const image = toImage(direct);
     if (image) return image;
   }
@@ -156,7 +234,7 @@ async function resolve(name: string, category?: string): Promise<PerformerImage 
   if (!title) return null;
 
   const viaSearch = await summaryFor(title);
-  if (!viaSearch) return null;
+  if (!viaSearch || !namesMatch(name, viaSearch.title ?? '')) return null;
 
   return toImage(viaSearch);
 }
