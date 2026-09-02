@@ -46,11 +46,17 @@ describe('createRateLimiter', () => {
     // A failing lookup must not hold a slot forever, or one bad name would
     // wedge every image on the site.
     const limit = createRateLimiter(1, 1000);
+
+    // The assertion is attached before the timers advance, not after. The task
+    // rejects while the timers are being advanced, and a rejection with no
+    // handler yet attached is an unhandled rejection that fails the run —
+    // which is what happened in CI while passing locally on a faster machine.
     const failing = limit(async () => { throw new Error('boom'); });
+    const failed = expect(failing).rejects.toThrow('boom');
     const following = limit(async () => 'after');
 
     await vi.advanceTimersByTimeAsync(0);
-    await expect(failing).rejects.toThrow('boom');
+    await failed;
 
     await vi.advanceTimersByTimeAsync(1000);
     expect(await following).toBe('after');
