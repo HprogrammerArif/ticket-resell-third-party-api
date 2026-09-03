@@ -211,7 +211,8 @@
     "stat_4_value": "150+",
     "stat_4_label": "Villes couvertes",
     "explore_directory": "Explorer le répertoire",
-    "explore_all_cities": "Explorer toutes les villes"
+    "explore_all_cities": "Explorer toutes les villes",
+    "advertisement": "Publicité"
   },
   "EventsPage": {
     "meta_title": "Événements — TicketLove.net",

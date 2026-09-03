@@ -498,24 +498,17 @@ export default async function EventDetailPage(props: EventDetailPageProps) {
               { id: 'faq', label: t('tab_faq'), icon: '❓' },
             ]}
           >
-            <MapWidgetEmbed eventId={event.id} />
+            <>
+              <MapWidgetEmbed eventId={event.id} />
+              {/* Beneath the map, never beside it: the seat map is the reason
+                  the sidebar collapses on this tab and it should keep every
+                  pixel of that width. */}
+              <AdSlot locale={locale} className="mt-8" />
+            </>
             <LineupTab event={event} locale={locale} />
             <VenueTab event={event} venue={fullVenue} locale={locale} />
             <FaqTab faqs={faqs} />
           </EventDetailTabs>
-        </div>
-
-        {/* Right: ad space, shown only while the seat map is open.
-            The sidebar below collapses on that tab to give the map room, so
-            this takes the space rather than leaving it empty — which is what
-            Steven asked for. The mirror of the sidebar's own rule. */}
-        <div
-          data-event-ads
-          className="hidden w-80 shrink-0 lg:[:has([data-active=tickets])>&]:block"
-        >
-          <div className="sticky top-24">
-            <AdSlot locale={locale} />
-          </div>
         </div>
 
         {/* Right: Sticky sidebar */}
@@ -565,6 +558,11 @@ export default async function EventDetailPage(props: EventDetailPageProps) {
               )}
             </div>
           </div>
+
+          {/* Beneath the quick facts. This whole column is hidden while the
+              seat map is open, so the ad only appears on Lineup, Venue and
+              FAQ — which is where Steven wants it. */}
+          <AdSlot locale={locale} className="mt-6" />
         </div>
       </div>
 

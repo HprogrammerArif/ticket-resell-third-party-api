@@ -13,7 +13,9 @@ import { getTranslations } from 'next-intl/server';
  * space is visible while working on the page.
  *
  * To fill it, pass the ad markup as children — a script tag from a network, an
- * image and link sold directly, or a house promotion.
+ * image and link sold directly, or a house promotion. Height comes from the
+ * caller: an ad beside a seat map and an ad across a homepage are not the same
+ * shape.
  * @param props - The ad to render, and the locale for the development label.
  * @returns The ad, the development outline, or nothing.
  */
@@ -34,7 +36,7 @@ export async function AdSlot(props: {
 
   return (
     <div
-      className={`flex min-h-[600px] items-center justify-center rounded-2xl border border-dashed border-[var(--color-surface-border)] text-[13px] text-[var(--color-text-muted)] ${props.className ?? ''}`}
+      className={`flex min-h-40 items-center justify-center rounded-2xl border border-dashed border-[var(--color-surface-border)] text-[13px] text-[var(--color-text-muted)] ${props.className ?? ''}`}
     >
       {t('ad_zone')}
     </div>

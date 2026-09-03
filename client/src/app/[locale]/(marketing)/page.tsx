@@ -16,6 +16,7 @@ import { HeroSlider } from '@/components/catalog/HeroSlider';
 import { DragScrollContainer } from '@/components/catalog/DragScrollContainer';
 import { CityEventsTabs } from '@/components/catalog/CityEventsTabs';
 import { GiftCardBanner } from '@/components/catalog/GiftCardBanner';
+import { AdSlot } from '@/components/catalog/AdSlot';
 import { HowItWorksSection } from '@/components/catalog/HowItWorksSection';
 import { StatsSection } from '@/components/catalog/StatsSection';
 import { getEventImages } from '@/libs/EventImage';
@@ -27,6 +28,37 @@ export async function generateMetadata(props: HomePageProps): Promise<Metadata> 
   const { locale } = await props.params;
   const t = await getTranslations({ locale, namespace: 'HomePage' });
   return { title: t('meta_title'), description: t('meta_description') };
+}
+
+/**
+ * The homepage's advertising placement.
+ *
+ * Renders nothing while it holds no ad, so the page closes up rather than
+ * showing an empty labelled band between two content sections. The label above
+ * it is deliberate: advertising alongside editorial content should say what it
+ * is, and a reader should never have to work out which is which.
+ * @param props - The locale for the label.
+ * @returns The advertising section, or nothing.
+ */
+async function AdvertisingSection(props: { locale: string; children?: React.ReactNode }) {
+  // The label has to disappear with the ad. A band reading "Advertisement"
+  // with nothing beneath it is worse than no band at all.
+  if (!props.children && process.env.NODE_ENV === 'production') {
+    return null;
+  }
+
+  const t = await getTranslations({ locale: props.locale, namespace: 'HomePage' });
+
+  return (
+    <section className="mx-auto max-w-[1440px] px-[107px] py-6 max-md:px-4">
+      <p className="mb-2 text-[11px] uppercase tracking-widest text-[var(--color-text-muted)]">
+        {t('advertisement')}
+      </p>
+      <AdSlot locale={props.locale} className="min-h-40">
+        {props.children}
+      </AdSlot>
+    </section>
+  );
 }
 
 export async function HeroSection(props: { locale: string }) {
@@ -358,6 +390,11 @@ export default async function HomePage(props: HomePageProps) {
       <Suspense fallback={<ArtistsSkeleton />}>
         <ArtistsSection locale={locale} />
       </Suspense>
+
+      {/* Advertising, between Popular Artists and the city listings. Far
+          enough down that a visitor has seen two blocks of real content, far
+          enough from the footer to be seen at all. */}
+      <AdvertisingSection locale={locale} />
 
       <Suspense fallback={<CityEventsSkeleton />}>
         <CityEventsSection locale={locale} />
