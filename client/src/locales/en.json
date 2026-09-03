@@ -338,7 +338,11 @@
     "error_message": "Something went wrong loading this category.",
     "try_again": "Try again",
     "top_performers": "Top Performers",
-    "browse_subcategories": "Browse Subcategories"
+    "browse_subcategories": "Browse Subcategories",
+    "event_count": "{count, plural, =0 {No events} one {# event} other {# events}}",
+    "ticket_count": "{count, plural, one {# ticket} other {# tickets}}",
+    "browse_sports": "Browse Sports",
+    "browse_genres": "Browse Genres"
   },
   "VenuesPage": {
     "meta_title": "Venues — TicketLove.net",

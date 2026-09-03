@@ -338,7 +338,11 @@
     "error_message": "Algo salió mal al cargar esta categoría.",
     "try_again": "Reintentar",
     "top_performers": "Artistas destacados",
-    "browse_subcategories": "Explorar subcategorías"
+    "browse_subcategories": "Explorar subcategorías",
+    "event_count": "{count, plural, =0 {Sin eventos} one {# evento} other {# eventos}}",
+    "ticket_count": "{count, plural, one {# boleto} other {# boletos}}",
+    "browse_sports": "Explorar deportes",
+    "browse_genres": "Explorar géneros"
   },
   "VenuesPage": {
     "meta_title": "Recintos — TicketLove.net",

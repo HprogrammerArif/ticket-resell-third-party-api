@@ -9,6 +9,8 @@ import { EventCard } from '@/components/catalog/EventCard';
 import { EventCardSkeleton } from '@/components/catalog/EventCardSkeleton';
 import { Pagination } from '@/components/catalog/Pagination';
 import { CategoryHeroBanner } from '@/components/catalog/CategoryHeroBanner';
+import { SubcategoryGrid } from '@/components/catalog/SubcategoryGrid';
+import { getCategoriesWithEvents, resolveSection, visibleChildren } from '@/libs/CatalogSections';
 import { Link } from '@/libs/I18nNavigation';
 import type { TnCategory, TnPerformer } from '@/types/Catalog';
 import { getEventImages } from '@/libs/EventImage';
@@ -39,6 +41,15 @@ const NAV_SECTIONS: Record<string, string> = {
 };
 
 async function resolveCategory(categoryPath: string): Promise<{ category: TnCategory; resolvedPath: string }> {
+  // A navigation slug is answered by the section table, which verifies the
+  // category's name rather than trusting a hardcoded identifier. Falling
+  // through to the fuzzy match below is what made /categories/sports land on a
+  // single league.
+  const section = await resolveSection(categoryPath);
+  if (section) {
+    return { category: section, resolvedPath: section.path };
+  }
+
   // If it is already a dot path, try TN API directly
   if (categoryPath.startsWith('.')) {
     try {
@@ -142,6 +153,26 @@ async function TopPerformers(props: { categoryPath: string; categoryName: string
 }
 
 // ─── Subcategory Chips ────────────────────────────────────────────────────────
+
+/**
+ * Renders the categories directly beneath this one.
+ *
+ * One rule at every level: show your children, or nothing if you have none and
+ * let the events below stand on their own. The tree is uneven — three deep
+ * under Sports, two under Concerts, and Comedy is a leaf sitting directly
+ * under a section — so a rule beats a table of special cases.
+ * @param props - The category path whose children are wanted, and the locale.
+ * @returns The grid, or null when this category is a leaf.
+ */
+async function CategoryChildren(props: { path: string; locale: string }) {
+  const children = visibleChildren(await getCategoriesWithEvents(), props.path);
+
+  if (children.length === 0) {
+    return null;
+  }
+
+  return <SubcategoryGrid categories={children} locale={props.locale} />;
+}
 
 async function SubcategoryChips(props: { parentPath: string; currentPath: string; locale: string }) {
   const t = await getTranslations({ locale: props.locale, namespace: 'CategoriesPage' });
@@ -293,7 +324,12 @@ export default async function CategoryBrowsePage(props: CategoriesPageProps) {
       {/* Hero banner */}
       <CategoryHeroBanner category={category} displayName={NAV_SECTIONS[categoryPath.toLowerCase()]} />
 
-      {/* Subcategories */}
+      {/* What sits beneath this category, as cards. Falls back to the chip row
+          for deeper levels, where the list is short enough to read inline. */}
+      <Suspense fallback={null}>
+        <CategoryChildren path={resolvedPath} locale={locale} />
+      </Suspense>
+
       <Suspense fallback={null}>
         <SubcategoryChips parentPath={parentPath} currentPath={resolvedPath} locale={locale} />
       </Suspense>

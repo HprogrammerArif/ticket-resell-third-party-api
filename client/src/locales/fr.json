@@ -338,7 +338,11 @@
     "error_message": "Une erreur s'est produite lors du chargement de cette catégorie.",
     "try_again": "Réessayer",
     "top_performers": "Artistes en vedette",
-    "browse_subcategories": "Parcourir les sous-catégories"
+    "browse_subcategories": "Parcourir les sous-catégories",
+    "event_count": "{count, plural, =0 {Aucun événement} one {# événement} other {# événements}}",
+    "ticket_count": "{count, plural, one {# billet} other {# billets}}",
+    "browse_sports": "Parcourir les sports",
+    "browse_genres": "Parcourir les genres"
   },
   "VenuesPage": {
     "meta_title": "Salles — TicketLove.net",
