@@ -19,8 +19,7 @@ import { GiftCardBanner } from '@/components/catalog/GiftCardBanner';
 import { HowItWorksSection } from '@/components/catalog/HowItWorksSection';
 import { StatsSection } from '@/components/catalog/StatsSection';
 import { getEventImages } from '@/libs/EventImage';
-import { BannerCarousel, type Banner } from '@/components/catalog/BannerCarousel';
-import { getBanners } from '@/libs/BannersApi';
+import { getHeroSlides } from '@/libs/BannersApi';
 
 type HomePageProps = { params: Promise<{ locale: string }> };
 
@@ -35,11 +34,14 @@ export async function HeroSection(props: { locale: string }) {
   const format = await getFormatter({ locale: props.locale });
   const { results: events } = await getEvents({ pageSize: 5 });
   const featured = events[0];
+  // Steven's uploaded banners are the hero's background. With none uploaded
+  // the slider falls back to the images the homepage always used.
+  const slides = await getHeroSlides();
 
   return (
     <section className="relative min-h-[600px] bg-gradient-to-br from-[#0f0f0f] to-[#1a0a0d] px-[107px] py-20 max-md:px-4">
       {/* Background concert image slider */}
-      <HeroSlider />
+      <HeroSlider slides={slides} />
 
       <div className="relative z-30 mx-auto max-w-[1440px]">
         {featured && (
@@ -332,14 +334,8 @@ export default async function HomePage(props: HomePageProps) {
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: 'HomePage' });
 
-  const banners: Banner[] = await getBanners();
-
   return (
     <>
-      {/* Steven uploads these from the admin dashboard. Absent or unreachable,
-          the homepage renders exactly as it did before them. */}
-      <BannerCarousel banners={banners} />
-
       <Suspense fallback={<div className="h-[600px] animate-pulse bg-[#1a0a0d]" />}>
         <HeroSection locale={locale} />
       </Suspense>
