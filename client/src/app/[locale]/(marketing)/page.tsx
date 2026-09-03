@@ -38,13 +38,17 @@ export async function HeroSection(props: { locale: string }) {
   // the slider falls back to the images the homepage always used.
   const slides = await getHeroSlides();
 
+  // A banner is finished artwork with its own headline. Painting an unrelated
+  // event's name over it is what made the hero unreadable — two titles, two
+  // buttons, one of them behind the search bar. When Steven has uploaded
+  // banners the artwork speaks for itself and carries a single call to action;
+  // with none, the featured event fills the space as it always did.
+  const showFeatured = slides.length === 0;
+
   return (
     <section className="relative min-h-[600px] bg-gradient-to-br from-[#0f0f0f] to-[#1a0a0d] px-[107px] py-20 max-md:px-4">
-      {/* Background concert image slider */}
-      <HeroSlider slides={slides} />
-
-      <div className="relative z-30 mx-auto max-w-[1440px]">
-        {featured && (
+      <HeroSlider slides={slides}>
+        {showFeatured && featured && (
           <div className="max-w-2xl">
             <h1
               className="mb-4 text-[60px] font-semibold leading-[75px] tracking-[-1.5px] text-white max-md:text-[36px] max-md:leading-tight"
@@ -79,11 +83,10 @@ export async function HeroSection(props: { locale: string }) {
           </div>
         )}
 
-        {/* SearchBar overlay */}
-        <div className="mt-12 max-w-3xl">
+        <div className="max-w-3xl">
           <SearchBar />
         </div>
-      </div>
+      </HeroSlider>
     </section>
   );
 }

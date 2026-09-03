@@ -40,10 +40,14 @@ const INTERVAL = 5000;
  * with the oversized BUY TICKETS button Steven asked for in the lower centre.
  * With none uploaded it falls back to the four decorative images the homepage
  * always used, so the page never looks broken for want of content.
- * @param props - The uploaded slides, if any.
- * @returns The slider.
+ * The hero's content is passed as children rather than rendered beside this
+ * component. The call to action has to know which slide is showing, and that
+ * index lives here — putting the button in the background layer instead, where
+ * it started, is what left it stranded underneath the search bar.
+ * @param props - The uploaded slides, and the hero content to render above them.
+ * @returns The slider wrapping its content.
  */
-export function HeroSlider(props: { slides?: HeroSlide[] }) {
+export function HeroSlider(props: { slides?: HeroSlide[]; children?: React.ReactNode }) {
   const t = useTranslations('HeroSlider');
   const slides = props.slides?.length ? props.slides : FALLBACK_SLIDES;
 
@@ -90,14 +94,16 @@ export function HeroSlider(props: { slides?: HeroSlide[] }) {
     return () => clearInterval(id);
   }, [goNext, paused, slides.length]);
 
+  const active = slides[current];
+
   return (
     <div
-      className="pointer-events-none absolute inset-0 overflow-hidden"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocusCapture={() => setPaused(true)}
       onBlurCapture={() => setPaused(false)}
     >
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
       {slides.map((slide, i) => {
         const isActive = i === current;
         const isPrev = i === prev;
@@ -138,22 +144,25 @@ export function HeroSlider(props: { slides?: HeroSlide[] }) {
         );
       })}
 
-      {/* Bottom fade so the hero blends into the page */}
-      <div className="absolute inset-0 z-10 bg-gradient-to-t from-[#0f0f0f] via-transparent to-transparent" />
+        {/* Bottom fade so the hero blends into the page */}
+        <div className="absolute inset-0 z-10 bg-gradient-to-t from-[#0f0f0f] via-transparent to-transparent" />
+      </div>
 
-      {/* Steven's note: one oversized BUY TICKETS button, lower centre. Only on
-          an uploaded banner — the fallback slides are decoration and have
-          nowhere to send anyone. */}
-      {slides[current]?.linkUrl && (
-        <div className="pointer-events-auto absolute bottom-28 left-1/2 z-30 -translate-x-1/2">
+      {/* The hero's content, above the artwork. The button leads it, standing
+          where the old Get Tickets link did — in the flow, so nothing can end
+          up behind the search bar. */}
+      <div className="relative z-30 mx-auto max-w-[1440px]">
+        {active?.linkUrl && (
           <Link
-            href={slides[current].linkUrl}
-            className="block rounded-full bg-[var(--color-brand)] px-12 py-4 text-[17px] font-semibold text-white shadow-xl shadow-black/40 transition-colors hover:bg-[#d41e37] max-sm:px-7 max-sm:py-3 max-sm:text-[14px]"
+            href={active.linkUrl}
+            className="mb-10 inline-block rounded-full bg-[var(--color-brand)] px-12 py-4 text-[18px] font-semibold text-white shadow-xl shadow-black/40 transition-colors hover:bg-[#d41e37] max-sm:px-8 max-sm:py-3 max-sm:text-[15px]"
+            style={{ fontFamily: 'var(--font-poppins)' }}
           >
             {t('buy_tickets')}
           </Link>
-        </div>
-      )}
+        )}
+        {props.children}
+      </div>
 
       {slides.length > 1 && (
         <div className="pointer-events-auto absolute inset-0 z-20 flex items-center justify-between px-3">
