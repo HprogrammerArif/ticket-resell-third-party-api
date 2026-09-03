@@ -5,6 +5,8 @@ import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/libs/I18nNavigation';
 import { LanguageMenu } from '@/components/layout/LanguageMenu';
+import { NavDropdown } from '@/components/layout/NavDropdown';
+import type { NavMenu } from '@/libs/NavMenu';
 
 type AuthUser = {
   id?: string;
@@ -13,7 +15,7 @@ type AuthUser = {
   role?: string;
 };
 
-export function Header(_props?: { locale?: string }) {
+export function Header(props: { locale?: string; menus?: NavMenu }) {
   const t = useTranslations('Header');
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -47,13 +49,16 @@ export function Header(_props?: { locale?: string }) {
     setMobileMenuOpen(false);
   }, [pathname]);
 
+  // `slug` is how a link finds its dropdown. Home, Events and Comedy have
+  // none: the first two are not categories, and Comedy is a leaf under
+  // Concerts with no children to list.
   const navLinks = [
-    { label: t('home'), href: '/' },
-    { label: t('events'), href: '/events' },
-    { label: t('concerts'), href: '/categories/concerts' },
-    { label: t('sports'), href: '/categories/sports' },
-    { label: t('theatre'), href: '/categories/theater' },
-    { label: t('comedy'), href: '/categories/comedy' },
+    { label: t('home'), href: '/', slug: null },
+    { label: t('events'), href: '/events', slug: null },
+    { label: t('concerts'), href: '/categories/concerts', slug: 'concerts' },
+    { label: t('sports'), href: '/categories/sports', slug: 'sports' },
+    { label: t('theatre'), href: '/categories/theater', slug: 'theater' },
+    { label: t('comedy'), href: '/categories/comedy', slug: null },
   ] as const;
 
   const isActive = (href: string) => {
@@ -80,6 +85,21 @@ export function Header(_props?: { locale?: string }) {
         <nav className="hidden items-center gap-7 lg:flex">
           {navLinks.map((link) => {
             const active = isActive(link.href);
+            const items = link.slug ? props.menus?.[link.slug] : undefined;
+
+            if (items?.length) {
+              return (
+                <NavDropdown
+                  key={link.href + link.label}
+                  label={link.label}
+                  href={link.href}
+                  items={items}
+                  active={active}
+                  seeAllLabel={t('see_all_in', { section: link.label })}
+                />
+              );
+            }
+
             return (
               <Link
                 key={link.href + link.label}

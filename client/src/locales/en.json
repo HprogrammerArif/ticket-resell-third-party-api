@@ -139,7 +139,8 @@
     "dashboard": "Dashboard",
     "open_menu": "Open menu",
     "close_menu": "Close menu",
-    "comedy": "Comedy"
+    "comedy": "Comedy",
+    "see_all_in": "See all {section}"
   },
   "Footer": {
     "company_heading": "Company",

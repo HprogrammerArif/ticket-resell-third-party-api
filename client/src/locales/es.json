@@ -139,7 +139,8 @@
     "dashboard": "Panel",
     "open_menu": "Abrir menú",
     "close_menu": "Cerrar menú",
-    "comedy": "Comedia"
+    "comedy": "Comedia",
+    "see_all_in": "Ver todo en {section}"
   },
   "Footer": {
     "company_heading": "Empresa",
