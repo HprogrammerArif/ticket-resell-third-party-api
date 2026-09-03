@@ -52,6 +52,14 @@ COPY --from=build /app/public ./public
 COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
 
+# Next writes its data and prerender cache here at runtime. The COPY steps above
+# run as root, so .next is root-owned and the unprivileged user cannot create
+# the directory — which fails with EACCES on every request and silently
+# disables unstable_cache and ISR. The pages still render; they just re-fetch
+# everything, every time, spending the TicketNetwork and Ticketmaster budgets
+# the caching exists to protect.
+RUN mkdir -p /app/.next/cache && chown -R node:node /app/.next/cache
+
 USER node
 EXPOSE 3000
 
