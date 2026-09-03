@@ -2,6 +2,8 @@ import { randomUUID } from 'node:crypto';
 import { mkdir, writeFile, unlink } from 'node:fs/promises';
 import path from 'node:path';
 import multer from 'multer';
+import { ApiError } from '../../middleware/errorHandler';
+import { logger } from '../../libs/logger';
 
 /**
  * Where uploaded banners live.
@@ -79,9 +81,28 @@ export const bannerUpload = multer({
  * @returns The stored filename.
  */
 export async function storeBanner(buffer: Buffer, ext: string): Promise<string> {
-  await mkdir(UPLOAD_DIR, { recursive: true });
   const filename = `${randomUUID()}.${ext}`;
-  await writeFile(path.join(UPLOAD_DIR, filename), buffer);
+
+  try {
+    await mkdir(UPLOAD_DIR, { recursive: true });
+    await writeFile(path.join(UPLOAD_DIR, filename), buffer);
+  } catch (err) {
+    // A permission error here means the volume's mount point is owned by root
+    // while the container runs as `node`. Saying so beats "an unexpected error
+    // occurred", which is what the first production upload reported and which
+    // told nobody anything.
+    logger.error({ err, dir: UPLOAD_DIR }, 'Could not write banner to the uploads volume');
+    const code = (err as NodeJS.ErrnoException)?.code;
+    if (code === 'EACCES' || code === 'EPERM') {
+      throw new ApiError(
+        500,
+        'UPLOAD_STORAGE_ERROR',
+        'The uploads directory is not writable by the API container',
+      );
+    }
+    throw err;
+  }
+
   return filename;
 }
 

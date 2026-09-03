@@ -106,6 +106,29 @@ jobs:
     # (Settings -> Secrets and variables -> Actions -> Variables).
     if: vars.DEPLOY_ENABLED == 'true'
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # docker-compose.yml was previously only ever edited on the server by
+      # hand, so a change committed here never reached production. That is how
+      # the uploads volume came to be declared in the repository and absent
+      # from the VPS, which failed banner uploads with a permission error and
+      # no obvious cause. Copying it every deploy makes the repository the
+      # source of truth for the stack's shape, as it already is for its code.
+      - name: Copy compose configuration to the VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          # docker-compose.yml only. The Caddyfile is deliberately left alone:
+          # it carries the TLS host names and the CSP header the MapWidget
+          # depends on, and overwriting it from CI would make a routing mistake
+          # a site outage rather than a failed page.
+          source: "docker-compose.yml"
+          target: /opt/ticketlove
+          overwrite: true
+
       - name: Execute SSH remote deployment
         uses: appleboy/ssh-action@v1.2.5
         with:

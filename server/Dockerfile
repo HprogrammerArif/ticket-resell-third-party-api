@@ -34,6 +34,13 @@ COPY --from=build /app/dist ./dist
 COPY --from=build /app/prisma ./prisma
 COPY package.json ./
 
+# The uploads directory must exist in the image, owned by the user the
+# container runs as. Docker seeds an empty named volume from the image path on
+# first mount and takes its ownership from there — without this the mount point
+# is created root-owned and the unprivileged `node` user cannot write to it,
+# which fails an upload with EACCES and no obvious cause.
+RUN mkdir -p /app/uploads/banners && chown -R node:node /app/uploads
+
 USER node
 EXPOSE 8000
 
