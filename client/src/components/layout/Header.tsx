@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/libs/I18nNavigation';
 import { LanguageMenu } from '@/components/layout/LanguageMenu';
 import { NavDropdown } from '@/components/layout/NavDropdown';
+import { HeaderSearch } from '@/components/layout/HeaderSearch';
 import type { NavMenu } from '@/libs/NavMenu';
 
 type AuthUser = {
@@ -184,6 +185,13 @@ export function Header(props: { locale?: string; menus?: NavMenu }) {
             )}
           </button>
         </div>
+      </div>
+
+      {/* Search, under the logo row and left-aligned, per Steven's note. It
+          renders nothing on the homepage, where the hero already carries the
+          larger one a few pixels below. */}
+      <div className="mx-auto max-w-[1440px] px-[107px] pb-3 max-md:px-4">
+        <HeaderSearch />
       </div>
 
       {/* Mobile Drawer Menu */}

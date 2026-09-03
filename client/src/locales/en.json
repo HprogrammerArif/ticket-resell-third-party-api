@@ -176,7 +176,8 @@
     "sold_out": "Sold out",
     "currency_symbol": "$",
     "prev_page": "← Prev",
-    "next_page": "Next →"
+    "next_page": "Next →",
+    "search_placeholder_short": "Search events, artists, venues"
   },
   "HomePage": {
     "meta_title": "TicketLove.net — Live Events & Tickets",

@@ -8,6 +8,7 @@ import { EventCard } from '@/components/catalog/EventCard';
 import { SectionHeading } from '@/components/catalog/SectionHeading';
 import { EventDetailTabs } from '@/components/catalog/EventDetailTabs';
 import { MapWidgetEmbed } from '@/components/catalog/MapWidgetEmbed';
+import { AdSlot } from '@/components/catalog/AdSlot';
 import { PerformerImage } from '@/components/catalog/PerformerImage';
 import { Link } from '@/libs/I18nNavigation';
 import type { TnEvent, TnVenue } from '@/types/Catalog';
@@ -502,6 +503,19 @@ export default async function EventDetailPage(props: EventDetailPageProps) {
             <VenueTab event={event} venue={fullVenue} locale={locale} />
             <FaqTab faqs={faqs} />
           </EventDetailTabs>
+        </div>
+
+        {/* Right: ad space, shown only while the seat map is open.
+            The sidebar below collapses on that tab to give the map room, so
+            this takes the space rather than leaving it empty — which is what
+            Steven asked for. The mirror of the sidebar's own rule. */}
+        <div
+          data-event-ads
+          className="hidden w-80 shrink-0 lg:[:has([data-active=tickets])>&]:block"
+        >
+          <div className="sticky top-24">
+            <AdSlot locale={locale} />
+          </div>
         </div>
 
         {/* Right: Sticky sidebar */}
