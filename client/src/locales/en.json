@@ -494,5 +494,10 @@
     "got_it": "Got it, thanks!",
     "on_the_list": "You're on the list! 🎉",
     "reserved_message": "We've reserved your <strong>10% bonus credit</strong> on your <strong>${amount}</strong> gift card. We'll send an exclusive early access link to <strong>{email}</strong> the moment we launch!"
+  },
+  "BannerCarousel": {
+    "label": "Featured events",
+    "buy_tickets": "BUY TICKETS",
+    "go_to": "Go to banner {number}"
   }
 }

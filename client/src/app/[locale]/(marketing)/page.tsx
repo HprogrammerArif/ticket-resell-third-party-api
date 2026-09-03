@@ -19,6 +19,8 @@ import { GiftCardBanner } from '@/components/catalog/GiftCardBanner';
 import { HowItWorksSection } from '@/components/catalog/HowItWorksSection';
 import { StatsSection } from '@/components/catalog/StatsSection';
 import { getEventImages } from '@/libs/EventImage';
+import { BannerCarousel, type Banner } from '@/components/catalog/BannerCarousel';
+import { getBanners } from '@/libs/BannersApi';
 
 type HomePageProps = { params: Promise<{ locale: string }> };
 
@@ -330,8 +332,14 @@ export default async function HomePage(props: HomePageProps) {
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: 'HomePage' });
 
+  const banners: Banner[] = await getBanners();
+
   return (
     <>
+      {/* Steven uploads these from the admin dashboard. Absent or unreachable,
+          the homepage renders exactly as it did before them. */}
+      <BannerCarousel banners={banners} />
+
       <Suspense fallback={<div className="h-[600px] animate-pulse bg-[#1a0a0d]" />}>
         <HeroSection locale={locale} />
       </Suspense>

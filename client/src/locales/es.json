@@ -494,5 +494,10 @@
     "got_it": "Entendido, gracias",
     "on_the_list": "¡Ya estás en la lista! 🎉",
     "reserved_message": "Hemos reservado tu <strong>10% de crédito extra</strong> en tu tarjeta de regalo de <strong>${amount}</strong>. Enviaremos un enlace de acceso anticipado a <strong>{email}</strong> en cuanto lancemos."
+  },
+  "BannerCarousel": {
+    "label": "Eventos destacados",
+    "buy_tickets": "COMPRAR BOLETOS",
+    "go_to": "Ir al banner {number}"
   }
 }

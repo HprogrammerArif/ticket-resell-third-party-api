@@ -69,6 +69,26 @@ model GiftCardRedemption {
   user     User?    @relation(fields: [userId], references: [id])
 }
 
+/// Homepage banners, uploaded and ordered by an administrator.
+///
+/// Steven manages these himself over time, so the artwork is data rather than
+/// markup. Width and height are recorded at upload so next/image can reserve
+/// the space and the carousel does not shift as it loads.
+model Banner {
+  id        String   @id @default(cuid())
+  title     String
+  filename  String   @unique
+  linkUrl   String
+  position  Int      @default(0)
+  isActive  Boolean  @default(true)
+  width     Int
+  height    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, position])
+}
+
 /// Resolved performer photographs, surviving a container restart.
 ///
 /// node-cache is in memory, so a deploy empties it and every performer viewed

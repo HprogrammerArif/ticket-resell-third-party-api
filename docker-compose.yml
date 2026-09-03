@@ -35,6 +35,10 @@ services:
     image: ghcr.io/hprogrammerarif/ticketlove-api:${TAG:-latest}
     restart: unless-stopped
     env_file: [.env]
+    volumes:
+      # Uploaded homepage banners. A named volume so they survive a redeploy,
+      # exactly as pgdata and caddy_data do.
+      - uploads:/app/uploads
     environment:
       NODE_ENV: production
       PORT: 8000
@@ -78,6 +82,7 @@ services:
       - max_connections=50
 
 volumes:
+  uploads:
   pgdata:
   caddy_data:
   caddy_config:

@@ -15,7 +15,14 @@ const baseConfig: NextConfig = {
   // `search` is deliberately omitted: specifying it requires an exact match on
   // the whole query string, and ours differs per image.
   images: {
-    localPatterns: [{ pathname: '/api/images/**' }],
+    // Every local path next/image is allowed to optimise. Adding a route that
+    // serves images without adding it here throws at render — three separate
+    // times on this project now, so it is worth checking whenever a new image
+    // route appears.
+    localPatterns: [
+      { pathname: '/api/images/**' },
+      { pathname: '/api/banners/**' },
+    ],
     // Ticketmaster's image CDN. Unlike Wikimedia it sets no User-Agent
     // requirement, so these are fetched directly rather than through
     // /api/images/proxy — one hop fewer, and the proxy's Commons licence gate

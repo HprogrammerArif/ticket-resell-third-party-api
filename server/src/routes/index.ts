@@ -4,6 +4,7 @@ import catalogRouter from './catalog';
 import usersRouter from '../modules/users/routes';
 import adminRouter from '../modules/admin/routes';
 import imagesRouter from '../modules/images/routes';
+import bannersRouter from '../modules/banners/routes';
 
 const router = Router();
 
@@ -15,5 +16,8 @@ router.use('/api/admin', adminRouter);
 // against Wikimedia and must not spend the catalog budget, which exists to
 // stay under TicketNetwork's ceiling.
 router.use('/api/images', imagesRouter);
+// Banner files carry their own cache headers and must not spend the catalog
+// budget, which exists to stay under TicketNetwork's ceiling.
+router.use('/api/banners', bannersRouter);
 
 export default router;

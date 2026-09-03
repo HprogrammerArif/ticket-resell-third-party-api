@@ -494,5 +494,10 @@
     "got_it": "C'est noté, merci",
     "on_the_list": "Vous êtes sur la liste ! 🎉",
     "reserved_message": "Nous avons réservé votre <strong>crédit bonus de 10 %</strong> sur votre carte cadeau de <strong>{amount} $</strong>. Nous enverrons un lien d'accès anticipé à <strong>{email}</strong> dès le lancement."
+  },
+  "BannerCarousel": {
+    "label": "Événements à la une",
+    "buy_tickets": "ACHETER DES BILLETS",
+    "go_to": "Aller à la bannière {number}"
   }
 }
